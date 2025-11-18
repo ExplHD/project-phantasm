@@ -1,0 +1,36 @@
+{
+	"format_version": "1.20.80",
+	"minecraft:client_entity": {
+		"description": {
+			"identifier": "ph:ocean_crystal",
+			"materials": {
+				"default": "entity_emissive"
+			},
+			"textures": {
+				"default": "textures/entity/crystals/ocean_crystal"
+			},
+			"geometry": {
+				"default": "geometry.soul_crystal"
+			},
+			"render_controllers": [
+				"controller.render.land_crystal"
+			],
+			"particle_effects": {
+				"ocean_crystal_raycast": "ph:ocean_crystal_raycast"
+			},
+			"animations": {
+				"soul_crystal": "animation.soul_crystal.idle",
+				"warn_raycast": "animation.ocean_crystal.warn_raycast"
+			},
+			"scripts": {
+				"animate": [
+					"soul_crystal"
+				]
+			},
+			"spawn_egg": {
+				"base_color": "#000000",
+				"overlay_color": "#FFFFFF"
+			}
+		}
+	}
+}

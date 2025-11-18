@@ -1,0 +1,54 @@
+{
+	"resource_pack_name": "Project Phantasm",
+	"texture_name": "atlas.items",
+	"texture_data": {
+		"ph_solaris_verdant": {
+			"textures": "textures/items/solaris_verdant"
+		},
+		"ph_supercharged_copper_axe": {
+			"textures": "textures/items/supercharged_copper_axe"
+		},
+		"ph_charged_copper_axe": {
+			"textures": "textures/items/charged_copper_axe"
+		},
+		"ph_spectric_bow": {
+			"textures": "textures/items/spectric_bow"
+		},
+		"ph_spectral_arrow": {
+			"textures": "textures/items/spectral_arrow"
+		},
+		"ph_time_polarizer": {
+			"textures": "textures/items/time_polarizer"
+		},
+		"ph_flow_channeler": {
+			"textures": "textures/items/flow_channeler"
+		},
+		"ph_soul_of_nature_treasure_bag": {
+			"textures": "textures/items/soul_of_nature_treasure_bag"
+		},
+		"ph_prismatic_ingot": {
+			"textures": "textures/items/prismatic_ingot"
+		},
+		"ph_hell_charge": {
+			"textures": "textures/items/hell_charge"
+		},
+		"ph:ocean_tide_helmet": {
+			"textures": "textures/items/ocean_tide/ocean_tide_helmet"
+		},
+		"ph:ocean_tide_chestplate": {
+			"textures": "textures/items/ocean_tide/ocean_tide_chestplate"
+		},
+		"ph:ocean_tide_leggings": {
+			"textures": "textures/items/ocean_tide/ocean_tide_leggings"
+		},
+		"ph:ocean_tide_boots": {
+			"textures": "textures/items/ocean_tide/ocean_tide_boots"
+		},
+		"ph_golden_nether_fruit": {
+			"textures": "textures/items/golden_nether_fruit"
+		},
+		"ph_wither_treasure_bag": {
+			"textures": "textures/items/loot_treasure/wither_treasure_bag"
+		}
+	}
+}

@@ -1,0 +1,38 @@
+{
+    "format_version": "1.10.0",
+    "render_controllers": {
+        "controller.render.solaris_verdant": {
+            "textures": [
+                "Texture.solaris_verdant"
+            ],
+            "geometry": "Geometry.solaris_verdant",
+            "materials": [
+                {
+                    "*": "material.default"
+                }
+            ]
+        },
+        "controller.render.charged_copper_axe": {
+            "textures": [
+                "Texture.charged_copper_axe"
+            ],
+            "geometry": "Geometry.charged_copper_axe",
+            "materials": [
+                {
+                    "*": "material.default"
+                }
+            ]
+        },
+        "controller.render.spectric_bow": {
+            "textures": [
+                "Texture.spectric_bow"
+            ],
+            "geometry": "Geometry.spectric_bow",
+            "materials": [
+                {
+                    "*": "material.default"
+                }
+            ]
+        }
+    }
+}

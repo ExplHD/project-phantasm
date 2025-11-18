@@ -1,0 +1,39 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"animation.laser": {
+			"animation_length": 2,
+			"loop": true,
+			"bones": {
+				"bone": {
+					"rotation": {
+						"0.0": [
+							0,
+							0,
+							0
+						],
+						"2.0": [
+							0,
+							360,
+							0
+						]
+					}
+				},
+				"bone2": {
+					"rotation": {
+						"0.0": [
+							0,
+							0,
+							0
+						],
+						"2.0": [
+							0,
+							-360,
+							0
+						]
+					}
+				}
+			}
+		}
+	}
+}

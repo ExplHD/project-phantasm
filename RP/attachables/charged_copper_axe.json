@@ -1,0 +1,32 @@
+{
+	"format_version": "1.21.0",
+	"minecraft:attachable": {
+		"description": {
+			"identifier": "ph:charged_copper_axe",
+			"materials": {
+				"default": "entity_alphatest",
+				"enchanted": "entity_alphatest_glint"
+			},
+			"textures": {
+				"default": "textures/3ds/charged_copper_axe",
+				"enchanted": "textures/misc/enchanted_item_glint"
+			},
+			"geometry": {
+				"default": "geometry.charged_copper_axe"
+			},
+			"animations": {
+				"fpp_1": "animation.weapon.fpp_1"
+			},
+			"scripts": {
+				"animate": [
+					{
+						"fpp_1": "c.is_first_person"
+					}
+				]
+			},
+			"render_controllers": [
+				"controller.render.item_default"
+			]
+		}
+	}
+}

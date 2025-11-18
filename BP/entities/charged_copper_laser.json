@@ -1,0 +1,90 @@
+{
+	"format_version": "1.20.80",
+	"minecraft:entity": {
+		"description": {
+			"identifier": "ph:charged_copper_laser",
+			"is_spawnable": true,
+			"is_summonable": true,
+			"is_experimental": false
+		},
+		"component_groups": {
+			"instant_despawn": {
+				"minecraft:instant_despawn": {}
+			}
+		},
+		"components": {
+			"minecraft:health": {
+				"value": 4
+			},
+			"minecraft:scale": {
+				"value": 3
+			},
+			"minecraft:collision_box": {
+				"height": 0.01,
+				"width": 0.01
+			},
+			"minecraft:physics": {
+				"has_gravity": false,
+				"has_collision": false
+			},
+			"minecraft:pushable": {
+				"is_pushable": false
+			},
+			"minecraft:knockback_resistance": {
+				"value": 15
+			},
+			"minecraft:type_family": {
+				"family": [
+					"inanimate",
+					"animated_tp",
+					"laser"
+				]
+			},
+			"minecraft:damage_sensor": {
+				"triggers": {
+					"cause": "all",
+					"deals_damage": false
+				}
+			},
+			"minecraft:area_attack": {
+				"damage_cooldown": 0.1,
+				"cause": "entity_attack",
+				"damage_per_tick": 20,
+				"damage_range": 2,
+				"play_attack_sound": false,
+				"entity_filter": [
+					{
+						"test": "has_equipment",
+						"domain": "hand",
+						"operator": "!=",
+						"subject": "other",
+						"value": "ph:supercharged_copper_axe"
+					}
+				]
+			},
+			"minecraft:timer": {
+				"looping": true,
+				"time": 2,
+				"time_down_event": {
+					"event": "despawn"
+				}
+			},
+			"minecraft:conditional_bandwidth_optimization": {
+				"default_values": {
+					"max_dropped_ticks": 7,
+					"max_optimized_distance": 96,
+					"use_motion_prediction_hints": true
+				}
+			}
+		},
+		"events": {
+			"despawn": {
+				"add": {
+					"component_groups": [
+						"instant_despawn"
+					]
+				}
+			}
+		}
+	}
+}

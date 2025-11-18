@@ -1,0 +1,36 @@
+{
+	"format_version": "1.21.0",
+	"minecraft:recipe_shaped": {
+		"description": {
+			"identifier": "ph:spectral_arrow"
+		},
+		"tags": [
+			"crafting_table"
+		],
+		"key": {
+			"A": {
+				"item": "minecraft:arrow"
+			},
+			"G": {
+				"item": "minecraft:glowstone_dust"
+			}
+		},
+		"pattern": [
+			" G ",
+			"GAG",
+			" G "
+		],
+		"unlock": [
+			{
+				"item": "minecraft:arrow"
+			},
+			{
+				"item": "minecraft:glowstone_dust"
+			}
+		],
+		"result": {
+			"item": "ph:spectral_arrow",
+			"count": 2
+		}
+	}
+}

@@ -1,0 +1,35 @@
+{
+	"format_version": "1.20.80",
+	"minecraft:client_entity": {
+		"description": {
+			"identifier": "ph:animirra_meteor",
+			"materials": {
+				"default": "entity_alphatest"
+			},
+			"textures": {
+				"default": "textures/entity/solaris_slash"
+			},
+			"particle_effects": {
+				"solaris_verdant_solaris_slash_split": "ph:animirra_meteor_trail"
+			},
+			"animations": {
+				"solaris_slash": "animation.solaris_slash.solaris_slash"
+			},
+			"scripts": {
+				"animate": [
+					"solaris_slash"
+				]
+			},
+			"geometry": {
+				"default": "geometry.solaris_slash"
+			},
+			"render_controllers": [
+				"controller.render.solaris_slash"
+			],
+			"spawn_egg": {
+				"base_color": "#000000",
+				"overlay_color": "#FFFFFF"
+			}
+		}
+	}
+}

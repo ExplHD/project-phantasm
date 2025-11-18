@@ -1,0 +1,37 @@
+{
+	"format_version": "1.20.80",
+	"minecraft:client_entity": {
+		"description": {
+			"identifier": "ph:animirra_summon",
+			"materials": {
+				"default": "entity_alphatest"
+			},
+			"textures": {
+				"default": "textures/entity/animirra_summon"
+			},
+			"particle_effects": {
+				"animirra_summons": "ph:animirra_summons",
+				"animirra_summons_ultimate": "ph:animirra_summons_ultimate"
+			},
+			"animations": {
+				"normal": "animation.animirra_summons.normal",
+				"ultimate": "animation.animirra_summons.ultimate"
+			},
+			"scripts": {
+				"animate": [
+					"normal"
+				]
+			},
+			"geometry": {
+				"default": "geometry.solaris_slash"
+			},
+			"render_controllers": [
+				"controller.render.animirra_summon"
+			],
+			"spawn_egg": {
+				"base_color": "#000000",
+				"overlay_color": "#FFFFFF"
+			}
+		}
+	}
+}

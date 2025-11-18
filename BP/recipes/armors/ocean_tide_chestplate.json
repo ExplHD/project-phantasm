@@ -1,0 +1,27 @@
+{
+	"format_version": "1.21.0",
+	"minecraft:recipe_shaped": {
+		"description": {
+			"identifier": "ph:ocean_tide_chestplate"
+		},
+		"tags": [
+			"crafting_table"
+		],
+		"key": {
+			"N": {
+				"item": "minecraft:netherite_chestplate"
+			},
+			"P": {
+				"item": "ph:prismatic_ingot"
+			}
+		},
+		"pattern": [
+			" P ",
+			"PNP",
+			" P "
+		],
+		"result": {
+			"item": "ph:ocean_tide_chestplate"
+		}
+	}
+}

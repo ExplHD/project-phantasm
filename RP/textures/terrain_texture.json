@@ -1,0 +1,11 @@
+{
+	"num_mip_levels": 4,
+	"padding": 8,
+	"resource_pack_name": "Project Phantasm",
+	"texture_name": "atlas.terrain",
+	"texture_data": {
+		"ph_nature_soul_altar": {
+			"textures": "textures/blocks/nature_soul_altar"
+		}
+	}
+}

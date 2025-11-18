@@ -1,0 +1,17 @@
+{
+	"format_version": "1.10.0",
+	"animations": {
+		"animation.ocean_crystal.warn_raycast": {
+			"animation_length": 0.1,
+			"loop": false,
+			"particle_effects": {
+				"0.0": [
+					{
+						"effect": "ocean_crystal_raycast",
+						"locator": "locator"
+					}
+				]
+			}
+		}
+	}
+}

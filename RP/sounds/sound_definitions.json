@@ -1,0 +1,54 @@
+{
+	"format_version": "1.14.0",
+	"sound_definitions": {
+		"weapon_slash.slash_light": {
+			"category": "player",
+			"max_distance": 20,
+			"sounds": [
+				"sounds/swords_slash/slash_light"
+			]
+		},
+		"weapon_slash.slash_medium": {
+			"category": "player",
+			"max_distance": 20,
+			"sounds": [
+				"sounds/swords_slash/slash_medium"
+			]
+		},
+		"weapon_slash.slash_heavy": {
+			"category": "player",
+			"max_distance": 20,
+			"sounds": [
+				"sounds/swords_slash/slash_heavy"
+			]
+		},
+		"custom_sfx.animirra_summon": {
+			"sounds": [
+				"sounds/custom_sfx/animirra_summon"
+			],
+			"category": "player",
+			"max_distance": 32
+		},
+		"custom_sfx.high_voltage_spark": {
+			"sounds": [
+				"sounds/custom_sfx/high_voltage_spark"
+			],
+			"category": "player",
+			"max_distance": 32
+		},
+		"custom_sfx.boss_summoned": {
+			"category": "ui",
+			"max_distance": 256,
+			"sounds": [
+				"sounds/custom_sfx/1nsthw0l74nj"
+			]
+		},
+		"entity.meteor_impact": {
+			"category": "hostile",
+			"max_distance": 64,
+			"sounds": [
+				"sounds/entity/meteor_impact"
+			]
+		}
+	}
+}

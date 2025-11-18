@@ -1,0 +1,33 @@
+{
+	"format_version": "1.10.0",
+	"animation_controllers": {
+		"controller.animation.spectric_bow": {
+			"initial_state": "default",
+			"states": {
+				"default": {
+					"animations": [
+						"spectric_bow_default"
+					],
+					"blend_transition": 0.1,
+					"transitions": [
+						{
+							"charge": "query.get_equipped_item_name=='spectric_bow'&&query.is_using_item"
+						}
+					]
+				},
+				"charge": {
+					"animations": [
+						"spectric_bow_default",
+						"spectric_bow_charge"
+					],
+					"blend_transition": 0.1,
+					"transitions": [
+						{
+							"default": "query.get_equipped_item_name=='spectric_bow'&&!query.is_using_item"
+						}
+					]
+				}
+			}
+		}
+	}
+}

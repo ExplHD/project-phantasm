@@ -1,0 +1,52 @@
+{
+	"format_version": 2,
+	"metadata": {
+		"authors": [
+			"ExplerHD"
+		],
+		"generated_with": {
+			"bridge": [
+				"2.7.52"
+			],
+			"dash": [
+				"0.11.7"
+			]
+		}
+	},
+	"header": {
+		"name": "Project Phantasm",
+		"description": "This Project is the continuation, (maybe?) of The Fates Intertwined, reworked any content inside, adding more unique type of weapons, unique bosses, and other unique things",
+		"min_engine_version": [
+			1,
+			21,
+			111
+		],
+		"uuid": "295552b1-3441-4d36-bc81-2fa7bf112263",
+		"version": [
+			1,
+			0,
+			0
+		]
+	},
+	"modules": [
+		{
+			"type": "resources",
+			"uuid": "c6825621-f039-4beb-8d5a-3614a6d273d7",
+			"version": [
+				1,
+				0,
+				0
+			]
+		}
+	],
+	"dependencies": [
+		{
+			"uuid": "4d04cff2-e145-42c4-acf2-b194a9437fb1",
+			"version": [
+				1,
+				0,
+				0
+			]
+		}
+	]
+}
