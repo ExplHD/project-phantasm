@@ -1,0 +1,38 @@
+{
+    "format_version": "1.21.0",
+    "minecraft:recipe_shaped": {
+        "description": {
+            "identifier": "ph:auric_battery_recharge_station"
+        },
+        "tags": [
+            "crafting_table"
+        ],
+        "key": {
+            "A": {
+                "item": "ph:ancient_copper_core"
+            },
+            "G": {
+                "item": "minecraft:copper_block"
+            },
+            "E": {
+                "item": "ph:auric_charging_module"
+            }
+        },
+        "pattern": [
+            " G ",
+            "GAG",
+            " E "
+        ],
+        "unlock": [
+            {
+                "item": "ph:ancient_copper_core"
+            },
+            {
+                "item": "ph:auric_charging_module"
+            }
+        ],
+        "result": {
+            "item": "ph:auric_battery_recharge_station"
+        }
+    }
+}

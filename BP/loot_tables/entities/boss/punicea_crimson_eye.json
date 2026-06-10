@@ -1,0 +1,18 @@
+{
+    "pools": [
+        {
+            "rolls": 1,
+            "conditions": [
+                {
+                    "condition": "killed_by_player_or_pets"
+                }
+            ],
+            "entries": [
+                {
+                    "type": "item",
+                    "name": "ph:punicea_crimson_eye_treasure_bag"
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,128 @@
+{
+	"format_version": "1.14.0",
+	"sound_definitions": {
+		"weapon_slash.slash_light": {
+			"category": "player",
+			"max_distance": 20,
+			"sounds": [
+				"sounds/weapons/slash_light"
+			]
+		},
+		"weapon_slash.slash_medium": {
+			"category": "player",
+			"max_distance": 20,
+			"sounds": [
+				"sounds/weapons/slash_medium"
+			]
+		},
+		"weapon_slash.slash_heavy": {
+			"category": "player",
+			"max_distance": 20,
+			"sounds": [
+				"sounds/weapons/slash_heavy"
+			]
+		},
+		"weapon_slash.slash_clash": {
+			"category": "player",
+			"max_distance": 32,
+			"sounds": [
+				"sounds/weapons/slash_clash"
+			]
+		},
+		"weapon_slash.magic_staff": {
+			"category": "player",
+			"max_distance": 20,
+			"sounds": [
+				"sounds/weapons/magic_staff"
+			]
+		},
+		"weapon_slash.glock_shot": {
+			"category": "player",
+			"max_distance": 20,
+			"sounds": [
+				"sounds/weapons/glock_shot"
+			]
+		},
+		"custom_sfx.animirra_summon": {
+			"sounds": [
+				"sounds/custom_sfx/animirra_summon"
+			],
+			"category": "player",
+			"max_distance": 32
+		},
+		"custom_sfx.high_voltage_spark": {
+			"sounds": [
+				"sounds/custom_sfx/high_voltage_spark"
+			],
+			"category": "player",
+			"max_distance": 32
+		},
+		"custom_sfx.boss_summoned": {
+			"category": "ui",
+			"max_distance": 256,
+			"sounds": [
+				"sounds/custom_sfx/1nsthw0l74nj"
+			]
+		},
+		"custom_sfx.judgement_cut": {
+			"category": "ui",
+			"max_distance": 64,
+			"sounds": [
+				"sounds/custom_sfx/judgement_cut"
+			]
+		},
+		"custom_sfx.prism_fire": {
+			"sounds": [
+				"sounds/custom_sfx/prism_fire"
+			],
+			"category": "player",
+			"max_distance": 64
+		},
+		"custom_sfx.vortex_beam": {
+			"sounds": [
+				"sounds/custom_sfx/vortex_beam"
+			],
+			"category": "player",
+			"max_distance": 64
+		},
+		"custom_sfx.laser_shot": {
+			"sounds": [
+				"sounds/custom_sfx/laser_shot"
+			],
+			"category": "player",
+			"max_distance": 64
+		},
+		"custom_sfx.laser_beam": {
+			"sounds": [
+				"sounds/custom_sfx/laser_beam"
+			],
+			"category": "player",
+			"max_distance": 100
+		},
+		"entity.meteor_impact": {
+			"category": "hostile",
+			"max_distance": 64,
+			"sounds": [
+				"sounds/entity/meteor_impact"
+			]
+		},
+		"music.boss.mechanical_god_remix": {
+			"category": "music",
+			"sounds": [
+				"sounds/music/game/boss/mechanical_god_remix"
+			]
+		},
+		"music.boss.trial_of_the_insane": {
+			"category": "music",
+			"sounds": [
+				"sounds/music/game/boss/trial_of_the_insane"
+			]
+		},
+		"music.boss.it_sees_everything": {
+			"category": "music",
+			"sounds": [
+				"sounds/music/game/boss/it_sees_everything"
+			]
+		}
+	}
+}

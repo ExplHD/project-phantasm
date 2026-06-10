@@ -1,0 +1,1 @@
+{"format_version":"1.21.0","minecraft:recipe_shaped":{"description":{"identifier":"ph:nature_staff"},"tags":["crafting_table"],"key":{"D":{"item":"minecraft:diamond_block"},"W":{"item":"minecraft:nautilus_shell"},"S":{"item":"minecraft:stick"}},"pattern":["D","W","S"],"unlock":[{"item":"minecraft:diamond"},{"item":"minecraft:nautilus_shell"}],"result":{"item":"ph:nature_staff"}}}

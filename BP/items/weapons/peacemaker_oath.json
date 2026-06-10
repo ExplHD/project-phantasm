@@ -1,0 +1,29 @@
+{
+	"format_version": "1.21.130",
+	"minecraft:item": {
+		"description": {
+			"identifier": "ph:peacemaker_oath",
+			"menu_category": {
+				"category": "equipment"
+			}
+		},
+		"components": {
+			"ph:custom_shooter": {
+				"projectile_entity": "ph:peacemaker_oath_projectile",
+				"sound_effect": "weapon_slash.glock_shot",
+				"animations": "animation.peacemaker_oath",
+				"cost_type": "auric_charge",
+				"cost_value": 1,
+				"animation": "animation.peacemaker_oath.fire"
+			},
+			"minecraft:icon": "ph_peacemaker_oath",
+			"minecraft:max_stack_size": 1,
+			"minecraft:rarity": "epic",
+			"minecraft:tags": {
+				"tags": [
+					"minecraft:is_tool"
+				]
+			}
+		}
+	}
+}

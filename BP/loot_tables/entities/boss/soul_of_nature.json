@@ -1,0 +1,18 @@
+{
+    "pools": [
+        {
+            "rolls": 1,
+            "conditions": [
+                {
+                    "condition": "killed_by_player_or_pets"
+                }
+            ],
+            "entries": [
+                {
+                    "type": "item",
+                    "name": "ph:soul_of_nature_treasure_bag"
+                }
+            ]
+        }
+    ]
+}

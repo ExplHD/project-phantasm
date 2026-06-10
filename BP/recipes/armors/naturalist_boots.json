@@ -1,0 +1,1 @@
+{"format_version":"1.21.0","minecraft:recipe_shaped":{"description":{"identifier":"ph:naturalist_boots"},"tags":["crafting_table"],"key":{"N":{"item":"minecraft:netherite_boots"},"P":{"item":"ph:prismatic_ingot"},"M":{"item":"minecraft:moss_block"}},"pattern":["PPP","MNM","PPP"],"unlock":[{"item":"ph:prismatic_ingot"}],"result":{"item":"ph:naturalist_boots"}}}

@@ -1,0 +1,7 @@
+{
+    // Alphabetical Order, please
+    "ui_defs": [
+        "ui/.phantasm/health_indicator.json"
+        // "ui/.phantasm/ui_gradient_element.json"
+    ]
+}

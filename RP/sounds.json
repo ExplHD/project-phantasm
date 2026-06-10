@@ -1,0 +1,11 @@
+{
+    "entity_sounds": {
+        "entities": {
+            "ph:copper_mech_double_blade": {
+                "events": {
+                    "attack": "weapon_slash.slash_heavy"
+                }
+            }
+        }
+    }
+}

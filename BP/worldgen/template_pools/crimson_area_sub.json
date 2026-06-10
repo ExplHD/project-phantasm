@@ -1,0 +1,42 @@
+{
+	"format_version": "1.21.20",
+	"minecraft:template_pool": {
+		"description": {
+			"identifier": "ph:crimson_area_sub"
+		},
+		"elements": [
+			{
+				"element": {
+					"element_type": "minecraft:single_pool_element",
+					"location": "crimson_area/crimson_area_n",
+					"processors": "ph:crimson_overgrowth_processor"
+				},
+				"weight": 1
+			},
+			{
+				"element": {
+					"element_type": "minecraft:single_pool_element",
+					"location": "crimson_area/crimson_area_e",
+					"processors": "ph:crimson_overgrowth_processor"
+				},
+				"weight": 1
+			},
+			{
+				"element": {
+					"element_type": "minecraft:single_pool_element",
+					"location": "crimson_area/crimson_area_s",
+					"processors": "ph:crimson_overgrowth_processor"
+				},
+				"weight": 1
+			},
+			{
+				"element": {
+					"element_type": "minecraft:single_pool_element",
+					"location": "crimson_area/crimson_area_w",
+					"processors": "ph:crimson_overgrowth_processor"
+				},
+				"weight": 1
+			}
+		]
+	}
+}

@@ -1,0 +1,162 @@
+{
+	"format_version": "1.26.0",
+	"minecraft:block": {
+		"description": {
+			"identifier": "ph:auric_battery_recharge_station",
+			"menu_category": {
+				"category": "items"
+			},
+			"states": {
+				"ph:battery_count": [
+					0,
+					1,
+					2,
+					3,
+					4
+				],
+				"ph:battery_state": [
+					"open",
+					"processing",
+					"result"
+				]
+			}
+		},
+		"components": {
+			"minecraft:geometry": {
+				"identifier": "geometry.auric_battery_recharge_station",
+				"bone_visibility": {
+					"battery_1": "query.block_state('ph:battery_count') > 0",
+					"battery_2": "query.block_state('ph:battery_count') > 1",
+					"battery_3": "query.block_state('ph:battery_count') > 2",
+					"battery_4": "query.block_state('ph:battery_count') > 3",
+					"glass": "query.block_state('ph:battery_state') == 'processing'"
+				}
+			},
+			"minecraft:material_instances": {
+				"*": {
+					"texture": "ph_auric_battery_recharge_station_open",
+					"render_method": "alpha_test"
+				}
+			},
+			"minecraft:collision_box": {
+				"origin": [
+					-7,
+					0,
+					-7
+				],
+				"size": [
+					14,
+					16,
+					14
+				]
+			},
+			"minecraft:selection_box": {
+				"origin": [
+					-7,
+					0,
+					-7
+				],
+				"size": [
+					14,
+					16,
+					14
+				]
+			},
+			"minecraft:movable": {
+				"movement_type": "push_pull",
+				"sticky": "none"
+			},
+			"minecraft:tick": {
+				"interval_range": [
+					0,
+					20
+				],
+				"looping": false
+			},
+			"minecraft:destructible_by_explosion": {
+				"explosion_resistance": 24
+			},
+			"minecraft:destructible_by_mining": {
+				"seconds_to_destroy": 9
+			},
+			"minecraft:map_color": "#ffe600",
+			"minecraft:light_emission": 15,
+			"minecraft:light_dampening": 1,
+			"tag:minecraft:is_pickaxe_item_destructible": {},
+			"ph:item_charger": {
+				"item": "ph:auric_stock_battery",
+				"max_battery_stack": 4,
+				"sound_input": "tile.piston.in",
+				"sound_pickup": "tile.piston.out"
+			}
+		},
+		"permutations": [
+			{
+				"condition": "query.block_state('ph:battery_state') == 'open'",
+				"components": {
+					"minecraft:tick": {
+						"interval_range": [
+							0,
+							20
+						],
+						"looping": false
+					},
+					"minecraft:material_instances": {
+						"*": {
+							"texture": "ph_auric_battery_recharge_station_open",
+							"render_method": "alpha_test"
+						}
+					},
+					"minecraft:movable": {
+						"movement_type": "push_pull",
+						"sticky": "none"
+					}
+				}
+			},
+			{
+				"condition": "query.block_state('ph:battery_state') == 'processing'",
+				"components": {
+					"minecraft:tick": {
+						"interval_range": [
+							2000,
+							2000
+						],
+						"looping": true
+					},
+					"minecraft:material_instances": {
+						"*": {
+							"texture": "ph_auric_battery_recharge_station",
+							"render_method": "alpha_test"
+						}
+					},
+					"minecraft:movable": {
+						"movement_type": "immovable",
+						"sticky": "none"
+					}
+				}
+			},
+			{
+				"condition": "query.block_state('ph:battery_state') == 'result'",
+				"components": {
+					"minecraft:tick": {
+						"interval_range": [
+							0,
+							20
+						],
+						"looping": false
+					},
+					"minecraft:material_instances": {
+						"*": {
+							"texture": "ph_auric_battery_recharge_station_result",
+							"render_method": "alpha_test"
+						}
+					},
+					"minecraft:movable": {
+						"movement_type": "push_pull",
+						"sticky": "none"
+					}
+				}
+			}
+		]
+	}
+}

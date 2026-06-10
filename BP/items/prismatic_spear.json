@@ -1,0 +1,106 @@
+{
+    "format_version": "1.26.0",
+    "minecraft:item": {
+        "description": {
+            "identifier": "ph:prismatic_spear",
+            "menu_category": {
+                "category": "equipment",
+                "group": "minecraft:itemGroup.name.spear"
+            }
+        },
+        "components": {
+            "ph:vanilla_tool_fix": {},
+            "minecraft:icon": "ph_prismatic_spear",
+            "minecraft:max_stack_size": 1,
+            "minecraft:enchantable": {
+                "slot": "melee_spear",
+                "value": 32
+            },
+            "minecraft:cooldown": {
+                "category": "spear",
+                "duration": 1.3,
+                "type": "attack"
+            },
+            "minecraft:durability": {
+                "max_durability": 4062
+            },
+            "minecraft:damage": 8,
+            "minecraft:repairable": {
+                "repair_items": [
+                    {
+                        "items": [
+                            "ph:prismatic_ingot"
+                        ],
+                        "repair_amount": "query.max_durability*0.25"
+                    },
+                    {
+                        "items": [
+                            "ph:prismatic_sword"
+                        ],
+                        "repair_amount": "context.other->query.remaining_durability+0.12*context.other->query.max_durability"
+                    }
+                ]
+            },
+            "minecraft:rarity": "rare",
+            "minecraft:fire_resistant": {
+                "value": true
+            },
+            "minecraft:piercing_weapon": {
+                "reach": {
+                    "min": 2,
+                    "max": 4.5
+                },
+                "creative_reach": {
+                    "min": 2,
+                    "max": 7.5
+                },
+                "hitbox_margin": 0.125
+            },
+            "minecraft:kinetic_weapon": {
+                "delay": 7,
+                "reach": {
+                    "min": 2,
+                    "max": 4.5
+                },
+                "creative_reach": {
+                    "min": 2,
+                    "max": 7.5
+                },
+                "hitbox_margin": 0.25,
+                "damage_multiplier": 1.3,
+                "damage_conditions": {
+                    "max_duration": 300,
+                    "min_relative_speed": 4.6
+                },
+                "knockback_conditions": {
+                    "max_duration": 200,
+                    "min_speed": 5.1
+                },
+                "dismount_conditions": {
+                    "max_duration": 150,
+                    "min_speed": 5.1
+                }
+            },
+            "minecraft:swing_duration": {
+                "value": 1.3
+            },
+            "minecraft:swing_sounds": {
+                "attack_miss": "item.spear.attack_miss",
+                "attack_hit": "item.spear.attack_hit"
+            },
+            "minecraft:use_modifiers": {
+                "movement_modifier": 1,
+                "start_sound": "item.spear.use",
+                "use_duration": 20
+            },
+            "minecraft:allow_off_hand": false,
+            "minecraft:tags": {
+                "tags": [
+                    "minecraft:is_spear",
+                    "minecraft:netherite_tier",
+                    "ph:prismatic_tier"
+                ]
+            }
+        }
+    }
+}

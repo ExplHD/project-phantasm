@@ -1,0 +1,15 @@
+/build
+/.regolith
+/gradle
+/gradle-wrapper.jar
+/gradle-wrapper.properties
+/gradlew
+/gradlew.bat
+/.idea
+/.vscode
+/.DS_Store
+/.gradle
+.env
+LICENSE
+LICENSE.rtf
+README.md

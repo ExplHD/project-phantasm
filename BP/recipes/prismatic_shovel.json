@@ -1,0 +1,1 @@
+{"format_version":"1.21.0","minecraft:recipe_shaped":{"description":{"identifier":"ph:prismatic_shovel"},"tags":["crafting_table"],"key":{"A":{"item":"minecraft:netherite_shovel"},"G":{"item":"ph:prismatic_ingot"}},"pattern":["GGG","GAG","GGG"],"unlock":[{"item":"ph:prismatic_ingot"}],"result":{"item":"ph:prismatic_shovel"}}}

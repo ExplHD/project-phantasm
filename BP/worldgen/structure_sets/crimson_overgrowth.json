@@ -1,0 +1,21 @@
+{
+	"format_version": "1.21.20",
+	"minecraft:structure_set": {
+		"description": {
+			"identifier": "ph:crimson_overgrowth"
+		},
+		"structures": [
+			{
+				"structure": "ph:crimson_overgrowth",
+				"weight": 1
+			}
+		],
+		"placement": {
+			"type": "minecraft:random_spread",
+			"salt": 0,
+			"spread_type": "linear",
+			"separation": 12,
+			"spacing": 40
+		}
+	}
+}
