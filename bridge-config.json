@@ -1,0 +1,46 @@
+{
+	"type": "minecraftBedrock",
+	"name": "Project Phantasm",
+	"namespace": "ph",
+	"authors": [
+		"ExplerHD"
+	],
+	"targetVersion": "1.21.100",
+	"description": "This Project is the continuation, (maybe?) of The Fates Intertwined, reworked any content inside, adding more unique type of weapons, unique bosses, and other unique things",
+	"experimentalGameplay": {
+		"creationOfCustomBiomes": true,
+		"upcomingCreatorFeatures": true,
+		"experimentalCreatorCameraFeatures": true,
+		"enableGameTestFramework": false,
+		"dataDrivenJigsawStructures": true,
+		"renderDragonFeatures": false,
+		"educationEdition": false
+	},
+	"bdsProject": false,
+	"packs": {
+		"behaviorPack": "./BP",
+		"resourcePack": "./RP"
+	},
+	"worlds": [
+		"./worlds/*"
+	],
+	"compiler": {
+		"plugins": [
+			"generatorScripts",
+			"typeScript",
+			"entityIdentifierAlias",
+			"customEntityComponents",
+			"customItemComponents",
+			"customBlockComponents",
+			"customCommands",
+			"moLang",
+			"formatVersionCorrection",
+			[
+				"simpleRewrite",
+				{
+					"packName": "Project Phantasm"
+				}
+			]
+		]
+	}
+}
