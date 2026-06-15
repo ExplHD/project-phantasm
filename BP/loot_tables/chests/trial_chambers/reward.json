@@ -56,7 +56,13 @@
                     "type": "item",
                     "name": "ph:auric_stock_battery",
                     "weight": 1
+                },
+                {
+                    "type": "item",
+                    "name": "ph:auric_proton",
+                    "weight": 1
                 }
+
             ],
             "conditions": [
                 {

@@ -15,6 +15,9 @@
 				"category": "auric_communicator",
 				"duration": 1
 			},
+			"minecraft:fire_resistant": {
+                "value": true
+            },
 			"ph:auric_communicator": {},
 			"minecraft:tags": {
 				"tags": [

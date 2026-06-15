@@ -134,6 +134,9 @@
 		},
 		"ph_auric_charging_module": {
 			"textures": "textures/items/auric_charging_module"
+		},
+		"ph_auric_proton": {
+			"textures": "textures/items/auric_proton"
 		}
 	},
 	"resource_pack_name": "Project Phantasm",

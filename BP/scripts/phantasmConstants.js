@@ -5,7 +5,7 @@ export const addLore = new Map([
     ["ph:auric_photonizer", ["§r§7Interact to :", " §r§cUse Skill", "§r§7Sneak to :", " §r§cChange Skills", "§9Phantasm"]],
     ["ph:charged_copper_axe", ["§r§9Has Charge Passive", "§r§cKilling with this grants Auric Charges", "§r§aInteract to perform Lightning Slash", "§9Phantasm"]],
     ["ph:spectric_bow", ["§r§7Support Spectral Arrow", "§r§aUse Spectral Arrow for Maximum Potential", "§9Phantasm"]],
-    ["ph:time_polarizer", ["§7Speeds you up or Slow anything around if sneaking", "§9Phantasm"]],
+    ["ph:time_polarizer", ["§r§7Speeds you up or Slow anything around if sneaking when interacted", "§r§7Grants Permanent Speed boost when put into accessory slot", "§r§9Accessory Item (Offhand, Hotbar Slot with +)", "§9Phantasm"]],
     ["ph:flow_channeler", ["§7Dash smoothly by interacting this item", "§9Enchantable", "§9Phantasm"]],
     ["ph:hell_charge", ["§7Spam interact to boost you", "§9Enchantable", "§9Phantasm"]],
     ["ph:ocean_tide_helmet", ["§r§9+4 Armor Toughness", "§9Phantasm"]],
@@ -20,10 +20,10 @@ export const addLore = new Map([
     ["ph:auric_star", ["§aUpgrade your passive dash ability to second phase", "§9Upgrade to : Passive Dash Ability", "§9Phantasm"]],
     ["ph:cruxshaper", ["§r§aInteract to perform Plunge Attack", "§9Phantasm"]],
     ["ph:nature_staff", ["§r§9A Quarter-Close ranged weapons", " §r§9Interact to shoot slow lasers", "§r§aSneaking will cast alternate attacks with longer cooldown.", "§9Phantasm"]],
-    ["ph:weeping_repair", ["§r§7Repairs everything in your inventory, to maximum durability INSTANTLY", "§r§9Experience Cost : 30 Experience Level", "§r§7Cooldown : 10 Minutes", "§9Phantasm"]],
+    ["ph:weeping_repair", ["§r§7Repairs everything in your inventory, to maximum durability INSTANTLY","§r§7Repairs all items slowly when put into accessory slot", "§r§9Accessory Item (Offhand, Hotbar Slot with +)", "§r§9Experience Cost : 30 Experience Level", "§r§cCooldown : 10 Minutes", "§9Phantasm"]],
     ["ph:suspicious_mushroom", ["§r§7Minor improvement to all stats for 10 minutes", "§9Phantasm"]],
-    ["ph:the_crimson_watcher", ["§r§725% Chance to summon laser when hitting entity / hurt by entity", "§r§9Offhand Item", "§9Phantasm"]],
-    ["ph:fire_bracelet", ["§r§7An Alternative to Fire Aspect Enchantment, gives you short Fire Res too", "§r§9Offhand Item", "§9Phantasm"]],
+    ["ph:the_crimson_watcher", ["§r§725% Chance to summon laser when hitting entity / hurt by entity", "§r§9Accessory Item (Offhand, Hotbar Slot with +)", "§9Phantasm"]],
+    ["ph:fire_bracelet", ["§r§7An Alternative to Fire Aspect Enchantment, gives you short Fire Res too", "§r§9Accessory Item (Offhand, Hotbar Slot with +)", "§9Phantasm"]],
     ["minecraft:wooden_sword", ["§r§9+300ms Parry", "§r§aInteract to parry, damages 30 durability on success"]],
     ["minecraft:stone_sword", ["§r§9+300ms Parry", "§r§aInteract to parry, damages 30 durability on success"]],
     ["minecraft:copper_sword", ["§r§9+300ms Parry", "§r§aInteract to parry, damages 30 durability on success"]],
@@ -33,4 +33,5 @@ export const addLore = new Map([
     ["minecraft:netherite_sword", ["§r§9+300ms Parry", "§r§aInteract to parry, damages 30 durability on success"]],
     ["ph:prismatic_sword", ["§r§9+300ms Parry", "§r§9+1 Reach", "§r§cPiercing Attack", "§r§aInteract to parry, damages 30 durability on success", "§9Phantasm"]],
     ["ph:seiketsu", ["§r§9+700ms Parry", "§r§cArea Attack", "§r§aInteract to parry, damages 1 durability on success", "§9Phantasm"]],
+    ["ph:auric_proton", ["§7Grants Auric Charge when hitting entity, being hurt, or periodically", "§r§9Accessory Item (Offhand, Hotbar Slot with +)", "§9Phantasm"]]
 ])

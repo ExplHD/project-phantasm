@@ -60,8 +60,7 @@
 			"version": [
 				1,
 				4,
-				0
-			]
+				0			]
 		},
 		{
 			"module_name": "@minecraft/server",

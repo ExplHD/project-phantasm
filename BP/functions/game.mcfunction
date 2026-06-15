@@ -19,6 +19,6 @@ titleraw @a[scores={sectick=19..,gapple_cooldown=1..},hasitem={item=golden_apple
 titleraw @a[scores={sectick=19..,gapple_cooldown=1..},hasitem={item=enchanted_golden_apple,location=slot.weapon.mainhand}] actionbar {"rawtext":[{"text":"§cGapple Cooldown : "},{"score":{"name":"*","objective":"gapple_cooldown"}}]}
 
 # Guidebook Runtime
-execute at @a[tag=!guidebook_phantasm_ub] run structure load mystructure:guidebook ~~~
-tag @a[tag=!guidebook_phantasm_ub] add guidebook_phantasm_ub
-tag @a[tag=guidebook_phantasm_ub] remove guidebook_phantasm_ua
+execute at @a[tag=!guidebook_phantasm_uc] run structure load mystructure:guidebook ~~~
+tag @a[tag=!guidebook_phantasm_uc] add guidebook_phantasm_uc
+tag @a[tag=guidebook_phantasm_uc] remove guidebook_phantasm_ub

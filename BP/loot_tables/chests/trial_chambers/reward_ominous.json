@@ -48,14 +48,14 @@
       "rolls": 1,
       "entries": [
         {
-          "type": "items",
+          "type": "item",
           "name": "ph:peacemaker_oath",
-          "weight": 1
+          "weight": 0.4
         },
         {
           "type": "item",
           "name": "ph:auric_charging_module",
-          "weight": 1
+          "weight": 0.6
         }
       ],
       "conditions": [

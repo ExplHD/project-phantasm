@@ -16,6 +16,9 @@
             "minecraft:durability": {
                 "max_durability": 1200
             },
+            "minecraft:fire_resistant": {
+                "value": true
+            },
             "minecraft:repairable": {
                 "repair_items": [
                     {

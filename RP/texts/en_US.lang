@@ -39,12 +39,20 @@ item.ph:fire_bracelet=Fire Bracelet
 item.ph:the_crimson_watcher=The Crimson Watcher
 item.ph:the_bleeding_spire=The Bleeding Spire
 item.ph:punicea_crimson_eye_treasure_bag=Punicea : Crimson Eye Treasure Bag
+item.ph:auric_communicator=Auric Communicator
+item.ph:auric_stock_battery=Auric Battery Container
+item.ph:peacemaker_oath=Peacemaker Oath
+item.ph:thunder_gale=Thunder Gale
+item.ph:seiketsu=Seiketsu
+item.ph:auric_charging_module=Auric Charging Module
+item.ph:auric_proton=Auric Proton
 
 tile.ph:ancient_copper_core.name=Ancient Copper Core
 tile.ph:auric_battery.name=Auric Battery Block
 tile.ph:core_battery.name=Core Battery Block
 tile.ph:prismarine_battery.name=Prismatic Battery Block
 tile.ph:suspicious_crimson_eye.name=§eSuspicious Crimson Eye
+tile.ph:auric_battery_recharge_station.name=Auric Battery Recharge Station
 
 item.spawn_egg.entity.ph:crimson_tentacle.name=Spawn Crimson Tentacle
 
@@ -71,12 +79,3 @@ entity.ph:crimson_tentacle.name=Crimson Tentacle
 entity.ph:suspicious_crimson_eye.name=Suspicious Crimson Eye
 entity.ph:crimson_laser.name=Crimson Laser
 entity.ph=crimson_stray_projectile.name=Crimson Stray Projectile
-item.ph:auric_communicator=Auric Communicator
-item.ph:auric_stock_battery=Auric Battery Container
-tile.ph:auric_battery_recharge_station.name=Auric Battery Recharge Station
-item.ph:peacemaker_oath=Peacemaker Oath
-item.ph:thunder_gale=Thunder Gale
-item.ph:seiketsu=Seiketsu
-item.ph:auric_charging_module=Auric Charging Module
-item.spawn_egg.entity.ph:accessories_slot_list.name=Spawn Accessories Slot
-entity.ph:accessories_slot_list.name=Accessories Slot

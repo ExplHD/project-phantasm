@@ -1,5 +1,5 @@
-import { world, system } from '@minecraft/server'
-import { applyDurabilityDamage } from './main';
+import { world, system, ItemUseBeforeEvent } from '@minecraft/server'
+import { applyDurabilityDamage, addScore } from './main';
 
 const accessoryRegistry = {
     "ph:fire_bracelet": {
@@ -25,20 +25,98 @@ const accessoryRegistry = {
                 hitTarget.runCommand(`summon ph:crimson_laser ${x + -15 + Math.floor(Math.random() * 30)} ~ ${z + -15 + Math.floor(Math.random() * 30)} facing @n`);
             }
         }
+    },
+    "ph:auric_proton": {
+        onHurt(player, event) {
+            system.run(() => {
+                addScore(player, "auric_charge", 1);
+                player.runCommand('titleraw @s actionbar {"rawtext":[{"text":"§gAuric Charge : "},{"score":{"name":"*","objective":"auric_charge"}},{"text":"/700"}]}');
+            })
+        },
+        onHitEntity(player, event, hitTarget) {
+            addScore(player, "auric_charge", 1);
+            player.runCommand('titleraw @s actionbar {"rawtext":[{"text":"§gAuric Charge : "},{"score":{"name":"*","objective":"auric_charge"}},{"text":"/700"}]}');
+        },
+        onLoop(player, event) {
+            system.run(() => {
+                addScore(player, "auric_charge", 1);
+                player.runCommand('titleraw @s actionbar {"rawtext":[{"text":"§gAuric Charge : "},{"score":{"name":"*","objective":"auric_charge"}},{"text":"/700"}]}');
+            })
+        }
+    },
+    "ph:time_polarizer": {
+        onLoop(player, event) {
+            system.run(() => {
+                player.addEffect("speed", 100, {
+                    amplifier: 1,
+                    showParticles: false
+                })
+            })
+        }
+    },
+    "ph:weeping_repair": {
+        onLoop(player, event) {
+            system.run(() => {
+                const inventory = player?.getComponent("minecraft:inventory")?.container;
+                const slots = ["Head", "Chest", "Legs", "Feet", "Offhand"];
+
+                for (let i = 0; i < inventory.size; i++) {
+                    const item = inventory.getItem(i);
+                    if (!item) continue;
+
+                    const durability = item.getComponent("minecraft:durability");
+                    if (!durability) continue;
+                    if (durability.damage == 0) continue;
+                    durability.damage -= 1;
+                    inventory.setItem(i, item);
+                }
+
+                for (const slot of slots) {
+                    const equipmentSlot = player?.getComponent("minecraft:equippable")?.getEquipmentSlot(slot);
+                    const item = equipmentSlot.getItem();
+                    if (!item) continue;
+
+                    const durability = item.getComponent("minecraft:durability");
+                    if (!durability) continue;
+                    if (durability.damage == 0) continue;
+                    durability.damage -= 1;
+                    equipmentSlot.setItem(item);
+                }
+            })
+        }
     }
 };
 
+function getAccessoryItems(player) {
+    const items = [];
+
+    if (player.typeId !== "minecraft:player") return items;
+
+    const equippable = player.getComponent("minecraft:equippable");
+    const inventory = player.getComponent("minecraft:inventory")?.container;
+
+    const offhand = equippable?.getEquipment("Offhand");
+    if (offhand) items.push(offhand);
+
+    for (const slot of [6, 7, 8]) {
+        const item = inventory?.getItem(slot);
+        if (item) items.push(item);
+
+        if (!item) continue;
+        const processed = new Set();
+        if (processed.has(item.typeId)) continue;
+        processed.add(item.typeId);
+    }
+
+    return items;
+}
+
 function handleAccessory(player, trigger, event, hitTarget) {
-    const item = player?.getComponent("minecraft:equippable")?.getEquipment("Offhand");
+    for (const item of getAccessoryItems(player)) {
+        const handler =
+            accessoryRegistry[item.typeId]?.[trigger];
 
-    if (!item) return;
-
-    const data = accessoryRegistry[item.typeId];
-    if (!data) return;
-
-    const handler = data[trigger];
-    if (handler) {
-        handler(player, event, hitTarget);
+        handler?.(player, event, hitTarget, item);
     }
 }
 
@@ -64,7 +142,7 @@ world.beforeEvents.entityHurt.subscribe((acc) => {
             hurtEntity.runCommand('camerashake add @s 1 0.1 positional');
             hurtEntity.dimension.playSound("weapon_slash.slash_clash", hurtEntity.location);
             hurtEntity.removeTag("parried");
-            if (mainItem.typeId === "ph:seikatsu") {
+            if (mainItem.typeId === "ph:seiketsu") {
                 applyDurabilityDamage(hurtEntity, { damage: 1 });
                 return;
             }
@@ -82,3 +160,9 @@ world.afterEvents.entityHitEntity.subscribe((acc) => {
 
     handleAccessory(damagingEntity, "onHitEntity", acc, hitEntity);
 })
+
+system.runInterval((event) => {
+    for (const player of world.getPlayers()) {
+        handleAccessory(player, "onLoop", event);
+    }
+}, 100)

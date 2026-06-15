@@ -601,7 +601,7 @@
                 },
                 "queue_command": {
                     "command": [
-                        "damage @e[type=!item,family=!inanimate,rm=0.1,r=8,tag=!parried] 29 entity_attack entity @s",
+                        "damage @e[type=!item,family=!inanimate,rm=0.1,r=8] 29 entity_attack entity @s",
                         "playsound weapon_slash.slash_heavy @a[r=16] ~~~ 1 1 0.3",
                         "tag @s remove locked"
                     ]

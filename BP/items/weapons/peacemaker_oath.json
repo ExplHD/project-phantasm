@@ -16,6 +16,16 @@
 				"cost_value": 1,
 				"animation": "animation.peacemaker_oath.fire"
 			},
+			"minecraft:durability": {
+				"max_durability": 1900
+			},
+			"minecraft:enchantable": {
+				"slot": "flintsteel",
+				"value": 12
+			},
+			"minecraft:fire_resistant": {
+                "value": true
+            },
 			"minecraft:icon": "ph_peacemaker_oath",
 			"minecraft:max_stack_size": 1,
 			"minecraft:rarity": "epic",

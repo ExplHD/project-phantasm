@@ -1,1 +1,38 @@
-{"format_version":"1.21.0","minecraft:recipe_shaped":{"description":{"identifier":"ph:spectric_bow"},"tags":["crafting_table"],"key":{"C":{"item":"minecraft:iron_ingot"},"N":{"item":"minecraft:glowstone"},"R":{"item":"minecraft:string"}},"pattern":[" CR","CNR"," CR"],"unlock":[{"item":"minecraft:glowstone"},{"item":"minecraft:string"}],"result":{"item":"ph:spectric_bow"}}}
+{
+    "format_version": "1.21.0",
+    "minecraft:recipe_shaped": {
+        "description": {
+            "identifier": "ph:spectric_bow"
+        },
+        "tags": [
+            "crafting_table"
+        ],
+        "key": {
+            "C": {
+                "item": "minecraft:iron_ingot"
+            },
+            "N": {
+                "item": "minecraft:glowstone"
+            },
+            "R": {
+                "item": "minecraft:string"
+            }
+        },
+        "pattern": [
+            " CR",
+            "CNR",
+            " CR"
+        ],
+        "unlock": [
+            {
+                "item": "minecraft:glowstone"
+            },
+            {
+                "item": "minecraft:string"
+            }
+        ],
+        "result": {
+            "item": "ph:spectric_bow"
+        }
+    }
+}

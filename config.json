@@ -9,6 +9,10 @@
 	"regolith": {
 		"dataPath": "./data",
 		"filterDefinitions": {
+			"js_obfuscator": {
+				"url": "github.com/lightyisreal/regolith-filters",
+				"version": "a41eb063951b2b6ca31c45504d6bd1bfaff968f4"
+			},
 			"mcaddon": {
 				"url": "github.com/lightyisreal/regolith-filters",
 				"version": "a41eb063951b2b6ca31c45504d6bd1bfaff968f4"
@@ -20,28 +24,38 @@
 		},
 		"formatVersion": "1.8.0",
 		"profiles": {
-			"default": {
-				"export": {
-					"bpPath": "${BEHAVIOR_PACK_PATH}",
-					"rpPath": "${RESOURCE_PACK_PATH}",
-					"target": "exact"
-				},
-				"filters": [
-					{
-						"filter": "texture_list"
-					}
-				]
-			},
 			"build": {
 				"export": {
 					"target": "none"
 				},
 				"filters": [
 					{
+						"filter": "js_obfuscator"
+					},
+					{
 						"filter": "texture_list"
 					},
 					{
 						"filter": "mcaddon"
+					}
+				]
+			},
+			"default": {
+				"export": [
+					{
+						"bpPath": "${BEHAVIOR_PACK_PATH}",
+						"rpPath": "${RESOURCE_PACK_PATH}",
+						"target": "exact"
+					},
+					{
+						"bpPath": "${BEHAVIOR_PACK_PATH_MCPEL}",
+						"rpPath": "${RESOURCE_PACK_PATH_MCPEL}",
+						"target": "exact"
+					}
+				],
+				"filters": [
+					{
+						"filter": "texture_list"
 					}
 				]
 			}

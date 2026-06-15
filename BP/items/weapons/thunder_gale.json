@@ -22,9 +22,9 @@
 				"type": "attack"
 			},
 			"minecraft:durability": {
-				"max_durability": 1500
+				"max_durability": 5100
 			},
-			"minecraft:damage": 10,
+			"minecraft:damage": 12,
 			"minecraft:repairable": {
 				"repair_items": [
 					{

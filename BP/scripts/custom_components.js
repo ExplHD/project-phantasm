@@ -243,6 +243,7 @@ system.beforeEvents.startup.subscribe((initEvent) => {
                 } else {
                     if (getScore(player, altCostType) < altCostAmount) return player.sendMessage("Insufficient Charges");
                     removeScore(player, altCostType, altCostAmount);
+                    applyDurabilityDamage(player, { damage: altCostAmount });
                 }
 
                 eventFunc();
@@ -254,6 +255,7 @@ system.beforeEvents.startup.subscribe((initEvent) => {
             } else {
                 if (getScore(player, costType) < costAmount) return player.sendMessage("Insufficient Charges");
                 removeScore(player, costType, costAmount);
+                applyDurabilityDamage(player, { damage: costAmount });
             }
 
             if (cooldownCategory) player.startItemCooldown(cooldownCategory, cooldownValue);
@@ -272,7 +274,6 @@ system.beforeEvents.startup.subscribe((initEvent) => {
                 x: head.x + view.x * offset,
                 y: head.y + view.y * offset,
                 z: head.z + view.z * offset
-
             });
 
             const proj = bullet.getComponent("minecraft:projectile");
@@ -387,6 +388,7 @@ system.beforeEvents.startup.subscribe((initEvent) => {
             })?.block;
             if (!block) {
                 addScore(source, "auric_communicator_mode", 1);
+                source.playSound("random.click");
                 return;
             }
             const blockLoc = block.location;
@@ -410,14 +412,14 @@ system.beforeEvents.startup.subscribe((initEvent) => {
             source.addTag("AURIC_ORBITAL_LASER");
             system.runTimeout(() => {
                 for (let i = 0; i < 381; i += 10) {
-                    block.dimension.runCommand(`damage @e[r=10,tag=!AURIC_ORBITAL_LASER,type=!item,family=!inanimate,x=${blockLoc.x},y=${i},z=${blockLoc.z}] 75 entity_explosion entity @e[tag=AURIC_ORBITAL_LASER]`);
+                    block.dimension.runCommand(`damage @e[r=10,tag=!AURIC_ORBITAL_LASER,type=!item,family=!inanimate,x=${blockLoc.x},y=${i},z=${blockLoc.z}] 80 entity_explosion entity @e[tag=AURIC_ORBITAL_LASER]`);
                     block.dimension.runCommand(`playsound random.explode @a[r=128] ~ ${i} ~ 1 1 0.5`);
                 }
                 block.dimension.spawnParticle("ph:auric_stab_shot_refined", { x: blockLoc.x, y: 0, z: blockLoc.z });
                 block.dimension.spawnParticle("ph:auric_stab_shot_line", { x: blockLoc.x, y: 0, z: blockLoc.z });
                 removeScore(source, "auric_charge", 50);
                 source.startItemCooldown("auric_communicator", 600);
-                source.addTag("AURIC_ORBITAL_LASER")
+                source.removeTag("AURIC_ORBITAL_LASER");
             }, 30)
         }
     })
