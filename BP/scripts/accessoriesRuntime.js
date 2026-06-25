@@ -1,5 +1,5 @@
 import { world, system, ItemUseBeforeEvent } from '@minecraft/server'
-import { applyDurabilityDamage, addScore } from './main';
+import { applyDurabilityDamage, addScore, getAccessoryItems } from './main';
 
 const accessoryRegistry = {
     "ph:fire_bracelet": {
@@ -87,30 +87,6 @@ const accessoryRegistry = {
     }
 };
 
-function getAccessoryItems(player) {
-    const items = [];
-
-    if (player.typeId !== "minecraft:player") return items;
-
-    const equippable = player.getComponent("minecraft:equippable");
-    const inventory = player.getComponent("minecraft:inventory")?.container;
-
-    const offhand = equippable?.getEquipment("Offhand");
-    if (offhand) items.push(offhand);
-
-    for (const slot of [6, 7, 8]) {
-        const item = inventory?.getItem(slot);
-        if (item) items.push(item);
-
-        if (!item) continue;
-        const processed = new Set();
-        if (processed.has(item.typeId)) continue;
-        processed.add(item.typeId);
-    }
-
-    return items;
-}
-
 function handleAccessory(player, trigger, event, hitTarget) {
     for (const item of getAccessoryItems(player)) {
         const handler =
@@ -149,7 +125,7 @@ world.beforeEvents.entityHurt.subscribe((acc) => {
             applyDurabilityDamage(hurtEntity, { damage: 30 });
         })
     }
-    if (hurtEntity?.getComponent("minecraft:equippable")?.getEquipment('Offhand')?.typeId === "ph:the_crimson_watcher" || hurtEntity?.getComponent("minecraft:equippable")?.getEquipment('Mainhand')?.typeId === "ph:the_bleeding_spire") {
+    if (getAccessoryItems(hurtEntity).some(item => item.typeId === "ph:the_crimson_watcher") || hurtEntity?.getComponent("equippable")?.getEquipment("Mainhand")?.typeId === "ph:the_bleeding_spire") {
         if (damagingEntity?.typeId === "ph:crimson_laser") acc.cancel = true;
     }
 })

@@ -42,6 +42,8 @@ titleraw @a[hasitem={item=ph:auric_communicator,location=slot.weapon.mainhand},s
 # Peacemaker Oath Runtime
 titleraw @a[hasitem={item=ph:peacemaker_oath,location=slot.weapon.mainhand}] actionbar {"rawtext":[{"text":"§gAuric Charge : "},{"score":{"name":"*","objective":"auric_charge"}},{"text":"/700"}]}
 
+# Auric Charges General Items
+titleraw @a[hasitem={item=ph:auric_stock_battery,location=slot.weapon.mainhand}] actionbar {"rawtext":[{"text":"§gAuric Charge : "},{"score":{"name":"*","objective":"auric_charge"}},{"text":"/700"}]}
 # Thunder Gale Runtime
 effect @a[hasitem={item=ph:thunder_gale,location=slot.weapon.mainhand}] speed 1 2 true
 

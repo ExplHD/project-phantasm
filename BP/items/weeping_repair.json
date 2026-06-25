@@ -14,6 +14,10 @@
                 "category": "weeping_repair",
                 "duration": 600
             },
+			"minecraft:fire_resistant": {
+                "value": true
+            },
+            "minecraft:allow_off_hand": true,
             "minecraft:rarity": "epic",
             "ph:repair_full_inventory": {
                 "repair_ratio": 100,

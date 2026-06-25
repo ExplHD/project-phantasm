@@ -4,7 +4,16 @@
             "ph:copper_mech_double_blade": {
                 "events": {
                     "attack": "weapon_slash.slash_heavy"
-                }
+                },
+                "pitch": [0.85,1],
+                "volume": 1.0
+            },
+            "ph:copper_mechanical_array": {
+                "events": {
+                    "hurt": "entity.copper_mechanical_array.hurt"
+                },
+                "pitch": [0.85,1],
+                "volume": 1.0
             }
         }
     }

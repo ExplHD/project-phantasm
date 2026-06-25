@@ -1,5 +1,5 @@
 import { world, system } from '@minecraft/server'
-import { addScore } from 'main'
+import { addScore, runUntilMoved } from 'main'
 
 let objectives = [
     // System Scoreboard
@@ -66,10 +66,13 @@ world.afterEvents.playerSpawn.subscribe(({ player, initialSpawn }) => {
     if (!initialSpawn) return;
     const health = player?.getComponent("minecraft:health")?.currentValue;
     const maxHealth = player?.getComponent("minecraft:health")?.effectiveMax;
+    const totalArmor = player?.getComponent("minecraft:equippable").totalArmor;
     if (maxHealth <= 0) return 0;
 
     let scaled = (health / maxHealth) * 100;
-    player.runCommand(`title @s title bar0:${Math.min(100, Math.max(0, Math.floor(scaled)))} healthind:${Math.floor(health)}`)
+    runUntilMoved(player, 10, () => {
+        player.runCommand(`title @s title bar0:${Math.min(100, Math.max(0, Math.floor(scaled)))}%% healthind:${Math.floor(health)}/${maxHealth} ${totalArmor}`);
+    });
     const playerInput = player.inputInfo.lastInputModeUsed;
     if (playerInput == "Touch") {
         player.sendMessage("§eIt is recommended for you to use the Joystick + Crosshair with Action Button Enabled, for making the using weapon experience easier");

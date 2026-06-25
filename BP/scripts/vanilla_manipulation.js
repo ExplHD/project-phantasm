@@ -1,50 +1,5 @@
 import { world, system, ItemStack, BlockVolume } from '@minecraft/server'
-import { setScore, getScore, applyDurabilityDamage } from "main.js"
-
-/**
- * Runs callback when entity moves.
- * after moving, runInterval automatically shut down.
- * 
- * @param {Entity} entity
- * @param {number} tickInterval
- * @param {(newLocation, oldLocation) => void} callback
- */
-function detectMove(entity, tickInterval = 1, callback) {
-    const startLocation = {
-        x: Math.floor(entity.location.x),
-        y: Math.floor(entity.location.y),
-        z: Math.floor(entity.location.z)
-    };
-
-    const interval = system.runInterval(() => {
-        // Entity invalid / hilang
-        if (!entity?.isValid) {
-            system.clearRun(interval);
-            return;
-        }
-
-        const currentLocation = {
-            x: Math.floor(entity.location.x),
-            y: Math.floor(entity.location.y),
-            z: Math.floor(entity.location.z)
-        };
-
-        // if position was changed
-        if (
-            currentLocation.x !== startLocation.x ||
-            currentLocation.y !== startLocation.y ||
-            currentLocation.z !== startLocation.z
-        ) {
-            // run event
-            callback(currentLocation, startLocation);
-
-            // stop interval
-            system.clearRun(interval);
-        }
-    }, tickInterval);
-
-    return interval;
-}
+import * as Helper from "main.js"
 
 // Passive Dash and Plunge Components (triggered by double-space)
 world.afterEvents.playerButtonInput.subscribe(({ player, button, newButtonState }) => {
@@ -55,9 +10,9 @@ world.afterEvents.playerButtonInput.subscribe(({ player, button, newButtonState 
         if (!player.isFalling || scoreboard_dash.getScore(player) > 0 || player.getDynamicProperty("ph:dash_unlock") == 0 || player.getDynamicProperty("ph:dash_level") == undefined || equipmentTag?.includes("minecraft:is_sword") || equipmentTag?.includes("minecraft:is_tool")) return;
         if (player.getDynamicProperty("ph:dash_level") == 1) {
             player.applyKnockback({ x: player.getViewDirection().x * 3, z: player.getViewDirection().z * 3 }, 0.2)
-            setScore(player, 'dash_cd', 60);
-            player.playSound("mob.enderdragon.flap", {
-                volume: 0.8
+            Helper.setScore(player, 'dash_cd', 60);
+            player.playSound("player.dash", {
+                volume: 1
             });
             player.dimension.spawnParticle("ph:dash_particle", player.location);
             if (!player.isGliding) {
@@ -68,9 +23,9 @@ world.afterEvents.playerButtonInput.subscribe(({ player, button, newButtonState 
         }
         if (player.getDynamicProperty("ph:dash_level") == 2) {
             player.applyKnockback({ x: player.getViewDirection().x * 5, z: player.getViewDirection().z * 5 }, 0.3)
-            setScore(player, 'dash_cd', 60);
-            player.playSound("custom_sfx.judgement_cut", {
-                volume: 0.8
+            Helper.setScore(player, 'dash_cd', 60);
+            player.playSound("mob.enderdragon.flap", {
+                volume: 0.75
             });
             player.dimension.spawnParticle("ph:copper_mech_explosion", player.location);
             if (!player.isGliding) {
@@ -103,6 +58,25 @@ world.afterEvents.playerButtonInput.subscribe(({ player, button, newButtonState 
 
         if (!isHighEnough) return;
         if (player.hasTag('windPlunge')) return;
+
+        function impact() {
+            if (!player.isValid || !player.getComponent("minecraft:health")) return;
+
+            if (player.hasTag("windPlunge")) {
+                player.removeEffect("resistance");
+                player.dimension.spawnParticle("minecraft:breeze_wind_explosion_emitter", player.location)
+                player.runCommand("damage @e[r=6,rm=0.1] 10 entity_explosion entity @s")
+                player.dimension.playSound("random.explode", player.location);
+                player.removeTag("windPlunge");
+            }
+        }
+
+        const runInterval = system.runInterval(e => {
+            if (!player.isOnGround) return;
+            system.run(impact);
+            system.clearRun(intervalRun);
+        }, 2)
+
         player.applyKnockback({ x: 0, z: 0 }, -2);
         player.dimension.spawnParticle("minecraft:wind_explosion_emitter", player.location);
         player.playAnimation("animation.player_extend.plunge", {
@@ -158,21 +132,10 @@ world.beforeEvents.playerBreakBlock.subscribe((e) => {
 })
 
 // No Armor Toughness on Add-Ons? Create yourself! / {Plunge Landing Mechanic}
-world.afterEvents.entityHurt.subscribe(data => {
+world.beforeEvents.entityHurt.subscribe(data => {
     const player = data.hurtEntity;
-    const damage = data.damage;
 
-    if (!player.isValid || !player.getComponent("minecraft:health")) return;
-
-    if (player.hasTag("windPlunge")) {
-        player.removeEffect("resistance");
-        player.dimension.spawnParticle("minecraft:breeze_wind_explosion_emitter", player.location),
-            player.runCommand("damage @e[r=6,rm=0.1] 10 entity_explosion entity @s")
-        player.dimension.playSound("random.explode", player.location);
-        player.removeTag("windPlunge");
-    }
-
-    if (damage <= 0) return;
+    if (data.damage <= 0) return;
 
     const inventory = player.getComponent("minecraft:equippable");
     if (!inventory) return;
@@ -195,16 +158,21 @@ world.afterEvents.entityHurt.subscribe(data => {
 
     if (totalToughness <= 0) return;
 
-    const extraReductionRatio = Math.min(1, ((4 * damage) / (totalToughness + 8)) / 25); // Official formula from Minecraft armor wiki
-    const extraMitigation = damage * extraReductionRatio;
+    const armorPoints = player.getComponent("equippable").totalArmor;
 
-    const health = player.getComponent("minecraft:health");
-    const maxHealth = health.effectiveMax;
+    const innerMax = Math.max(
+        armorPoints / 5,
+        armorPoints - (4 * data.damage) / (Math.min(totalToughness, 20) + 8)
+    );
 
-    const restoredHealth = Math.min(health.currentValue + extraMitigation, maxHealth);
-    health.setCurrentValue(restoredHealth);
+    const minResult = Math.min(20, innerMax);
 
-    //console.info(`Toughness: ${totalToughness}, originalDamage: ${damage}, restoredDamage: ${extraMitigation.toFixed(2)}`);
+    const reductionFraction = minResult / 25;
+
+    const finalDamage = data.damage * (1 - reductionFraction);
+
+    console.warn(`Toughness: ${totalToughness}, originalDamage: ${data.damage}, restoredDamage: ${finalDamage.toFixed(2)}`);
+    data.damage -= finalDamage;
 });
 
 // For Custom Tools Durability Manager 
@@ -267,13 +235,13 @@ world.beforeEvents.playerInteractWithBlock.subscribe((event) => {
 // Gapple & Enchanted Gapple
 world.beforeEvents.itemUse.subscribe((e) => {
     const source = e.source;
-    const cooldown = getScore(source, "gapple_cooldown");
+    const cooldown = Helper.getScore(source, "gapple_cooldown");
     const itemStack = e.itemStack;
     if (itemStack?.typeId === "minecraft:golden_apple" || itemStack?.typeId === "minecraft:enchanted_golden_apple") {
         if (cooldown == 0) {
             system.run(() => {
                 source.onScreenDisplay.setActionBar("§cGapple Cooldown Started");
-                setScore(source, "gapple_cooldown", 20);
+                Helper.setScore(source, "gapple_cooldown", 20);
             });
             return;
         };
@@ -386,8 +354,7 @@ world.afterEvents.playerDimensionChange.subscribe(({ player }) => {
     const maxHealth = player?.getComponent("minecraft:health")?.effectiveMax;
 
     let scaled = (health.currentValue / maxHealth) * 100;
-    detectMove(player, 10, () => {
-
+    Helper.runUntilMoved(player, 10, () => {
         player.runCommand(`title @s title bar0:${Math.min(100, Math.max(0, Math.floor(scaled)))}%% healthind:${Math.floor(health.currentValue)}/${maxHealth} ${totalArmor}`);
     });
 })

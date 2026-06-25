@@ -1,1 +1,21 @@
-{"format_version":"1.21.80","minecraft:item":{"description":{"identifier":"ph:spectral_arrow","menu_category":{"category":"equipment","group":"minecraft:itemGroup.name.arrow"}},"components":{"minecraft:icon":"ph_spectral_arrow","minecraft:projectile":{"minimum_critical_power":9,"projectile_entity":"ph:spectric_laser"},"minecraft:allow_off_hand":true,"minecraft:rarity":"uncommon"}}}
+{
+    "format_version": "1.21.80",
+    "minecraft:item": {
+        "description": {
+            "identifier": "ph:spectral_arrow",
+            "menu_category": {
+                "category": "equipment",
+                "group": "minecraft:itemGroup.name.arrow"
+            }
+        },
+        "components": {
+            "minecraft:icon": "ph_spectral_arrow",
+            "minecraft:projectile": {
+                "minimum_critical_power": 9,
+                "projectile_entity": "ph:spectric_laser"
+            },
+            "minecraft:allow_off_hand": true,
+            "minecraft:rarity": "uncommon"
+        }
+    }
+}

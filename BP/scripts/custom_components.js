@@ -182,20 +182,6 @@ system.beforeEvents.startup.subscribe((initEvent) => {
         },
         onMineBlock({ source, itemStack }) {
             applyDurabilityDamage(source);
-        },
-        onBeforeDurabilityDamage({ durabilityDamage, itemStack }) {
-            if (!itemStack.hasTag('minecraft:is_sword') || !itemStack.hasTag('minecraft:is_spear')) return;
-            const inventory = source?.getComponent("inventory")?.container;
-            const item = inventory?.getItem(source.selectedSlotIndex);
-            const durability = item?.getComponent("durability");
-            const unbreaking = item?.getComponent("enchantable")?.getEnchantment("unbreaking")?.level ?? 0;
-            if (!durability || source.getGameMode() == "Creative") return;
-            const unbreakingChance = unbreaking * 20;
-            const randomChance = Math.floor(Math.random() * 101);
-            if (randomChance <= unbreakingChance) {
-                durabilityDamage--;
-            }
-            durabilityDamage--;
         }
     })
 

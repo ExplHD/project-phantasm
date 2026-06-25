@@ -79,3 +79,21 @@ entity.ph:crimson_tentacle.name=Crimson Tentacle
 entity.ph:suspicious_crimson_eye.name=Suspicious Crimson Eye
 entity.ph:crimson_laser.name=Crimson Laser
 entity.ph=crimson_stray_projectile.name=Crimson Stray Projectile
+
+subtitles.weapons.slash_light=Light Sweeping
+subtitles.weapons.slash_medium=Regular Sweeping
+subtitles.weapons.slash_heavy=Strong Sweeping
+subtitles.weapons.parry=Parry
+subtitles.weapons.magic_staff=Magic Staff Cast
+subtitles.weapons.gunshot=Gun Shot
+subtitles.custom.animirra_summon=Animitta's Summoning
+subtitles.custom.high_voltage_spark=Voltage Sparks
+subtitles.custom.boss_summoned=The Voice from the Above
+subtitles.custom.judgement_cut=Judgement Cut
+subtitles.custom.prism_fire=Released Vortex Prism 
+subtitles.custom.vortex_beam=Casting Vortex Prism
+subtitles.custom.laser_shot=Laser Shot
+subtitles.custom.laser_beam=Laser Beam
+subtitles.player.dash=Player's Dashing
+subtitles.entity.meteor_impact=Meteor's Impact
+subtitles.entity.metal_hitting=Metals being hit
