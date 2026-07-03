@@ -10,8 +10,5 @@
 /.DS_Store
 /.gradle
 .env
-.mcattributes
-.mcdefinitions
 LICENSE.rtf
 README.md
-regolith
