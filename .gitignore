@@ -5,10 +5,11 @@
 /gradle-wrapper.properties
 /gradlew
 /gradlew.bat
+/node_modules
 /.idea
 /.vscode
 /.DS_Store
 /.gradle
-.env
+.directory
 LICENSE.rtf
 README.md

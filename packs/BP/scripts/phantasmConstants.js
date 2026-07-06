@@ -18,7 +18,7 @@ export const addLore = new Map([
     ["ph:naturalist_boots", ["§r§9+4 Armor Toughness", "§9Phantasm"]],
     ["ph:impulse_booster", ["§7Dash absurdly fast by interacting this item", "Bypass 70% of the knockback resistance", "§9Enchantable", "§9Phantasm"]],
     ["ph:auric_star", ["§aUpgrade your passive dash ability to second phase", "§9Upgrade to : Passive Dash Ability", "§9Phantasm"]],
-    ["ph:cruxshaper", ["§r§aInteract to perform Plunge Attack", "§9Phantasm"]],
+    ["ph:cruxshaper", ["§r§aInteract to perform Plunge Attack", "§r§9Mace Variant", "§9Phantasm"]],
     ["ph:nature_staff", ["§r§9A Quarter-Close ranged weapons", " §r§9Interact to shoot slow lasers", "§r§aSneaking will cast alternate attacks with longer cooldown.", "§9Phantasm"]],
     ["ph:weeping_repair", ["§r§7Repairs everything in your inventory, to maximum durability INSTANTLY","§r§7Repairs all items slowly when put into accessory slot", "§r§9Accessory Item (Offhand, Hotbar Slot with +)", "§r§9Experience Cost : 30 Experience Level", "§r§cCooldown : 10 Minutes", "§9Phantasm"]],
     ["ph:suspicious_mushroom", ["§r§7Minor improvement to all stats for 10 minutes", "§9Phantasm"]],

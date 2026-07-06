@@ -1,0 +1,15 @@
+Gunakan format seperti ini ketika membuat perubahan / menciptakan konten baru :
+<-/=/+> <Removal/Changes/Addition> - <Siapa>
+
+1.5.0 :
+
+# Removal
+- Menghilangkan Glyph System, tetapi anda masih dapat menggunakan file glyph - ExplerHD
+
+# Changes
+- Memperbaiki sistem dari Custom Mace - ExplerHD
+- Mengubah sistem Damage Indicator menggunakan Particle Runtime - ExplerHD
+
+# Addition
+- Menambah particle damage_number, dan damage_icons - ExplerHD
+- Menambah fitur Better than Mending - ExplerHD

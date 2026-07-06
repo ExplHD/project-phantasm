@@ -17,9 +17,9 @@ import { } from 'dynamicLighting'
 import * as Phantasm from 'phantasmConstants'
 
 // For Custom Library (PLEASE CREDIT THEM IF YOU WANT TO USE IT!)
-import { } from 'custlib/custom_mace/detection' // Credits to @biggamers4u
+import { } from 'custlib/custom_mace/detection' // Credits to @biggamers4u for older mechanics, now ALL of the MECHANICS are remade by me.
 
-console.warn("§a§lPhantasm 1.4.1 Activated!");
+console.warn("§a§lPhantasm 1.5.0 Activated!");
 
 export function addScore(target, objective, score) {
     try {

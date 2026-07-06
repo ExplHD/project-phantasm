@@ -1,31 +1,46 @@
 {
-  "$schema": "https://raw.githubusercontent.com/ink0rr/rgl-schemas/main/config/v1.json",
-  "author": "ExplerHD",
-  "name": "Phantasm",
-  "packs": {
-    "behaviorPack": "./packs/BP",
-    "resourcePack": "./packs/RP"
-  },
-  "regolith": {
-    "dataPath": "./data",
-    "filterDefinitions": {},
-    "profiles": {
-      "default": {
-        "export": {
-          "target": "development"
-        },
-        "filters": []
-      },
-      "build": {
-        "export": {
-          "target": "local"
-        },
-        "filters": [
-          {
-            "profile": "default"
-          }
-        ]
-      }
-    }
-  }
+	"$schema": "https://raw.githubusercontent.com/Bedrock-OSS/regolith-schemas/main/config/unified.json",
+	"author": "ExplerHD, ZeroMaster178",
+	"name": "Phantasm",
+	"packs": {
+		"behaviorPack": "./packs/BP",
+		"resourcePack": "./packs/RP"
+	},
+	"regolith": {
+		"dataPath": "data",
+		"filterDefinitions": {
+			"js_obfuscator": {
+				"url": "github.com/lightyisreal/regolith-filters",
+				"version": "a41eb063951b2b6ca31c45504d6bd1bfaff968f4"
+			},
+			"mcaddon": {
+				"url": "github.com/lightyisreal/regolith-filters",
+				"version": "a41eb063951b2b6ca31c45504d6bd1bfaff968f4"
+			}
+		},
+		"formatVersion": "1.8.0",
+		"profiles": {
+			"default": {
+				"export": {
+					"build": "standard",
+					"readOnly": false,
+					"target": "development"
+				},
+				"filters": []
+			},
+			"package-file": {
+				"export": {
+					"target": "none"
+				},
+				"filters": [
+					{
+						"filter": "js_obfuscator"
+					},
+					{
+						"filter": "mcaddon"
+					}
+				]
+			}
+		}
+	}
 }
