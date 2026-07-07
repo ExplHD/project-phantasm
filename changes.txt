@@ -4,7 +4,7 @@ Gunakan format seperti ini ketika membuat perubahan / menciptakan konten baru :
 1.5.0 :
 
 # Removal
-- Menghilangkan Glyph System, tetapi anda masih dapat menggunakan file glyph - ExplerHD
+- Menghilangkan Glyph System, tetapi anda masih dapat menggunakan glyph yang tersedia di Phantasm- ExplerHD
 
 # Changes
 - Memperbaiki sistem dari Custom Mace - ExplerHD
@@ -13,3 +13,4 @@ Gunakan format seperti ini ketika membuat perubahan / menciptakan konten baru :
 # Addition
 - Menambah particle damage_number, dan damage_icons - ExplerHD
 - Menambah fitur Better than Mending - ExplerHD
+- Menambah Combat Dummy - ExplerHD

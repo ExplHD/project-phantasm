@@ -55,6 +55,7 @@ tile.ph:suspicious_crimson_eye.name=§eSuspicious Crimson Eye
 tile.ph:auric_battery_recharge_station.name=Auric Battery Recharge Station
 
 item.spawn_egg.entity.ph:crimson_tentacle.name=Spawn Crimson Tentacle
+item.spawn_egg.entity.ph:dummy.name=Combat Dummy
 
 entity.ph:charged_copper_laser.name=§6Charged Lightning
 entity.ph:solaris_slash.name=§aSolaris Slash

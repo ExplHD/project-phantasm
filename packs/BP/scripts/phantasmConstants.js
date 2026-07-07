@@ -33,5 +33,6 @@ export const addLore = new Map([
     ["minecraft:netherite_sword", ["§r§9+300ms Parry", "§r§aInteract to parry, damages 30 durability on success"]],
     ["ph:prismatic_sword", ["§r§9+300ms Parry", "§r§9+1 Reach", "§r§cPiercing Attack", "§r§aInteract to parry, damages 30 durability on success", "§9Phantasm"]],
     ["ph:seiketsu", ["§r§9+700ms Parry", "§r§cArea Attack", "§r§aInteract to parry, damages 1 durability on success", "§9Phantasm"]],
-    ["ph:auric_proton", ["§7Grants Auric Charge when hitting entity, being hurt, or periodically", "§r§9Accessory Item (Offhand, Hotbar Slot with +)", "§9Phantasm"]]
+    ["ph:auric_proton", ["§7Grants Auric Charge when hitting entity, being hurt, or periodically", "§r§9Accessory Item (Offhand, Hotbar Slot with +)", "§9Phantasm"]],
+    ["ph:dummy_spawn_egg", ["§r§7Use this to test your damage!", "§r§7Interact with this dummy to remove them", "§9Phantasm"]]
 ])

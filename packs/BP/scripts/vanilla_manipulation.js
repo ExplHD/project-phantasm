@@ -266,7 +266,7 @@ function healthBarDisplay(player, health, totalArmor, maxHealth) {
 
 // Health Bar Runtime
 function healthBarRuntime(player, eventType, beforeItemStack, afterItemStack) {
-    const health = player.getComponent("minecraft:health");
+    const health = player?.getComponent("minecraft:health");
     const totalArmor = player?.getComponent("minecraft:equippable")?.totalArmor;
     const maxHealth = player?.getComponent("minecraft:health")?.effectiveMax;
 
@@ -454,6 +454,7 @@ system.runInterval(() => {
 }, 6);
 
 world.afterEvents.entityHealthChanged.subscribe(({ entity: player }) => {
+    if(!player.isValid) return;
     healthBarRuntime(player, "healthChanged");
 })
 

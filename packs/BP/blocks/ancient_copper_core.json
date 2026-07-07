@@ -1,1 +1,71 @@
-{"format_version":"1.21.130","minecraft:block":{"description":{"identifier":"ph:ancient_copper_core","menu_category":{"category":"items"}},"components":{"minecraft:geometry":"geometry.ancient_copper_core","minecraft:material_instances":{"*":{"texture":"ph_ancient_copper_core","render_method":"alpha_test"}},"minecraft:collision_box":{"origin":[-5,2,-5],"size":[10,10,10]},"minecraft:selection_box":{"origin":[-5,3,-5],"size":[10,10,10]},"minecraft:destructible_by_explosion":{"explosion_resistance":1200},"minecraft:destructible_by_mining":{"seconds_to_destroy":5},"minecraft:light_emission":12,"minecraft:light_dampening":0,"minecraft:redstone_conductivity":{"allows_wire_to_step_down":false,"redstone_conductor":true},"minecraft:destruction_particles":{"texture":"copper_bulb","tint_method":"none"},"minecraft:movable":{"movement_type":"push"},"minecraft:tick":{"interval_range":[20,20],"looping":true},"ph:ancient_copper_core":{}}}}
+{
+    "format_version": "1.21.130",
+    "minecraft:block": {
+        "description": {
+            "identifier": "ph:ancient_copper_core",
+            "menu_category": {
+                "category": "items"
+            }
+        },
+        "components": {
+            "minecraft:geometry": "geometry.ancient_copper_core",
+            "minecraft:material_instances": {
+                "*": {
+                    "texture": "ph_ancient_copper_core",
+                    "render_method": "alpha_test"
+                }
+            },
+            "minecraft:collision_box": {
+                "origin": [
+                    -5,
+                    2,
+                    -5
+                ],
+                "size": [
+                    10,
+                    10,
+                    10
+                ]
+            },
+            "minecraft:selection_box": {
+                "origin": [
+                    -5,
+                    3,
+                    -5
+                ],
+                "size": [
+                    10,
+                    10,
+                    10
+                ]
+            },
+            "minecraft:destructible_by_explosion": {
+                "explosion_resistance": 1200
+            },
+            "minecraft:destructible_by_mining": {
+                "seconds_to_destroy": 5
+            },
+            "minecraft:light_emission": 12,
+            "minecraft:light_dampening": 0,
+            "minecraft:redstone_conductivity": {
+                "allows_wire_to_step_down": false,
+                "redstone_conductor": true
+            },
+            "minecraft:destruction_particles": {
+                "texture": "copper_bulb",
+                "tint_method": "none"
+            },
+            "minecraft:movable": {
+                "movement_type": "push"
+            },
+            "minecraft:tick": {
+                "interval_range": [
+                    20,
+                    20
+                ],
+                "looping": true
+            },
+            "ph:ancient_copper_core": {}
+        }
+    }
+}

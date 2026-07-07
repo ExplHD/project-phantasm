@@ -137,6 +137,9 @@
 		},
 		"ph_auric_proton": {
 			"textures": "textures/items/auric_proton"
+		},
+		"ph:dummy_spawn_egg": {
+			"textures": "textures/items/dummy"
 		}
 	},
 	"resource_pack_name": "Project Phantasm",

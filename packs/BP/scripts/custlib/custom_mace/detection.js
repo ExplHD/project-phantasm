@@ -153,7 +153,6 @@ function handleStandardSlam(attacker, victim, vLoc) {
 
 function handleWindBurst(attacker, victim, vLoc, level) {
     const vImpulse = WindBurstLevelImpulse[level] || 0.5;
-    console.warn("Custom Wind Burst");
 
     attacker.clearVelocity();
     attacker.applyImpulse({ x: 0, y: vImpulse, z: 0 });
