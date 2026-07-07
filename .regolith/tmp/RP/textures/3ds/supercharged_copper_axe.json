@@ -1,0 +1,8 @@
+{
+	"format_version": "1.16.100",
+	"minecraft:texture_set": {
+		"color": "supercharged_copper_axe",
+		"metalness_emissive_roughness": "supercharged_copper_axe_mer",
+		"heightmap": "supercharged_copper_axe_height"
+	}
+}

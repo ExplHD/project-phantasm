@@ -1,0 +1,1 @@
+{"format_version":"1.21.0","minecraft:recipe_shapeless":{"description":{"identifier":"minecraft:enchanted_golden_apple"},"tags":["crafting_table"],"ingredients":[{"item":"minecraft:gold_block"},{"item":"minecraft:golden_apple"},{"item":"minecraft:lapis_lazuli"}],"unlock":[{"item":"minecraft:golden_apple"}],"result":{"item":"minecraft:enchanted_golden_apple"}}}

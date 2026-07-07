@@ -1,0 +1,99 @@
+{
+    "materials": {
+        "version": "1.0.0",
+        "outline_base:entity_alphatest": {
+            "+states": [
+                "EnableStencilTest",
+                "StencilWrite"
+            ],
+            "frontFace": {
+                "stencilFunc": "Always",
+                "stencilFailOp": "Replace",
+                "stencilDepthFailOp": "Replace",
+                "stencilPassOp": "Replace"
+            },
+            "backFace": {
+                "stencilFunc": "Always",
+                "stencilFailOp": "Replace",
+                "stencilDepthFailOp": "Replace",
+                "stencilPassOp": "Replace"
+            },
+            "stencilRef": 2
+        },
+        "outline_base_emissive:entity_emissive_alpha": {
+            "+states": [
+                "EnableStencilTest",
+                "StencilWrite"
+            ],
+            "frontFace": {
+                "stencilFunc": "Always",
+                "stencilFailOp": "Replace",
+                "stencilDepthFailOp": "Replace",
+                "stencilPassOp": "Replace"
+            },
+            "backFace": {
+                "stencilFunc": "Always",
+                "stencilFailOp": "Replace",
+                "stencilDepthFailOp": "Replace",
+                "stencilPassOp": "Replace"
+            },
+            "stencilRef": 2
+        },
+        "outline:entity_static": {
+            "+states": [
+                "InvertCulling",
+                "EnableStencilTest",
+                "DisableDepthWrite",
+                "Blending"
+            ],
+            "+defines": [
+                "USE_OVERLAY"
+            ],
+            "-defines": [
+                "FANCY"
+            ],
+            // "depthFunc": "Always",
+            // ^ Uncomment if you want the outline to be
+            //   rendered behind the block.
+            "frontFace": {
+                "stencilFunc": "NotEqual"
+            },
+            "backFace": {
+                "stencilFunc": "Equal"
+            },
+            "stencilRef": 2,
+            "stencilReadMark": 2
+        },
+        "animated_outline:entity_static": {
+            "+states": [
+                "InvertCulling",
+                "EnableStencilTest",
+                "DisableDepthWrite",
+                "Blending"
+            ],
+            "+defines": [
+                "USE_OVERLAY",
+                "USE_UV_ANIM"
+            ],
+            "-defines": [
+                "FANCY"
+            ],
+            // "depthFunc": "Always",
+            // ^ Uncomment if you want the outline to be
+            //   rendered behind the block.
+            "frontFace": {
+                "stencilFunc": "NotEqual"
+            },
+            "backFace": {
+                "stencilFunc": "Equal"
+            },
+            "stencilRef": 2,
+            "stencilReadMark": 2
+        },
+        "animated_alphatest:entity_alphatest": {
+            "+defines": [
+                "USE_UV_ANIM"
+            ]
+        }
+    }
+}

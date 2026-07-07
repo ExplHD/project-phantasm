@@ -1,0 +1,70 @@
+{
+    "format_version": "1.20.80",
+    "minecraft:entity": {
+        "description": {
+            "identifier": "ph:peacemaker_oath_projectile",
+            "is_spawnable": false,
+            "is_summonable": true,
+            "is_experimental": false,
+            "runtime_identifier": "snowball"
+        },
+        "component_groups": {
+            "instant_despawn": {
+                "minecraft:instant_despawn": {}
+            }
+        },
+        "components": {
+            "minecraft:health": {
+                "value": 4
+            },
+            "minecraft:collision_box": {
+                "height": 0.35,
+                "width": 0.35
+            },
+            "minecraft:projectile": {
+                "anchor": 0,
+                "power": 4.8,
+                "uncertainty_base": 1,
+                "gravity": 0,
+                "on_hit": {
+                    "definition_event": {
+                        "event_trigger": {
+                            "event": "despawn"
+                        }
+                    }
+                },
+                "reflect_on_hurt": true
+            },
+            "minecraft:timer": {
+                "looping": true,
+                "time": 2,
+                "time_down_event": {
+                    "event": "despawn"
+                }
+            },
+            "minecraft:is_tamed": {},
+            "minecraft:conditional_bandwidth_optimization": {
+                "default_values": {
+                    "max_dropped_ticks": 7,
+                    "max_optimized_distance": 96,
+                    "use_motion_prediction_hints": true
+                }
+            }
+        },
+        "events": {
+            "despawn": {
+                "add": {
+                    "component_groups": [
+                        "instant_despawn"
+                    ]
+                },
+                "queue_command": {
+                    "command": [
+                        "particle ph:peacemaker_oath_hit_effect ~~~",
+                        "damage @e[r=2] 28 projectile entity @p[hasitem={item=ph:peacemaker_oath,location=slot.weapon.mainhand}]"
+                    ]
+                }
+            }
+        }
+    }
+}

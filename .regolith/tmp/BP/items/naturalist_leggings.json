@@ -1,0 +1,68 @@
+{
+    "format_version": "1.21.100",
+    "minecraft:item": {
+        "description": {
+            "identifier": "ph:naturalist_leggings",
+            "menu_category": {
+                "category": "equipment",
+                "group": "minecraft:itemGroup.name.leggings"
+            }
+        },
+        "components": {
+            "minecraft:max_stack_size": 1,
+            "minecraft:enchantable": {
+                "value": 18,
+                "slot": "armor_legs"
+            },
+            "minecraft:durability": {
+                "max_durability": 1390,
+                "damage_chance": {
+                    "min": 0,
+                    "max": 100
+                }
+            },
+            "minecraft:damage_absorption": {
+                "absorbable_causes": [
+                    "magic",
+                    "fall",
+                    "fly_into_wall",
+                    "anvil"
+                ]
+            },
+            "minecraft:fire_resistant": {
+                "value": true
+            },
+            "minecraft:rarity": "rare",
+            "minecraft:icon": "ph:naturalist_leggings",
+            "minecraft:wearable": {
+                "slot": "slot.armor.legs",
+                "protection": 7
+            },
+            "minecraft:repairable": {
+                "repair_items": [
+                    {
+                        "items": [
+                            "ph:prismatic_ingot"
+                        ],
+                        "repair_amount": "query.max_durability*0.25"
+                    },
+                    {
+                        "items": [
+                            "ph:ocean_tide_leggings"
+                        ],
+                        "repair_amount": "context.other->query.remaining_durability+0.12*context.other->query.max_durability"
+                    }
+                ]
+            },
+            "minecraft:tags": {
+                "tags": [
+                    "minecraft:trimmable_armors",
+                    "minecraft:is_armor",
+                    "minecraft:netherite_tier",
+                    "ph:prismatic_tier",
+                    "ph:toughness-4"
+                ]
+            }
+        }
+    }
+}

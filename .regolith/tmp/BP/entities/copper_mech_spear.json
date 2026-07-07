@@ -1,0 +1,144 @@
+{
+    "format_version": "1.21.50",
+    "minecraft:entity": {
+        "description": {
+            "identifier": "ph:copper_mech_spear",
+            "is_spawnable": false,
+            "is_summonable": true,
+            "is_experimental": false
+        },
+        "component_groups": {
+            "despawn": {
+                "minecraft:instant_despawn": {}
+            },
+            "ph:spear_timer": {
+                "minecraft:timer": {
+                    "looping": false,
+                    "time": 0.5,
+                    "time_down_event": {
+                        "event": "ph:spear"
+                    }
+                },
+                "minecraft:physics": {
+                    "has_collision": false,
+                    "has_gravity": false
+                }
+            },
+            "ph:despawn_timer": {
+                "minecraft:timer": {
+                    "looping": false,
+                    "time": 1.5,
+                    "time_down_event": {
+                        "event": "despawn"
+                    }
+                },
+                "minecraft:physics": {
+                    "has_collision": true,
+                    "has_gravity": true
+                }
+            }
+        },
+        "components": {
+            "minecraft:health": {
+                "value": 500,
+                "max": 500
+            },
+            "minecraft:collision_box": {
+                "height": 0.5,
+                "width": 0.5
+            },
+            "minecraft:damage_sensor": {
+                "triggers": [
+                    {
+                        "cause": "fall",
+                        "deals_damage": "yes",
+                        "on_damage": {
+                            "event": "ph:impact"
+                        }
+                    },
+                    {
+                        "cause": "all",
+                        "deals_damage": "no"
+                    }
+                ]
+            },
+            "minecraft:physics": {
+                "has_collision": false,
+                "has_gravity": false
+            },
+            "minecraft:pushable": {
+                "is_pushable": false,
+                "is_pushable_by_piston": false
+            },
+            "minecraft:knockback_resistance": {
+                "value": 15
+            },
+            "minecraft:type_family": {
+                "family": [
+                    "inanimate",
+                    "copper_mechanical"
+                ]
+            },
+            "minecraft:conditional_bandwidth_optimization": {
+                "default_values": {
+                    "max_dropped_ticks": 7,
+                    "max_optimized_distance": 96,
+                    "use_motion_prediction_hints": true
+                }
+            }
+        },
+        "events": {
+            "minecraft:entity_spawned": {
+                "add": {
+                    "component_groups": [
+                        "ph:spear_timer"
+                    ]
+                },
+                "queue_command": {
+                    "command": [
+                        "tp ~~7~",
+                        "particle ph:copper_mechanical_marker_1 ~~-7~"
+                    ]
+                }
+            },
+            "ph:spear": {
+                "add": {
+                    "component_groups": [
+                        "ph:despawn_timer"
+                    ]
+                },
+                "remove": {
+                    "component_groups": [
+                        "ph:spear_timer"
+                    ]
+                }
+            },
+            "ph:impact": {
+                "add": {
+                    "component_groups": [
+                        "despawn"
+                    ]
+                },
+                "remove": {
+                    "component_groups": [
+                        "ph:despawn_timer"
+                    ]
+                },
+                "queue_command": {
+                    "command": [
+                        "damage @e[r=3.5,rm=0.1,family=!copper_mechanical] 30 entity_attack entity @e[type=ph:copper_mechanical_array,c=1]",
+                        "playsound weapon_slash.slash_heavy @a[r=16] ~~~ 1 1 0.3",
+                        "particle ph:copper_mech_explosion ~~~"
+                    ]
+                }
+            },
+            "despawn": {
+                "add": {
+                    "component_groups": [
+                        "despawn"
+                    ]
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,35 @@
+{
+    "format_version": "1.21.0",
+    "minecraft:recipe_shaped": {
+        "description": {
+            "identifier": "ph:dummy_spawn_egg"
+        },
+        "tags": [
+            "crafting_table"
+        ],
+        "pattern": [
+            " P ",
+            "SPS",
+            "MSM"
+        ],
+        "key": {
+            "P": {
+                "item": "minecraft:planks"
+            },
+            "S": {
+                "item": "minecraft:wooden_slab"
+            },
+            "M": {
+                "item": "minecraft:smooth_stone_slab"
+            }
+        },
+        "unlock": [
+            {
+                "item": "minecraft:smooth_stone"
+            }
+        ],
+        "result": {
+            "item": "ph:dummy_spawn_egg"
+        }
+    }
+}

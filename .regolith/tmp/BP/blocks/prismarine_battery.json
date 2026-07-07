@@ -1,0 +1,90 @@
+{
+    "format_version": "1.21.130",
+    "minecraft:block": {
+        "description": {
+            "identifier": "ph:prismarine_battery",
+            "states": {
+                "ph:activation_state": [
+                    0,
+                    1
+                ]
+            }
+        },
+        "components": {
+            "minecraft:geometry": "geometry.auric_battery",
+            "minecraft:material_instances": {
+                "*": {
+                    "texture": "ph_empty_battery",
+                    "render_method": "alpha_test"
+                }
+            },
+            "minecraft:collision_box": {
+                "origin": [
+                    -6,
+                    0,
+                    -6
+                ],
+                "size": [
+                    12,
+                    14,
+                    12
+                ]
+            },
+            "minecraft:selection_box": {
+                "origin": [
+                    -6,
+                    0,
+                    -6
+                ],
+                "size": [
+                    12,
+                    14,
+                    12
+                ]
+            },
+            "minecraft:destructible_by_explosion": {
+                "explosion_resistance": 1200
+            },
+            "minecraft:destructible_by_mining": {
+                "seconds_to_destroy": 5
+            },
+            "minecraft:light_emission": 12,
+            "minecraft:light_dampening": 0,
+            "minecraft:destruction_particles": {
+                "texture": "copper_bulb",
+                "tint_method": "none"
+            },
+            "ph:copper_battery": {
+                "charge_type": "item",
+                "item": "minecraft:prismarine_shard",
+                "item_count": 64
+            }
+        },
+        "permutations": [
+            {
+                "condition": "query.block_state('ph:activation_state')==0",
+                "components": {
+                    "minecraft:material_instances": {
+                        "*": {
+                            "texture": "ph_empty_battery",
+                            "render_method": "alpha_test"
+                        }
+                    },
+                    "minecraft:light_emission": 0
+                }
+            },
+            {
+                "condition": "query.block_state('ph:activation_state')==1",
+                "components": {
+                    "minecraft:material_instances": {
+                        "*": {
+                            "texture": "ph_prismarine_battery",
+                            "render_method": "alpha_test"
+                        }
+                    },
+                    "minecraft:light_emission": 12
+                }
+            }
+        ]
+    }
+}

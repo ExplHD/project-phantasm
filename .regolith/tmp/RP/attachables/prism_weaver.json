@@ -1,0 +1,22 @@
+{
+	"format_version": "1.21.0",
+	"minecraft:attachable": {
+		"description": {
+			"identifier": "ph:prism_weaver",
+			"materials": {
+				"default": "entity_alphatest",
+				"enchanted": "entity_alphatest_glint"
+			},
+			"textures": {
+				"default": "textures/3ds/prism_weaver",
+				"enchanted": "textures/misc/enchanted_item_glint"
+			},
+			"geometry": {
+				"default": "geometry.prism_weaver"
+			},
+			"render_controllers": [
+				"controller.render.item_default"
+			]
+		}
+	}
+}

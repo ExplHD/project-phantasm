@@ -1,0 +1,123 @@
+	{
+    "namespace": "player_health",
+    "custom_health_bar": {
+        "$update_string": "bar0:",
+        "type": "image",
+        "texture": "textures/ui/healthbarempty",
+        "size": [
+            80,
+            10
+        ],
+        "offset": [
+            0,
+            0
+        ],
+        "controls": [
+            {
+                "heart_icon": {
+                    "type": "image",
+                    "texture": "textures/ui/heart",
+                    "size": [
+                        18,
+                        18
+                    ],
+                    "offset": [
+                        -18,
+                        -9
+                    ],
+                    "anchor_from": "top_left",
+                    "anchor_to": "top_left"
+                }
+            },
+            {
+                "health": {
+                    "type": "image",
+                    "size": [
+                        "100%",
+                        "100%"
+                    ],
+                    "$one": 1.0,
+                    "$max_health": 100.0,
+                    "clip_direction": "left",
+                    "clip_pixelperfect": false,
+                    "texture": "textures/ui/healthbarfull",
+                    "controls": [],
+                    "bindings": [
+                        {
+                            "binding_type": "view",
+                            "source_control_name": "health_data_control",
+                            "source_property_name": "((#preserved_text - $update_string) * $one)",
+                            "target_property_name": "#health"
+                        },
+                        {
+                            "binding_type": "view",
+                            "source_property_name": "(($max_health - #health) / $max_health)",
+                            "target_property_name": "#clip_ratio"
+                        }
+                    ],
+                    "layer": 1
+                }
+            },
+            {
+                "health_indicator": {
+                    "$update_string": "healthind:", // title must include this string to update the element
+                    "type": "label",
+                    "text": "#text",
+                    "anchor_from": "left_middle",
+                    "anchor_to": "left_middle",
+                    "offset": [
+                        1,
+                        -10
+                    ],
+                    "controls": [
+                        {
+                            "health_ind_data_control": {
+                                "type": "panel",
+                                "size": [
+                                    0,
+                                    0
+                                ],
+                                "bindings": [
+                                    {
+                                        "binding_name": "#hud_title_text_string"
+                                    },
+                                    {
+                                        "binding_name": "#hud_title_text_string",
+                                        "binding_name_override": "#preserved_health_text",
+                                        "binding_condition": "visibility_changed"
+                                    },
+                                    // element becomes visible then immediately turns invisible when a title containing the update string is passed
+                                    {
+                                        "binding_type": "view",
+                                        "source_property_name": "(not (#hud_title_text_string = #preserved_health_text) and not ((#hud_title_text_string - $update_string) = #hud_title_text_string))",
+                                        "target_property_name": "#visible"
+                                    }
+                                ]
+                            }
+                        }
+                    ],
+                    "bindings": [
+                        {
+                            "binding_type": "view",
+                            "source_control_name": "health_ind_data_control",
+                            "resolve_sibling_scope": true,
+                            "source_property_name": "('§z' + (#preserved_health_text - $update_string))",
+                            "target_property_name": "#health_text"
+                        },
+                        {
+                            "binding_type": "view",
+                            "source_property_name": "(#health_text - 'bar0:')",
+                            "target_property_name": "#text"
+                        }
+                    ]
+                }
+            }
+        ],
+        "bindings": [
+            {
+                "binding_name": "#show_survival_ui",
+                "binding_name_override": "#visible"
+            }
+        ]
+    }
+}

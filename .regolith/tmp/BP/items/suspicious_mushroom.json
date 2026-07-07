@@ -1,0 +1,41 @@
+{
+    "format_version": "1.21.100",
+    "minecraft:item": {
+        "description": {
+            "identifier": "ph:suspicious_mushroom",
+            "menu_category": {
+                "category": "items"
+            }
+        },
+        "components": {
+            "minecraft:icon": "ph_suspicious_mushroom",
+            "ph:food_effects": {
+                "health_boost_levels": 1,
+                "health_boost_duration": 600
+            },
+            "minecraft:food": {
+                "nutrition": 0,
+                "saturation_modifier": 0,
+                "can_always_eat": true
+            },
+            "minecraft:use_animation": "eat",
+            "minecraft:use_modifiers": {
+                "use_duration": 1.6
+            },
+			"minecraft:fire_resistant": {
+                "value": true
+            },
+            "minecraft:rarity": "epic",
+            "minecraft:tags": {
+                "tags": [
+                    "minecraft:is_food",
+                    "ph:food_effects-strength-12000-0",
+                    "ph:food_effects-speed-12000-1",
+                    "ph:food_effects-night_vision-12000-0",
+                    "ph:food_effects-regeneration-12000-1",
+                    "ph:food_effects-instant_health-1-1"
+                ]
+            }
+        }
+    }
+}

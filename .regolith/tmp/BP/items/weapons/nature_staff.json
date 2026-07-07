@@ -1,0 +1,45 @@
+{
+    "format_version": "1.21.100",
+    "minecraft:item": {
+        "description": {
+            "identifier": "ph:nature_staff",
+            "menu_category": {
+                "category": "equipment"
+            }
+        },
+        "components": {
+            "ph:custom_shooter": {
+                "projectile_entity": "ph:player_land_crystal_laser",
+                "sound_effect": "weapon_slash.magic_staff",
+                "cost_type": "durability",
+                "cost_value": 1,
+                "alt_projectile_event": "oceanic_attack",
+                "alt_cost_type": "durability",
+                "alt_cost_value": 1
+            },
+            "minecraft:icon": "ph_nature_staff",
+            "minecraft:max_stack_size": 1,
+            "minecraft:rarity": "epic",
+            "minecraft:allow_off_hand": false,
+            "minecraft:cooldown": {
+                "category": "nature_staff",
+                "duration": 1
+            },
+            "minecraft:enchantable": {
+                "slot": "flintsteel",
+                "value": 12
+            },
+            "minecraft:fire_resistant": {
+                "value": true
+            },
+            "minecraft:durability": {
+                "max_durability": 750
+            },
+            "minecraft:tags": {
+                "tags": [
+                    "minecraft:is_tool"
+                ]
+            }
+        }
+    }
+}

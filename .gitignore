@@ -1,5 +1,4 @@
 /build
-/.regolith
 /gradle
 /gradle-wrapper.jar
 /gradle-wrapper.properties

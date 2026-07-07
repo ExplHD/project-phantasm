@@ -1,0 +1,52 @@
+{
+    "format_version": "1.10.0",
+    "animation_controllers": {
+        "controller.animation.crimson_tentacle": {
+            "initial_state": "default",
+            "states": {
+                "default": {
+                    "animations": [
+                        "idle"
+                    ],
+                    "transitions": [
+                        {
+                            "idle_target": "query.has_target"
+                        },
+                        {
+                            "attack": "query.is_delayed_attacking"
+                        }
+                    ],
+                    "blend_transition": 0.2
+                },
+                "idle_target": {
+                    "animations": [
+                        "idle_target"
+                    ],
+                    "transitions": [
+                        {
+                            "default": "!query.has_target"
+                        },
+                        {
+                            "attack": "query.is_delayed_attacking"
+                        }
+                    ],
+                    "blend_transition": 0.5
+                },
+                "attack": {
+                    "animations": [
+                        "attack"
+                    ],
+                    "transitions": [
+                        {
+                            "idle_target": "query.any_animation_finished('attack')&&query.has_target"
+                        },
+                        {
+                            "default": "query.any_animation_finished('attack')"
+                        }
+                    ],
+                    "blend_transition": 0.35
+                }
+            }
+        }
+    }
+}

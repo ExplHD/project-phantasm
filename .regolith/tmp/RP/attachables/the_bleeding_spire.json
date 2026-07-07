@@ -1,0 +1,22 @@
+{
+	"format_version": "1.21.0",
+	"minecraft:attachable": {
+		"description": {
+			"identifier": "ph:the_bleeding_spire",
+			"materials": {
+				"default": "entity_emissive_alpha",
+				"enchanted": "entity_emissive_alpha"
+			},
+			"textures": {
+				"default": "textures/3ds/the_bleeding_spire",
+				"enchanted": "textures/misc/enchanted_item_glint"
+			},
+			"geometry": {
+				"default": "geometry.the_bleeding_spire"
+			},
+			"render_controllers": [
+				"controller.render.item_default"
+			]
+		}
+	}
+}

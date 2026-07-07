@@ -1,0 +1,7 @@
+{
+	"format_version": "1.16.100",
+	"minecraft:texture_set": {
+		"color": "nature_staff",
+		"metalness_emissive_roughness": "nature_staff_mer"
+	}
+}

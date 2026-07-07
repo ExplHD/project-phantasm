@@ -1,0 +1,23 @@
+{
+    "format_version": "1.21.100",
+    "minecraft:item": {
+        "description": {
+            "identifier": "ph:auric_star",
+            "menu_category": {
+                "category": "items"
+            }
+        },
+        "components": {
+            "minecraft:icon": "ph_auric_star",
+            "minecraft:max_stack_size": 16,
+            "minecraft:rarity": "rare",
+            "ph:ability_upgrade": {
+                "min_level": 1,
+                "passive_ability": "ph:dash_level",
+                "upgrade_to": 2,
+                "upgrade_sound": "custom_sfx.high_voltage_spark",
+                "upgrade_particle": "ph:auric_photonizer_explode"
+            }
+        }
+    }
+}

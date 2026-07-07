@@ -1,0 +1,147 @@
+{
+	"texture_data": {
+		"ph_solaris_verdant": {
+			"textures": "textures/items/weapons/solaris_verdant"
+		},
+		"ph_supercharged_copper_axe": {
+			"textures": "textures/items/weapons/supercharged_copper_axe"
+		},
+		"ph_charged_copper_axe": {
+			"textures": "textures/items/weapons/charged_copper_axe"
+		},
+		"ph_spectric_bow": {
+			"textures": "textures/items/weapons/spectric_bow"
+		},
+		"ph_spectral_arrow": {
+			"textures": "textures/items/spectral_arrow"
+		},
+		"ph_time_polarizer": {
+			"textures": "textures/items/time_polarizer"
+		},
+		"ph_flow_channeler": {
+			"textures": "textures/items/flow_channeler"
+		},
+		"ph_soul_of_nature_treasure_bag": {
+			"textures": "textures/items/loot_treasure/soul_of_nature_treasure_bag"
+		},
+		"ph_prismatic_ingot": {
+			"textures": "textures/items/prismatic_ingot"
+		},
+		"ph_hell_charge": {
+			"textures": "textures/items/hell_charge"
+		},
+		"ph:ocean_tide_helmet": {
+			"textures": "textures/items/ocean_tide/ocean_tide_helmet"
+		},
+		"ph:ocean_tide_chestplate": {
+			"textures": "textures/items/ocean_tide/ocean_tide_chestplate"
+		},
+		"ph:ocean_tide_leggings": {
+			"textures": "textures/items/ocean_tide/ocean_tide_leggings"
+		},
+		"ph:ocean_tide_boots": {
+			"textures": "textures/items/ocean_tide/ocean_tide_boots"
+		},
+		"ph_wither_treasure_bag": {
+			"textures": "textures/items/loot_treasure/wither_treasure_bag"
+		},
+		"ph_prism_weaver": {
+			"textures": "textures/items/weapons/prism_weaver"
+		},
+		"ph_auric_photonizer": {
+			"textures": "textures/items/weapons/auric_photonizer"
+		},
+		"ph_copper_mechanical_array_treasure_bag": {
+			"textures": "textures/items/loot_treasure/copper_mechanical_array_treasure_bag"
+		},
+		"ph_impulse_booster": {
+			"textures": "textures/items/impulse_booster"
+		},
+		"ph:naturalist_helmet": {
+			"textures": "textures/items/naturalist/naturalist_helmet"
+		},
+		"ph:naturalist_chestplate": {
+			"textures": "textures/items/naturalist/naturalist_chestplate"
+		},
+		"ph:naturalist_leggings": {
+			"textures": "textures/items/naturalist/naturalist_leggings"
+		},
+		"ph:naturalist_boots": {
+			"textures": "textures/items/naturalist/naturalist_boots"
+		},
+		"ph_auric_star": {
+			"textures": "textures/items/auric_star"
+		},
+		"ph_prismatic_sword": {
+			"textures": "textures/items/prismatic_sword"
+		},
+		"ph_prismatic_axe": {
+			"textures": "textures/items/prismatic_axe"
+		},
+		"ph_prismatic_pickaxe": {
+			"textures": "textures/items/prismatic_pickaxe"
+		},
+		"ph_prismatic_shovel": {
+			"textures": "textures/items/prismatic_shovel"
+		},
+		"ph_prismatic_hoe": {
+			"textures": "textures/items/prismatic_hoe"
+		},
+		"ph_prismatic_spear": {
+			"textures": "textures/items/prismatic_spear"
+		},
+		"ph_cruxshaper": {
+			"textures": "textures/items/weapons/cruxshaper"
+		},
+		"ph_nature_staff": {
+			"textures": "textures/items/weapons/nature_staff"
+		},
+		"ph_essence_of_crimson": {
+			"textures": "textures/items/essence_of_crimson"
+		},
+		"ph_weeping_repair": {
+			"textures": "textures/items/weeping_repair"
+		},
+		"ph_suspicious_mushroom": {
+			"textures": "textures/items/suspicious_mushroom"
+		},
+		"ph_fire_bracelet": {
+			"textures": "textures/items/fire_bracelet"
+		},
+		"ph_the_crimson_watcher": {
+			"textures": "textures/items/the_crimson_watcher"
+		},
+		"ph_the_bleeding_spire": {
+			"textures": "textures/items/weapons/the_bleeding_spire"
+		},
+		"ph_punicea_crimson_eye_treasure_bag": {
+			"textures": "textures/items/loot_treasure/punicea_crimson_eye_treasure_bag"
+		},
+		"ph_auric_communicator": {
+			"textures": "textures/items/auric_communicator"
+		},
+		"ph_auric_stock_battery": {
+			"textures": "textures/items/auric_stock_battery"
+		},
+		"ph_peacemaker_oath": {
+			"textures": "textures/items/weapons/peacemaker_oath"
+		},
+		"ph_thunder_gale": {
+			"textures": "textures/items/weapons/thunder_gale"
+		},
+		"ph_seiketsu": {
+			"textures": "textures/items/weapons/seiketsu"
+		},
+		"ph_auric_charging_module": {
+			"textures": "textures/items/auric_charging_module"
+		},
+		"ph_auric_proton": {
+			"textures": "textures/items/auric_proton"
+		},
+		"ph:dummy_spawn_egg": {
+			"textures": "textures/items/dummy"
+		}
+	},
+	"resource_pack_name": "Project Phantasm",
+	"texture_name": "atlas.items"
+}

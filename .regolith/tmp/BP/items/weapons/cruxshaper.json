@@ -1,0 +1,62 @@
+{
+    "format_version": "1.21.130",
+    "minecraft:item": {
+        "description": {
+            "identifier": "ph:cruxshaper",
+            "menu_category": {
+                "category": "equipment"
+            }
+        },
+        "components": {
+            "ph:cruxshaper": {},
+            "minecraft:max_stack_size": 1,
+            "minecraft:icon": "ph_cruxshaper",
+            "minecraft:damage": 8,
+            "minecraft:durability": {
+                "max_durability": 1200,
+                "damage_chance": {
+					"min": 0,
+					"max": 100
+				}
+            },
+            "minecraft:fire_resistant": {
+                "value": true
+            },
+            "minecraft:repairable": {
+                "repair_items": [
+                    {
+                        "items": [
+                            "gold_ingot",
+                            "blaze_rod"
+                        ],
+                        "repair_amount": "query.max_durability*0.25"
+                    },
+                    {
+                        "items": [
+                            "ph:cruxshaper"
+                        ],
+                        "repair_amount": "context.other->query.remaining_durability+0.12*context.other->query.max_durability"
+                    }
+                ]
+            },
+            "minecraft:can_destroy_in_creative": false,
+            "minecraft:enchantable": {
+                "slot": "all",
+                "value": 20
+            },
+            "minecraft:rarity": "epic",
+            "minecraft:cooldown": {
+                "category": "cruxshaper",
+                "duration": 30
+            },
+            "minecraft:tags": {
+                "tags": [
+                    "ph:prismatic_tier",
+                    "minecraft:is_sword",
+                    "minecraft:is_tool",
+                    "ph:is_mace"
+                ]
+            }
+        }
+    }
+}

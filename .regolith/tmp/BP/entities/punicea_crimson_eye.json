@@ -1,0 +1,650 @@
+{
+    "format_version": "1.21.50",
+    "minecraft:entity": {
+        "description": {
+            "identifier": "ph:punicea_crimson_eye",
+            "is_spawnable": false,
+            "is_summonable": true,
+            "is_experimental": false,
+            "properties": {
+                "ph:wall_laser_count": {
+                    "type": "int",
+                    "client_sync": false,
+                    "default": 0,
+                    "range": [
+                        0,
+                        5
+                    ]
+                },
+                "ph:ultimate_laser_ray_count": {
+                    "type": "int",
+                    "client_sync": false,
+                    "default": 0,
+                    "range": [
+                        0,
+                        9
+                    ]
+                },
+                "ph:projectile_barrage_count": {
+                    "type": "int",
+                    "client_sync": false,
+                    "default": 0,
+                    "range": [
+                        0,
+                        10
+                    ]
+                }
+            }
+        },
+        "component_groups": {
+            "despawn": {
+                "minecraft:instant_despawn": {}
+            },
+            "ph:randomize_pattern": {
+                "minecraft:timer": {
+                    "looping": true,
+                    "time": [
+                        7,
+                        9
+                    ],
+                    "time_down_event": {
+                        "event": "ph:randomize_pattern",
+                        "target": "self"
+                    }
+                },
+                "minecraft:damage_sensor": {
+                    "triggers": [
+                        {
+                            "cause": "suffocation",
+                            "deals_damage": "no"
+                        },
+                        {
+                            "cause": "lava",
+                            "deals_damage": "no"
+                        },
+                        {
+                            "cause": "mace_smash",
+                            "deals_damage": "no"
+                        },
+                        {
+                            "cause": "all",
+                            "deals_damage": "yes",
+                            "damage_modifier": 1
+                        },
+                        {
+                            "cause": "all",
+                            "deals_damage": "no",
+                            "on_damage": {
+                                "filters": {
+                                    "test": "is_family",
+                                    "subject": "other",
+                                    "operator": "==",
+                                    "value": "crimson_eye"
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            "ph:ultimate_laser_ray_charge": {
+                "minecraft:timer": {
+                    "time": 2,
+                    "time_down_event": {
+                        "event": "ph:ultimate_laser_ray_trigger"
+                    }
+                },
+                "minecraft:damage_sensor": {
+                    "triggers": [
+                        {
+                            "cause": "all",
+                            "deals_damage": "no",
+                            "on_damage": {
+                                "filters": {
+                                    "test": "is_family",
+                                    "subject": "other",
+                                    "operator": "==",
+                                    "value": "crimson_eye"
+                                }
+                            }
+                        },
+                        {
+                            "cause": "all",
+                            "deals_damage": "no"
+                        }
+                    ]
+                }
+            },
+            "ph:ultimate_laser_ray_cast": {
+                "minecraft:timer": {
+                    "looping": true,
+                    "time": 1,
+                    "time_down_event": {
+                        "event": "ph:ultimate_laser_ray_trigger"
+                    }
+                },
+                "minecraft:damage_sensor": {
+                    "triggers": [
+                        {
+                            "cause": "all",
+                            "deals_damage": "no",
+                            "on_damage": {
+                                "filters": {
+                                    "test": "is_family",
+                                    "subject": "other",
+                                    "operator": "==",
+                                    "value": "crimson_eye"
+                                }
+                            }
+                        },
+                        {
+                            "cause": "all",
+                            "deals_damage": "no"
+                        }
+                    ]
+                }
+            },
+            "ph:crimson_drift_timer": {
+                "minecraft:timer": {
+                    "time": 3,
+                    "time_down_event": {
+                        "event": "ph:crimson_drift_trigger"
+                    }
+                },
+                "minecraft:damage_sensor": {
+                    "triggers": [
+                        {
+                            "cause": "all",
+                            "deals_damage": "no",
+                            "on_damage": {
+                                "filters": {
+                                    "test": "is_family",
+                                    "subject": "other",
+                                    "operator": "==",
+                                    "value": "crimson_eye"
+                                }
+                            }
+                        },
+                        {
+                            "cause": "all",
+                            "deals_damage": "no"
+                        }
+                    ]
+                }
+            },
+            "ph:laser_walls": {
+                "minecraft:timer": {
+                    "looping": true,
+                    "time": 1.5,
+                    "time_down_event": {
+                        "event": "ph:laser_wall_trigger",
+                        "target": "self"
+                    }
+                },
+                "minecraft:damage_sensor": {
+                    "triggers": [
+                        {
+                            "cause": "all",
+                            "deals_damage": "no",
+                            "on_damage": {
+                                "filters": {
+                                    "test": "is_family",
+                                    "subject": "other",
+                                    "operator": "==",
+                                    "value": "crimson_eye"
+                                }
+                            }
+                        },
+                        {
+                            "cause": "all",
+                            "deals_damage": "no"
+                        }
+                    ]
+                }
+            },
+            "ph:projectile_barrage": {
+                "minecraft:timer": {
+                    "looping": true,
+                    "time": 0.5,
+                    "time_down_event": {
+                        "event": "ph:projectile_barrage_trigger",
+                        "target": "self"
+                    }
+                },
+                "minecraft:damage_sensor": {
+                    "triggers": [
+                        {
+                            "cause": "all",
+                            "deals_damage": "no",
+                            "on_damage": {
+                                "filters": {
+                                    "test": "is_family",
+                                    "subject": "other",
+                                    "operator": "==",
+                                    "value": "crimson_eye"
+                                }
+                            }
+                        },
+                        {
+                            "cause": "all",
+                            "damage_modifier": 0.4
+                        }
+                    ]
+                }
+            }
+        },
+        "components": {
+            "minecraft:health": {
+                "value": 2000,
+                "max": 2000
+            },
+            "minecraft:boss": {
+                "hud_range": 96,
+                "name": "Punicea : A Crimson Eye"
+            },
+            "minecraft:scale": {
+                "value": 2.1
+            },
+            "minecraft:collision_box": {
+                "height": 1.6,
+                "width": 1.1
+            },
+            "minecraft:pushable": {
+                "is_pushable": false,
+                "is_pushable_by_piston": false
+            },
+            "minecraft:movement": {
+                "value": 0
+            },
+            "minecraft:knockback_resistance": {
+                "value": 100
+            },
+            "minecraft:type_family": {
+                "family": [
+                    "boss",
+                    "monster",
+                    "crimson_eye"
+                ]
+            },
+            "minecraft:fire_immune": true,
+            "minecraft:follow_range": {
+                "value": 48,
+                "max": 48
+            },
+            "minecraft:behavior.hurt_by_target": {
+                "priority": 2
+            },
+            "minecraft:behavior.look_at_target": {
+                "look_distance": 32,
+                "priority": 3
+            },
+            "minecraft:behavior.look_at_player": {
+                "look_distance": 32,
+                "priority": 4
+            },
+            "minecraft:behavior.look_at_entity": {
+                "look_distance": 32,
+                "priority": 5
+            },
+            "minecraft:physics": {
+                "has_collision": false,
+                "has_gravity": false
+            },
+            "minecraft:on_death": {
+                "event": "death"
+            },
+            "minecraft:loot": {
+                "table": "loot_tables/entities/boss/punicea_crimson_eye.json"
+            },
+            "minecraft:experience_reward": {
+                "on_death": 6000
+            }
+        },
+        "events": {
+            "minecraft:entity_spawned": {
+                "add": {
+                    "component_groups": [
+                        "ph:randomize_pattern"
+                    ]
+                },
+                "queue_command": {
+                    "command": [
+                        "title @a[r=64] title Punicea",
+                        "title @a[r=64] subtitle A Crimson Eye",
+                        "music play music.boss.it_sees_everything 1 1 loop"
+                    ]
+                }
+            },
+            "despawn": {
+                "queue_command": {
+                    "command": [
+                        "music stop 3"
+                    ]
+                },
+                "add": {
+                    "component_groups": [
+                        "despawn"
+                    ]
+                }
+            },
+            "death": {
+                "queue_command": {
+                    "command": [
+                        "music stop 3"
+                    ]
+                }
+            },
+            "ph:randomize_pattern": {
+                "randomize": [
+                    {
+                        "queue_command": {
+                            "command": [
+                                "scriptevent ph:boss_summon 6, 0, 24, ph:crimson_tentacle, mob.zombie.woodbreak, ph:summon_from_boss",
+                                "playanimation @s animation.punicea_crimson_eye.summon_tentacle"
+                            ]
+                        },
+                        "weight": 1
+                    },
+                    {
+                        "queue_command": {
+                            "command": [
+                                "scriptevent ph:boss_summon 35, -0.1, 30, ph:flame_wall, mob.blaze.shoot",
+                                "playanimation @s animation.punicea_crimson_eye.wall_of_flame"
+                            ]
+                        },
+                        "weight": 1
+                    },
+                    {
+                        "add": {
+                            "component_groups": [
+                                "ph:ultimate_laser_ray_cast"
+                            ]
+                        },
+                        "remove": {
+                            "component_groups": [
+                                "ph:randomize_pattern"
+                            ]
+                        },
+                        "queue_command": {
+                            "command": [
+                                "playanimation @s animation.punicea_crimson_eye.ultimate_laser_ray",
+                                "particle ph:ultimate_laser_ray_safe_zone ~~1~",
+                                "tp @s ~~-0.6~"
+                            ]
+                        },
+                        "weight": 1
+                    },
+                    {
+                        "add": {
+                            "component_groups": [
+                                "ph:crimson_drift_timer"
+                            ]
+                        },
+                        "remove": {
+                            "component_groups": [
+                                "ph:randomize_pattern"
+                            ]
+                        },
+                        "queue_command": {
+                            "command": [
+                                "playanimation @s animation.punicea_crimson_eye.crimson_drifts",
+                                "summon armor_stand ~~~ ~ ~ a CRIMSONDRIFTMARKER",
+                                "effect @e[type=armor_stand,name=CRIMSONDRIFTMARKER] invisibility",
+                                "spreadplayers ~ ~ 3 24 @e[type=armor_stand,name=CRIMSONDRIFTMARKER] ~3",
+                                "execute as @s at @e[type=armor_stand,name=CRIMSONDRIFTMARKER] run particle ph:crimson_drift_small ~~1~",
+                                "execute as @s at @e[type=armor_stand,name=CRIMSONDRIFTMARKER] run particle ph:crimson_drift_large ~~1~"
+                            ]
+                        },
+                        "weight": 1
+                    },
+                    {
+                        "add": {
+                            "component_groups": [
+                                "ph:laser_walls"
+                            ]
+                        },
+                        "remove": {
+                            "component_groups": [
+                                "ph:randomize_pattern"
+                            ]
+                        },
+                        "queue_command": {
+                            "command": [
+                                "playanimation @s animation.punicea_crimson_eye.projectile_barrage",
+                                "title @a[r=64] title §c",
+                                "title @a[r=64] subtitle §cJump Disabled!",
+                                "camera @a[r=64] set minecraft:third_person",
+                                "inputpermission set @a[r=64] jump disabled"
+                            ]
+                        },
+                        "weight": 1
+                    },
+                    {
+                        "add": {
+                            "component_groups": [
+                                "ph:projectile_barrage"
+                            ]
+                        },
+                        "remove": {
+                            "component_groups": [
+                                "ph:randomize_pattern"
+                            ]
+                        },
+                        "queue_command": {
+                            "command": [
+                                "playanimation @s animation.punicea_crimson_eye.projectile_barrage"
+                            ]
+                        },
+                        "weight": 1
+                    }
+                ]
+            },
+            "ph:ultimate_laser_ray_trigger": {
+                "sequence": [
+                    {
+                        "filters": {
+                            "test": "int_property",
+                            "subject": "self",
+                            "operator": "<",
+                            "domain": "ph:ultimate_laser_ray_count",
+                            "value": 9
+                        },
+                        "queue_command": {
+                            "command": [
+                                "scriptevent ph:boss_summon_projectile 16, 1.5, ph:crimson_laser, random.orb",
+                                "damage @e[r=48,rm=30,family=!inanimate,type=!item] 30 magic entity @s"
+                            ]
+                        },
+                        "set_property": {
+                            "ph:ultimate_laser_ray_count": "query.property('ph:ultimate_laser_ray_count') + 1"
+                        }
+                    },
+                    {
+                        "filters": {
+                            "test": "int_property",
+                            "subject": "self",
+                            "operator": "==",
+                            "domain": "ph:ultimate_laser_ray_count",
+                            "value": 9
+                        },
+                        "set_property": {
+                            "ph:ultimate_laser_ray_count": 0
+                        },
+                        "queue_command": {
+                            "command": "tp @s ~~0.6~"
+                        },
+                        "add": {
+                            "component_groups": [
+                                "ph:randomize_pattern"
+                            ]
+                        },
+                        "remove": {
+                            "component_groups": [
+                                "ph:ultimate_laser_ray_cast"
+                            ]
+                        }
+                    }
+                ]
+            },
+            "ph:crimson_drift_trigger": {
+                "add": {
+                    "component_groups": [
+                        "ph:randomize_pattern"
+                    ]
+                },
+                "remove": {
+                    "component_groups": [
+                        "ph:crimson_drift_timer"
+                    ]
+                },
+                "queue_command": {
+                    "command": [
+                        "tp @s @e[type=armor_stand,name=CRIMSONDRIFTMARKER]",
+                        "playsound mob.zombie.remedy @a[r=32] ~~~ 1 1 0.3",
+                        "particle ph:crimson_roots_spread ~~1~",
+                        "damage @e[r=10,rm=0.1,family=!inanimate,type=!item] 10 magic entity @s",
+                        "kill @e[type=armor_stand,name=CRIMSONDRIFTMARKER]",
+                        "camera @a[r=10] fade time 0 5 1 color 180 0 0",
+                        "effect @e[r=10,rm=0.1,family=!inanimate] wither 5 3 true"
+                    ]
+                }
+            },
+            "ph:laser_wall_trigger": {
+                "sequence": [
+                    {
+                        "filters": {
+                            "test": "int_property",
+                            "subject": "self",
+                            "operator": "<",
+                            "domain": "ph:wall_laser_count",
+                            "value": 5
+                        },
+                        "randomize": [
+                            {
+                                "queue_command": {
+                                    "command": [
+                                        "execute as @s at @p[r=64] run summon ph:crimson_laser ~~~-15 0 0",
+                                        "execute as @s at @p[r=64] run summon ph:crimson_laser ~5~~-15 0 0",
+                                        "execute as @s at @p[r=64] run summon ph:crimson_laser ~10~~-15 0 0",
+                                        "execute as @s at @p[r=64] run summon ph:crimson_laser ~15~~-15 0 0",
+                                        "execute as @s at @p[r=64] run summon ph:crimson_laser ~-5~~-15 0 0",
+                                        "execute as @s at @p[r=64] run summon ph:crimson_laser ~-10~~-15 0 0",
+                                        "execute as @s at @p[r=64] run summon ph:crimson_laser ~-15~~-15 0 0",
+                                        "execute as @s at @p[r=64] run summon ph:crimson_laser ~15~~ 90 0",
+                                        "execute as @s at @p[r=64] run summon ph:crimson_laser ~15~~5 90 0",
+                                        "execute as @s at @p[r=64] run summon ph:crimson_laser ~15~~10 90 0",
+                                        "execute as @s at @p[r=64] run summon ph:crimson_laser ~15~~15 90 0",
+                                        "execute as @s at @p[r=64] run summon ph:crimson_laser ~15~~-5 90 0",
+                                        "execute as @s at @p[r=64] run summon ph:crimson_laser ~15~~-10 90 0",
+                                        "execute as @s at @p[r=64] run summon ph:crimson_laser ~15~~-15 90 0",
+                                        "playanimation @s animation.punicea_crimson_eye.projectile_barrage"
+                                    ]
+                                },
+                                "set_property": {
+                                    "ph:wall_laser_count": "query.property('ph:wall_laser_count') + 1"
+                                }
+                            },
+                            {
+                                "queue_command": {
+                                    "command": [
+                                        "execute as @s at @p[r=64] run summon ph:crimson_laser ~10.5~~-10.5 45 0",
+                                        "execute as @s at @p[r=64] run summon ph:crimson_laser ~14.5~~-6.5 45 0",
+                                        "execute as @s at @p[r=64] run summon ph:crimson_laser ~18.5~~-2.5 45 0",
+                                        "execute as @s at @p[r=64] run summon ph:crimson_laser ~22.5~~2.5 45 0",
+                                        "execute as @s at @p[r=64] run summon ph:crimson_laser ~6.5~~-14.5 45 0",
+                                        "execute as @s at @p[r=64] run summon ph:crimson_laser ~2.5~~-18.5 45 0",
+                                        "execute as @s at @p[r=64] run summon ph:crimson_laser ~-2.5~~-22.5 45 0",
+                                        "execute as @s at @p[r=64] run summon ph:crimson_laser ~10.5~~10.5 135 0",
+                                        "execute as @s at @p[r=64] run summon ph:crimson_laser ~14.5~~6.5 135 0",
+                                        "execute as @s at @p[r=64] run summon ph:crimson_laser ~18.5~~2.5 135 0",
+                                        "execute as @s at @p[r=64] run summon ph:crimson_laser ~22.5~~-2.5 135 0",
+                                        "execute as @s at @p[r=64] run summon ph:crimson_laser ~6.5~~14.5 135 0",
+                                        "execute as @s at @p[r=64] run summon ph:crimson_laser ~2.5~~18.5 135 0",
+                                        "execute as @s at @p[r=64] run summon ph:crimson_laser ~-2.5~~22.5 135 0",
+                                        "playanimation @s animation.punicea_crimson_eye.projectile_barrage"
+                                    ]
+                                },
+                                "set_property": {
+                                    "ph:wall_laser_count": "query.property('ph:wall_laser_count') + 1"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "filters": {
+                            "test": "int_property",
+                            "subject": "self",
+                            "operator": "==",
+                            "domain": "ph:wall_laser_count",
+                            "value": 5
+                        },
+                        "set_property": {
+                            "ph:wall_laser_count": 0
+                        },
+                        "add": {
+                            "component_groups": [
+                                "ph:randomize_pattern"
+                            ]
+                        },
+                        "remove": {
+                            "component_groups": [
+                                "ph:laser_walls"
+                            ]
+                        },
+                        "queue_command": {
+                            "command": [
+                                "title @a[r=64] title §a",
+                                "inputpermission set @a[r=64] jump enabled",
+                                "title @a[r=64] subtitle §aJump Enabled!",
+                                "camera @a[r=64] clear"
+                            ]
+                        }
+                    }
+                ]
+            },
+            "ph:projectile_barrage_trigger": {
+                "sequence": [
+                    {
+                        "filters": {
+                            "test": "int_property",
+                            "subject": "self",
+                            "operator": "<",
+                            "domain": "ph:projectile_barrage_count",
+                            "value": 10
+                        },
+                        "queue_command": {
+                            "command": [
+                                "scriptevent ph:boss_summon_projectile 4, 1.5, ph:crimson_stray_projectile, mob.blaze.shoot",
+                                "playanimation @s animation.punicea_crimson_eye.projectile_barrage"
+                            ]
+                        },
+                        "set_property": {
+                            "ph:projectile_barrage_count": "query.property('ph:projectile_barrage_count') + 1"
+                        }
+                    },
+                    {
+                        "filters": {
+                            "test": "int_property",
+                            "subject": "self",
+                            "operator": "==",
+                            "domain": "ph:projectile_barrage_count",
+                            "value": 10
+                        },
+                        "set_property": {
+                            "ph:projectile_barrage_count": 0
+                        },
+                        "add": {
+                            "component_groups": [
+                                "ph:randomize_pattern"
+                            ]
+                        },
+                        "remove": {
+                            "component_groups": [
+                                "ph:projectile_barrage"
+                            ]
+                        }
+                    }
+                ]
+            }
+        }
+    }
+}
