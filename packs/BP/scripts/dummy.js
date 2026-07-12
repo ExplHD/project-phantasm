@@ -7,9 +7,7 @@ const SMOOTH_SPEED = 0.15;        // 0-1 (semakin besar semakin cepat)
 const DummyStats = new Map();
 
 function getStats(dummy) {
-
     let stats = DummyStats.get(dummy.id);
-
     if (stats) return stats;
 
     stats = {
@@ -35,10 +33,8 @@ function getStats(dummy) {
 }
 
 function beginCombat(dummy, stats) {
-
     if (stats.interval !== undefined)
         return;
-
     stats.interval = system.runInterval(() => {
 
         // Dummy sudah hilang
@@ -64,10 +60,8 @@ function beginCombat(dummy, stats) {
         // Smooth DPS
         stats.displayDps +=
             (stats.realDps - stats.displayDps) * SMOOTH_SPEED;
-
         const combatTime =
             Math.max((now - stats.combatStart) / 1000, 0.1);
-
         const averageDps =
             stats.totalDamage / combatTime;
 
@@ -95,9 +89,7 @@ function beginCombat(dummy, stats) {
 }
 
 function addDamage(dummy, damage) {
-
     const stats = getStats(dummy);
-
     const now = Date.now();
 
     if (stats.hits === 0)
@@ -121,12 +113,9 @@ function addDamage(dummy, damage) {
 }
 
 world.afterEvents.entityHurt.subscribe((event) => {
-
     const dummy = event.hurtEntity;
-
     if (dummy.typeId !== "ph:dummy")
         return;
 
     addDamage(dummy, event.damage);
-
 });

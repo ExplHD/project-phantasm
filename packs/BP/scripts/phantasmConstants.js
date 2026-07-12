@@ -36,3 +36,11 @@ export const addLore = new Map([
     ["ph:auric_proton", ["§7Grants Auric Charge when hitting entity, being hurt, or periodically", "§r§9Accessory Item (Offhand, Hotbar Slot with +)", "§9Phantasm"]],
     ["ph:dummy_spawn_egg", ["§r§7Use this to test your damage!", "§r§7Interact with this dummy to remove them", "§9Phantasm"]]
 ])
+
+export const LEGENDARY_TIER = [
+	"ph:solaris_verdant",
+	"ph:prism_weaver",
+	"ph:the_bleeding_spire",
+	"ph:supercharged_copper_axe",
+	"ph:auric_photonizer"
+]

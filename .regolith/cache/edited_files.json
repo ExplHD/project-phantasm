@@ -698,6 +698,7 @@
 			"particles/the_bleeding_spire/the_bleeding_spire_dash.particle.json",
 			"particles/the_bleeding_spire/the_bleeding_spire_impale.particle.json",
 			"particles/the_bleeding_spire/the_bleeding_spire_marker.particle.json",
+			"particles/the_bleeding_spire/the_bleeding_spire_stab.particle.json",
 			"render_controllers/animirra_summon.json",
 			"render_controllers/charged_copper_laser.json",
 			"render_controllers/copper_mech_axe.json",
@@ -1285,7 +1286,6 @@
 			"scripts/loader.js",
 			"scripts/main.js",
 			"scripts/phantasmConstants.js",
-			"scripts/specific_structure_position.js",
 			"scripts/vanilla_manipulation.js",
 			"scripts/weapons.js",
 			"spawn_rules/crimson_tentacle.json",
@@ -1298,9 +1298,12 @@
 			"structures/prismarine_boss_arena.mcstructure",
 			"worldgen/processors/crimson_overgrowth_processor.json",
 			"worldgen/structure_sets/crimson_overgrowth.json",
+			"worldgen/structure_sets/prismarine_boss_arena.json",
 			"worldgen/structures/crimson_overgrowth.json",
+			"worldgen/structures/prismarine_boss_arena.json",
 			"worldgen/template_pools/crimson_area_main.json",
-			"worldgen/template_pools/crimson_area_sub.json"
+			"worldgen/template_pools/crimson_area_sub.json",
+			"worldgen/template_pools/prismarine_boss_arena_main.json"
 		]
 	}
 }

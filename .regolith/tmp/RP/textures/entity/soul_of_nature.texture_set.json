@@ -1,8 +1,0 @@
-{
-	"format_version": "1.16.100",
-	"minecraft:texture_set": {
-		"color": "soul_of_nature",
-		"metalness_emissive_roughness": "soul_of_nature_mer",
-		"heightmap": "soul_of_nature_height"
-	}
-}

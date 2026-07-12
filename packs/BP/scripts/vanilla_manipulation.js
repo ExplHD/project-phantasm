@@ -170,7 +170,7 @@ function parryRuntime(source, itemStack) {
             source.dimension.playSound("item.spear.use", source.location);
             source.addTag("parried");
             source.inputPermissions.setPermissionCategory(2, false);
-            applyDurabilityDamage(source, { damage: 1 });
+            Helper.applyDurabilityDamage(source, { damage: 1 });
             system.runTimeout(() => {
                 if (source?.hasTag("parried")) source.removeTag("parried");
                 source.inputPermissions.setPermissionCategory(2, true);
@@ -288,7 +288,7 @@ function healthBarRuntime(player, eventType, beforeItemStack, afterItemStack) {
     if (eventType == "gamemodeChanged") {
         const gameMode = player.getGameMode();
         if (gameMode == "Creative" || gameMode == "Spectator") return;
-        healthBarDisplay(player, health, totalArmor, maxHealth)
+		healthBarDisplay(player, health, totalArmor, maxHealth);
     }
 }
 
@@ -419,26 +419,6 @@ world.beforeEvents.entityHurt.subscribe(data => {
 world.beforeEvents.playerInteractWithBlock.subscribe((event) => {
     const { player, itemStack: item, block } = event;
     vanillaBlockInteractFix(player, item, block);
-})
-
-// Gapple & Enchanted Gapple
-world.beforeEvents.itemUse.subscribe((e) => {
-    const source = e.source;
-    const gappleCooldown = Helper.getScore(source, "gapple_cooldown");
-    const itemStack = e.itemStack;
-    if (itemStack?.typeId === "minecraft:golden_apple" || itemStack?.typeId === "minecraft:enchanted_golden_apple") {
-        if (cooldown == 0) {
-            system.run(() => {
-                source.onScreenDisplay.setActionBar("§cGapple Cooldown Started");
-                Helper.setScore(source, "gapple_cooldown", 20);
-            });
-            return;
-        };
-        system.run(() => {
-            source.onScreenDisplay.setActionBar("§cGapple is Unavailable");
-        });
-        e.cancel = true;
-    }
 })
 
 world.afterEvents.itemUse.subscribe(({ source, itemStack }) => {

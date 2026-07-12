@@ -1,16 +1,33 @@
 Gunakan format seperti ini ketika membuat perubahan / menciptakan konten baru :
-<-/=/+> <Removal/Changes/Addition> - <Siapa>
+< - / = / + > <Removal/Changes/Addition> - <Siapa>
 
-1.5.0 :
+1.5.0 (The Great Stability) :
 
 # Removal
-- Menghilangkan Glyph System, tetapi anda masih dapat menggunakan glyph yang tersedia di Phantasm- ExplerHD
+- Menghilangkan Glyph System, tetapi anda masih dapat menggunakan glyph yang tersedia di Phantasm - ExplerHD
+- Menghilangkan fungsi mine pada Senjata Legendaris, dikarenakan memang bukan di desain untuk itu - ExplerHD
+- Menghilangkan fitur Direct Hit pada Senjata Legendaris, dan Seiketsu - ExplerHD
 
 # Changes
-- Memperbaiki sistem dari Custom Mace - ExplerHD
-- Mengubah sistem Damage Indicator menggunakan Particle Runtime - ExplerHD
+= Refactor sistem dari Custom Mace - ExplerHD
+= Mengubah sistem Damage Indicator menggunakan Particle Runtime - ExplerHD
+= Mengubah Structure yang mana dari fixed position di darat menjadi structure yang dapat di locate, letaknya di bawah air - ExplerHD
+= Mengubah Bossfight Soul of Nature mengikuti struktur (underwater bossfight) - ExplerHD
+= Mengubah posisi dari structure Crimson Overgrowth agar lebih masuk akal, dan terlihat - ExplerHD
+= Seiketsu Damage +4 - ExplerHD
+= Sedikit mengubah visual pada serangan The Bleeding Spire - ExplerHD
+= Reworked semua damage dari Senjata Legendaris, agar dapat menyaingi Damage Senjata Epic yang di enchant - ExplerHD
+= Menambah support Fire Aspect, Knockback, dan Weakness pada Senjata Legendaris - ExplerHD
+= Mengubah seluruh Senjata Legendaris agar dapat menyerang secara looping tiap pattern, tidak ada ending cooldown dari attack pattern lagi - ExplerHD
 
 # Addition
-- Menambah particle damage_number, dan damage_icons - ExplerHD
-- Menambah fitur Better than Mending - ExplerHD
-- Menambah Combat Dummy - ExplerHD
++ Menambah particle damage_number, dan damage_icons - ExplerHD
++ Menambah fitur Better than Mending - ExplerHD
++ Menambah Combat Dummy - ExplerHD
++ Menambahkan Item Turtle Shell pada Prismarine Boss Arena, agar boss fight di arena itu lebih gampang - ExplerHD
+
+? To be planned :
+List all of your upcoming plans here, using any point list and explain it.
+ExplerHD : 
+- Menambah Aksesoris Sea Life Crystal :
+  Aksesoris ini berfungsi untuk memberikan ketahanan yang jauh lebih lama di air, dan regenerasi yang sedikit lebih cepat di air, Passive Type

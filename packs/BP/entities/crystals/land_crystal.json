@@ -1,1 +1,225 @@
-{"format_version":"1.21.0","minecraft:entity":{"description":{"identifier":"ph:land_crystal","is_spawnable":false,"is_summonable":true,"is_experimental":false},"component_groups":{"instant_despawn":{"minecraft:instant_despawn":{}},"ph:timer_starts":{"minecraft:timer":{"time":15,"looping":false,"time_down_event":{"event":"start_randomize_attack"}}},"ph:warning_1":{"minecraft:timer":{"time":1.5,"time_down_event":{"event":"ph:shoot_laser"}}},"ph:warning_2":{"minecraft:timer":{"time":1.5,"time_down_event":{"event":"ph:shoot_slash"}}},"ph:warning_3":{"minecraft:timer":{"time":1,"time_down_event":{"event":"ph:close_attack"}}},"ph:shoot_laser":{"minecraft:spawn_entity":{"entities":[{"min_wait_time":0,"max_wait_time":0,"num_to_spawn":1,"single_use":true,"spawn_entity":"ph:land_crystal_laser"}]},"minecraft:timer":{"time":0.1,"time_down_event":{"event":"minecraft:entity_spawned"}}}},"components":{"minecraft:physics":{"has_collision":false,"has_gravity":false},"minecraft:pushable":{"is_pushable":false,"is_pushable_by_piston":false},"minecraft:health":{"value":50},"minecraft:collision_box":{"height":0.01,"width":0.01},"minecraft:damage_sensor":{"triggers":[{"cause":"all","deals_damage":false}]},"minecraft:type_family":{"family":["animirra","inanimate","crystal"]}},"events":{"minecraft:entity_spawned":{"add":{"component_groups":["ph:timer_starts"]},"remove":{"component_groups":["ph:shoot_laser","ph:warning_1","ph:warning_2","ph:warning_3"]},"queue_command":{"command":"scriptevent ph:remove_target_lock"}},"despawn":{"add":{"component_groups":["instant_despawn"]}},"start_randomize_attack":{"remove":{"component_groups":["ph:timer_starts"]},"randomize":[{"add":{"component_groups":["ph:warning_1"]},"trigger":"ph:trigger_raycast"},{"add":{"component_groups":["ph:warning_2"]},"trigger":"ph:trigger_raycast"},{"add":{"component_groups":["ph:warning_3"]},"queue_command":{"command":["particle ph:land_crystal_close_attack_warning"]}}]},"ph:close_attack":{"remove":{"component_groups":["ph:warning_3"]},"add":{"component_groups":["ph:timer_starts"]},"queue_command":{"command":["damage @e[rm=0.1,r=4.7] 10 entity_explosion entity @s","particle ph:land_crystal_close_attack","scriptevent ph:remove_target_lock"]}},"ph:shoot_slash":{"remove":{"component_groups":["ph:warning_2"]},"add":{"component_groups":["ph:timer_starts"]},"queue_command":{"command":["summon ph:land_crystal_slash ~~1~ ~ 0","scriptevent ph:remove_target_lock"]}},"ph:shoot_laser":{"remove":{"component_groups":["ph:warning_1"]},"add":{"component_groups":["ph:shoot_laser"]}},"ph:trigger_raycast":{"queue_command":{"command":["playanimation @s animation.land_crystal.warn_raycast","tag @s add locked"]}}}}}
+{
+    "format_version": "1.21.0",
+    "minecraft:entity": {
+        "description": {
+            "identifier": "ph:land_crystal",
+            "is_spawnable": false,
+            "is_summonable": true,
+            "is_experimental": false
+        },
+        "component_groups": {
+            "instant_despawn": {
+                "minecraft:instant_despawn": {}
+            },
+            "ph:timer_starts": {
+                "minecraft:timer": {
+                    "time": 15,
+                    "looping": false,
+                    "time_down_event": {
+                        "event": "start_randomize_attack"
+                    }
+                }
+            },
+            "ph:warning_1": {
+                "minecraft:timer": {
+                    "time": 1.5,
+                    "time_down_event": {
+                        "event": "ph:shoot_laser"
+                    }
+                }
+            },
+            "ph:warning_2": {
+                "minecraft:timer": {
+                    "time": 1.5,
+                    "time_down_event": {
+                        "event": "ph:shoot_slash"
+                    }
+                }
+            },
+            "ph:warning_3": {
+                "minecraft:timer": {
+                    "time": 1,
+                    "time_down_event": {
+                        "event": "ph:close_attack"
+                    }
+                }
+            },
+            "ph:shoot_laser": {
+                "minecraft:spawn_entity": {
+                    "entities": [
+                        {
+                            "min_wait_time": 0,
+                            "max_wait_time": 0,
+                            "num_to_spawn": 1,
+                            "single_use": true,
+                            "spawn_entity": "ph:land_crystal_laser"
+                        }
+                    ]
+                },
+                "minecraft:timer": {
+                    "time": 0.1,
+                    "time_down_event": {
+                        "event": "minecraft:entity_spawned"
+                    }
+                }
+            }
+        },
+        "components": {
+            "minecraft:physics": {
+                "has_collision": true,
+                "has_gravity": false
+            },
+            "minecraft:pushable": {
+                "is_pushable": false,
+                "is_pushable_by_piston": false
+            },
+            "minecraft:health": {
+                "value": 50
+            },
+            "minecraft:movement": {
+                "value": 0
+            },
+            "minecraft:movement.basic": {},
+            "minecraft:collision_box": {
+                "height": 0.01,
+                "width": 0.01
+            },
+            "minecraft:damage_sensor": {
+                "triggers": [
+                    {
+                        "cause": "all",
+                        "deals_damage": false
+                    }
+                ]
+            },
+            "minecraft:type_family": {
+                "family": [
+                    "animirra",
+                    "inanimate",
+                    "crystal"
+                ]
+            }
+        },
+        "events": {
+            "minecraft:entity_spawned": {
+                "add": {
+                    "component_groups": [
+                        "ph:timer_starts"
+                    ]
+                },
+                "remove": {
+                    "component_groups": [
+                        "ph:shoot_laser",
+                        "ph:warning_1",
+                        "ph:warning_2",
+                        "ph:warning_3"
+                    ]
+                },
+                "queue_command": {
+                    "command": "scriptevent ph:remove_target_lock"
+                }
+            },
+            "despawn": {
+                "add": {
+                    "component_groups": [
+                        "instant_despawn"
+                    ]
+                }
+            },
+            "start_randomize_attack": {
+                "remove": {
+                    "component_groups": [
+                        "ph:timer_starts"
+                    ]
+                },
+                "randomize": [
+                    {
+                        "add": {
+                            "component_groups": [
+                                "ph:warning_1"
+                            ]
+                        },
+                        "trigger": "ph:trigger_raycast"
+                    },
+                    {
+                        "add": {
+                            "component_groups": [
+                                "ph:warning_2"
+                            ]
+                        },
+                        "trigger": "ph:trigger_raycast"
+                    },
+                    {
+                        "add": {
+                            "component_groups": [
+                                "ph:warning_3"
+                            ]
+                        },
+                        "queue_command": {
+                            "command": [
+                                "particle ph:land_crystal_close_attack_warning"
+                            ]
+                        }
+                    }
+                ]
+            },
+            "ph:close_attack": {
+                "remove": {
+                    "component_groups": [
+                        "ph:warning_3"
+                    ]
+                },
+                "add": {
+                    "component_groups": [
+                        "ph:timer_starts"
+                    ]
+                },
+                "queue_command": {
+                    "command": [
+                        "damage @e[rm=0.1,r=4.7] 10 entity_explosion entity @s",
+                        "particle ph:land_crystal_close_attack",
+                        "scriptevent ph:remove_target_lock"
+                    ]
+                }
+            },
+            "ph:shoot_slash": {
+                "remove": {
+                    "component_groups": [
+                        "ph:warning_2"
+                    ]
+                },
+                "add": {
+                    "component_groups": [
+                        "ph:timer_starts"
+                    ]
+                },
+                "queue_command": {
+                    "command": [
+                        "summon ph:land_crystal_slash ~~1~ facing @e[c=1,r=32]",
+                        "scriptevent ph:remove_target_lock"
+                    ]
+                }
+            },
+            "ph:shoot_laser": {
+                "remove": {
+                    "component_groups": [
+                        "ph:warning_1"
+                    ]
+                },
+                "add": {
+                    "component_groups": [
+                        "ph:shoot_laser"
+                    ]
+                }
+            },
+            "ph:trigger_raycast": {
+                "queue_command": {
+                    "command": [
+                        "playanimation @s animation.land_crystal.warn_raycast",
+                        "tag @s add locked"
+                    ]
+                }
+            }
+        }
+    }
+}

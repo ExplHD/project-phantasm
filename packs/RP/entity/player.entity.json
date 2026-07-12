@@ -2,7 +2,7 @@
     "format_version": "1.26.0",
     "minecraft:client_entity": {
         "description": {
-            "min_engine_version": "1.26.0",
+            "min_engine_version": "1.12.0",
             "identifier": "minecraft:player",
             "materials": {
                 "default": "entity_alphatest",
@@ -55,7 +55,7 @@
                 "copper_mechanical_dash": "ph:auric_photonizer_dash",
                 "auric_photonizer_attack_1": "ph:supercharged_copper_axe_attack_1",
                 "auric_photonizer_attack_2": "ph:supercharged_copper_axe_attack_2",
-                "the_bleeding_spire_impale": "ph:the_bleeding_spire_impale",
+                "the_bleeding_spire_impale": "ph:the_bleeding_spire_stab",
                 "the_bleeding_spire_attack_1": "ph:the_bleeding_spire_attack_1",
                 "the_bleeding_spire_attack_2": "ph:the_bleeding_spire_attack_2",
                 "the_bleeding_spire_dash": "ph:the_bleeding_spire_dash",

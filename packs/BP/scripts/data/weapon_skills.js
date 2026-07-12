@@ -1,5 +1,5 @@
 import { addScore, setScore } from '../main'
-import { CommandHandler, SkillHandler } from '../classes/weapon_handler'
+import { CommandHandler, SkillHandler, applyCustomDamage } from '../classes/weapon_handler'
 import { MolangVariableMap, system } from '@minecraft/server';
 
 function getAxisDelta(a, b) {
@@ -116,7 +116,7 @@ superchargedCopperAxeSkill.addSkill(1, {
         source.addEffect("strength", 300, {
             amplifier: 1
         });
-        source.runCommand(`damage @e[r=7,rm=0.1,family=!inanimate] 10 entity_attack entity @s`);
+        applyCustomDamage(source, 25, 7);
         source.dimension.playSound("custom_sfx.high_voltage_spark", source.location);
         addScore(source, "supercharged_copper_axe_s3", 5);
         addScore(source, "supercharged_copper_axe_s4", 5);
@@ -388,6 +388,7 @@ prismWeaverSkill.addSkill(3, {
             try {
                 if (typeof entity.applyImpulse === "function") {
                     entity.applyImpulse(impulse);
+                    entity.addEffect("slowness", 60, { amplifier: 255 })
                 } else {
                     // fallback: teleport sedikit ke arah source (jika applyImpulse tidak tersedia)
                     entity.teleport({
@@ -400,8 +401,7 @@ prismWeaverSkill.addSkill(3, {
                 console.warn("Failed to apply impulse:", e);
             }
         });
-        source.runCommand("damage @e[r=32,rm=0.1,family=!inanimate] 16 entity_attack entity @s");
-        source.runCommand("effect @e[r=32,rm=0.1,family=!inanimate] slowness 3 255");
+        applyCustomDamage(source, 40, 32);
         source.dimension.spawnParticle("ph:vortex_prism", source.location);
         source.dimension.playSound("custom_sfx.vortex_beam", source.location);
         source.playAnimation("animation.prism_weaver.attack_2");
@@ -457,7 +457,7 @@ prismWeaverSkill.addSkill(3, {
                             console.warn("Failed to apply impulse:", e);
                         }
                     });
-                    src.runCommand("damage @e[r=32,rm=0.1,family=!inanimate] 35 entity_attack entity @s");
+                    applyCustomDamage(src, 55, 55);
                     src.dimension.playSound("custom_sfx.prism_fire", src.location);
                     src.runCommand('inputpermission set @a[r=32] movement enabled');
                 }
@@ -481,7 +481,7 @@ auricPhotonizerSkill.addSkill(1, {
     charge: false,
     action: (source) => {
         source.playAnimation("animation.auric_photonizer.skill_1");
-        source.runCommand(`scriptevent ph:ram_dash 8, 25, 2, custom_sfx.judgement_cut`);
+        source.runCommand(`scriptevent ph:ram_dash 8, 50, 2, custom_sfx.judgement_cut`);
         source.applyImpulse({ x: 0, y: -3, z: 0 });
     }
 })
@@ -502,7 +502,7 @@ auricPhotonizerSkill.addSkill(2, {
         const command = new CommandHandler([
             {
                 delay: 10, action: (src) => {
-                    src.runCommand(`execute as @e[name=BACKLEAP] at @s run damage @e[r=4,tag=!BACKLEAP] 24 entity_explosion entity @s`);
+                    src.runCommand(`execute as @e[name=BACKLEAP] at @s run damage @e[r=4,tag=!BACKLEAP] 52 entity_explosion entity @s`);
                     src.runCommand(`execute at @e[name=BACKLEAP] run particle ph:auric_photonizer_explode ~~0.5~`);
                     src.runCommand(`execute at @e[name=BACKLEAP] run particle ph:copper_mech_explode ~~0.5~`);
                     src.runCommand(`kill @e[name=BACKLEAP]`);
@@ -606,7 +606,7 @@ theBleedingSpireSkill.addSkill(2, {
             setScore(source, "the_bleeding_spire_s2", 0);
         }
         for (const entity of entities) {
-            entity.applyDamage(12, {
+            entity.applyDamage(28, {
                 damagingEntity: source,
                 cause: "magic"
             })

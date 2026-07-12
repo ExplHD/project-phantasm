@@ -1,1 +1,0 @@
-{"format_version":"1.21.0","minecraft:recipe_shaped":{"description":{"identifier":"ph:ocean_tide_helmet"},"tags":["crafting_table"],"key":{"N":{"item":"minecraft:netherite_helmet"},"P":{"item":"ph:prismatic_ingot"},"M":{"item":"minecraft:nautilus_shell"}},"pattern":["PPP","MNM","PPP"],"unlock":[{"item":"ph:prismatic_ingot"}],"result":{"item":"ph:ocean_tide_helmet"}}}

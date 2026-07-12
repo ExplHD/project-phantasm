@@ -12,13 +12,14 @@
 			}
 		],
 		"start_pool": "ph:crimson_area_main",
+		"max_depth": 1,
+		"liquid_settings": "ignore_waterlogging",
+		"step": "surface_structures",
 		"start_height": {
 			"type": "constant",
 			"value": {
-				"below_top": 60
+				"absolute": 32
 			}
-		},
-		"step": "underground_structures",
-		"max_depth": 1
+		}
 	}
 }

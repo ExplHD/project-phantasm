@@ -1,8 +1,0 @@
-{
-	"format_version": "1.16.100",
-	"minecraft:texture_set": {
-		"color": "copper_mechanical_array",
-		"metalness_emissive_roughness": "copper_mechanical_array_mer",
-		"heightmap": "copper_mechanical_array_height"
-	}
-}

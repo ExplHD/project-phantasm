@@ -1,1 +1,0 @@
-{"format_version":"1.10.0","animations":{"animation.land_crystal.warn_raycast":{"animation_length":0.1,"loop":false,"particle_effects":{"0.0":[{"effect":"land_crystal_raycast","locator":"locator"}]}}}}

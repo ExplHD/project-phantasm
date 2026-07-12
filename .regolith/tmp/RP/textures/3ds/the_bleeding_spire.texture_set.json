@@ -1,8 +1,0 @@
-{
-	"format_version": "1.16.100",
-	"minecraft:texture_set": {
-		"color": "the_bleeding_spire",
-		"metalness_emissive_roughness": "the_bleeding_spire_mer",
-		"heightmap": "the_bleeding_spire_height"
-	}
-}

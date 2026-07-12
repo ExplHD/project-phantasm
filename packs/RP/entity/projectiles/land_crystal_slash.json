@@ -1,1 +1,37 @@
-{"format_version":"1.20.80","minecraft:client_entity":{"description":{"identifier":"ph:land_crystal_slash","materials":{"default":"entity_alphatest"},"textures":{"default":"textures/entity/solaris_slash"},"particle_effects":{"solaris_verdant_solaris_slash":"ph:land_crystal_slash","solaris_verdant_solaris_slash_split":"ph:solaris_verdant_solaris_slash_split"},"animations":{"solaris_slash":"animation.solaris_slash.solaris_slash_90_deg"},"scripts":{"animate":["solaris_slash"],"should_update_effects_offscreen":"1.0"},"geometry":{"default":"geometry.solaris_slash"},"render_controllers":["controller.render.solaris_slash"],"spawn_egg":{"base_color":"#000000","overlay_color":"#FFFFFF"}}}}
+{
+    "format_version": "1.20.80",
+    "minecraft:client_entity": {
+        "description": {
+            "identifier": "ph:land_crystal_slash",
+            "materials": {
+                "default": "entity_alphatest"
+            },
+            "textures": {
+                "default": "textures/entity/solaris_slash"
+            },
+            "particle_effects": {
+                "solaris_verdant_solaris_slash": "ph:land_crystal_slash",
+                "solaris_verdant_solaris_slash_split": "ph:solaris_verdant_solaris_slash_split"
+            },
+            "animations": {
+                "solaris_slash": "animation.solaris_slash.solaris_slash_90_deg"
+            },
+            "scripts": {
+                "animate": [
+                    "solaris_slash"
+                ],
+                "should_update_effects_offscreen": "1.0"
+            },
+            "geometry": {
+                "default": "geometry.solaris_slash"
+            },
+            "render_controllers": [
+                "controller.render.solaris_slash"
+            ],
+            "spawn_egg": {
+                "base_color": "#000000",
+                "overlay_color": "#FFFFFF"
+            }
+        }
+    }
+}

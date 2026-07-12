@@ -1,8 +1,0 @@
-{
-	"format_version": "1.16.100",
-	"minecraft:texture_set": {
-		"color": "auric_battery_recharge_station_result",
-		"metalness_emissive_roughness": "auric_battery_recharge_station_result_mer",
-		"heightmap": "auric_battery_recharge_station_result_height"
-	}
-}

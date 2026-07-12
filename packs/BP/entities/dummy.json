@@ -57,12 +57,37 @@
                 }
             },
             "ph:kys": {
-                "queue_command": {
-                    "command": [
-                        "give @p[r=10] ph:dummy_spawn_egg",
-                        "event entity @s despawn"
-                    ]
-                }
+                "sequence": [
+                    {
+                        "filters": {
+                            "test": "is_sneaking",
+                            "subject": "other",
+                            "operator": "==",
+                            "value": false
+                        },
+                        "queue_command": {
+                            "command": [
+                                "playsound note.banjo @s",
+                                "say Please be far away from interaction zone"
+                            ],
+                            "target": "other"
+                        }
+                    },
+                    {
+                        "filters": {
+                            "test": "is_sneaking",
+                            "subject": "other",
+                            "operator": "==",
+                            "value": true
+                        },
+                        "queue_command": {
+                            "command": [
+                                "give @p[r=10] ph:dummy_spawn_egg",
+                                "event entity @s despawn"
+                            ]
+                        }
+                    }
+                ]
             },
             "despawn": {
                 "add": {

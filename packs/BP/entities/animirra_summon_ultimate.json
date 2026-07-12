@@ -197,7 +197,7 @@
                 "queue_command": {
                     "command": [
                         "particle ph:animirra_cut ~~1~",
-                        "damage @e[tag=!animirra,r=5,rm=0.1,type=!ph:animirra_summon,type=!item,family=!inanimate] 25 entity_attack entity @s",
+                        "damage @e[tag=!animirra,r=5,rm=0.1,type=!ph:animirra_summon,type=!item,family=!inanimate] 50 entity_attack entity @s",
                         "playsound break.amethyst_block @a[r=16] ~~~ 2 1 1"
                     ]
                 },

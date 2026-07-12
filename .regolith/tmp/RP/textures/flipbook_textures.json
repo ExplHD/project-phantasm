@@ -1,8 +1,0 @@
-[
-    {
-        "flipbook_texture": "textures/blocks/auric_battery_recharge_station",
-        "atlas_tile": "ph_auric_battery_recharge_station",
-        "ticks_per_frame": 10,
-        "blend_frames": true
-    }
-]

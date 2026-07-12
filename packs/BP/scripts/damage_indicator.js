@@ -89,50 +89,6 @@ for (const [, data] of Object.entries(VarSets)) {
     }
 }
 
-// ======================
-// CONVERT NUMBER TO GLYPH
-// ======================
-
-// ======================
-// DAMAGE INDICATOR
-// ======================
-
-// world.afterEvents.entityHealthChanged.subscribe(({ entity, oldValue, newValue }) => {
-//     const damage = Math.floor(newValue - oldValue);
-//     const damageData = DamageTypes[damageSource.cause];
-//     if (!entity || !entity.isValid) return;
-//     const loc = entity.location;
-//     loc.y += 0.5;
-//     const players = entity.dimension.getEntities({ type: "player", location: loc, maxDistance: 64 });
-//     for (const player of players) {
-//         const viewDir = player.getViewDirection();
-//         loc.x += -viewDir.x;
-//         loc.z += -viewDir.z;
-//         const rot = player.getRotation();
-//         const molang = new MolangVariableMap();
-//         let absDamage = Math.abs(damage);
-//         if (absDamage > 999999)
-//             absDamage = 999999;
-//         molang.setFloat("variable.length", 1.5);
-//         molang.setFloat("variable.damage", damage);
-//         molang.setFloat("variable.roty", rot.y);
-//         molang.setFloat("variable.digits", `${absDamage}`.length);
-//         molang.setFloat("variable.floored", (absDamage % 10));
-//         molang.setFloat("variable.floored_tenths", (Math.floor(absDamage / 10) % 10));
-//         molang.setFloat("variable.floored_hundreths", (Math.floor(absDamage / 100) % 10));
-//         molang.setFloat("variable.floored_thousandths", (Math.floor(absDamage / 1000) % 10));
-//         molang.setFloat("variable.floored_ten_thousandths", (Math.floor(absDamage / 10000) % 10));
-//         molang.setFloat("variable.floored_hundred_thousandths", (Math.floor(absDamage / 100000) % 10));
-//         molang.setColorRGB("variable.healcolor", { red: 0, green: 1, blue: 0 });
-//         molang.setColorRGB("variable.damagecolor", { red: 1, green: 1, blue: 1 });
-//         try {
-//             player.spawnParticle("ph:damage_number", loc, molang);
-//             // player.spawnParticle("ph:damage_icons", loc, molang);
-//         }
-//         catch { }
-//     }
-// });
-
 world.afterEvents.entityHurt.subscribe(({ hurtEntity, damageSource, damage }) => {
     const damageValue = Math.floor(damage);
     const damageData = DamageTypes[damageSource.cause];

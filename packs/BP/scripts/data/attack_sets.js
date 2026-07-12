@@ -23,13 +23,17 @@ system.afterEvents.scriptEventReceive.subscribe(({ id, message, sourceBlock, sou
             }
             break;
         case "ph:boss_summon_projectile_with_y_facing":
+            const [amountRT, yOffsetRT, typeIdRT, soundRT] =
+                parseMessage(message).map(v =>
+                    isNaN(v) ? v : Number(v)
+                );
             // Example Message : 3, 1.5, ph:solaris_slash, custom_sfx.animirra_summon
-            sourceEntity.runCommand(`playsound ${sound} @a[r=32] ~~~ 1 1 0.3`)
-            for (let i = 0; i < amount; i++) {
+            sourceEntity.runCommand(`playsound ${soundRT} @a[r=32] ~~~ 1 1 0.3`)
+            for (let i = 0; i < amountRT; i++) {
                 const { x, y, z } = sourceEntity.location;
                 const randXRot = Math.floor(Math.random() * 360);
                 const randYRot = Math.floor(-90 + Math.random() * 180);
-                sourceEntity.runCommand(`summon ${typeId} ${x} ${y + yOffset} ${z} ${randXRot} ${randYRot}`)
+                sourceEntity.runCommand(`summon ${typeIdRT} ${x} ${y + yOffsetRT} ${z} ${randXRot} ${randYRot}`)
             }
             break;
         case "ph:boss_summon":

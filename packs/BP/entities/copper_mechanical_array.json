@@ -22,27 +22,6 @@
             "despawn": {
                 "minecraft:instant_despawn": {}
             },
-            "ph:phase_2_checker": {
-                "minecraft:environment_sensor": {
-                    "triggers": [
-                        {
-                            "filters": {
-                                "test": "actor_health",
-                                "subject": "self",
-                                "operator": "<",
-                                "value": 600
-                            },
-                            "event": "ph:phase_2_trigger"
-                        }
-                    ]
-                }
-            },
-            "ph:phase_2": {
-                "minecraft:health": {
-                    "value": 600,
-                    "max": 600
-                }
-            },
             "ph:spawn_timer": {
                 "minecraft:timer": {
                     "time": 9,
@@ -221,8 +200,8 @@
         },
         "components": {
             "minecraft:health": {
-                "value": 1200,
-                "max": 1200
+                "value": 2400,
+                "max": 2400
             },
             "minecraft:boss": {
                 "hud_range": 80,
@@ -292,7 +271,7 @@
                     }
                 ]
             },
-            "minecraft:fire_immune": true,
+            "minecraft:fire_immune": {},
             "minecraft:behavior.float": {
                 "priority": 0
             },
@@ -373,21 +352,6 @@
                         "fog @a[r=128] remove copper_mechanical_array",
                         "fog @a[r=128] remove copper_mechanical_array_sword_attack"
                     ]
-                }
-            },
-            "ph:phase_2_trigger": {
-                "remove": {
-                    "component_groups": [
-                        "ph:phase_2_checker"
-                    ]
-                },
-                "add": {
-                    "component_groups": [
-                        "ph:phase_2"
-                    ]
-                },
-                "queue_command": {
-                    "command": "effect @s instant_health 3 35 true"
                 }
             },
             "ph:spawn_timeout": {

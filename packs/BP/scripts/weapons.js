@@ -1,5 +1,5 @@
 import { world, system } from '@minecraft/server'
-import { WeaponHandler, SkillSwitcher, SkillHandler, CommandHandler } from './classes/weapon_handler'
+import { WeaponHandler, SkillSwitcher, SkillHandler, CommandHandler, applyCustomDamage } from './classes/weapon_handler'
 import { weaponSkills } from './data/weapon_skills'
 import { addScore, getScore, removeScore } from 'main'
 import * as Phantasm from 'phantasmConstants'
@@ -8,11 +8,11 @@ import * as Phantasm from 'phantasmConstants'
             Weapons Runtime
  -------------------------------------------------------------------------------------------------------------------------------------------------------- */
 
-const solarisVerdant = new WeaponHandler("ph:solaris_verdant", "solaris_verdant_atk", [20, 9, 10], [
-    { delay: 5, damage: 12, radius: 3.9, animation: "animation.solaris_verdant.attack_1", sound: "weapon_slash.slash_medium" },
-    { delay: 7, damage: 12, radius: 3.9, animation: "animation.solaris_verdant.attack_2", sound: "weapon_slash.slash_medium" },
+const solarisVerdant = new WeaponHandler("ph:solaris_verdant", "solaris_verdant_atk", [10, 9, 10], [
+    { delay: 5, damage: 21, radius: 3.9, animation: "animation.solaris_verdant.attack_1", sound: "weapon_slash.slash_medium" },
+    { delay: 7, damage: 21, radius: 3.9, animation: "animation.solaris_verdant.attack_2", sound: "weapon_slash.slash_medium" },
     {
-        delay: 8, damage: 14, radius: 3.9, animation: "animation.solaris_verdant.attack_3", sound: "weapon_slash.slash_heavy", action: new CommandHandler([
+        delay: 8, damage: 23, radius: 3.9, animation: "animation.solaris_verdant.attack_3", sound: "weapon_slash.slash_heavy", action: new CommandHandler([
             {
                 delay: 8, action: (src) => {
                     src.runCommand("summon ph:solaris_slash ^^3^5.5 ~ 0");
@@ -34,18 +34,18 @@ const solarisVerdantSS = new SkillSwitcher("ph:solaris_verdant", "solaris_verdan
     { skillSMessage: "Natura Vulkan" }
 ])
 
-const superchargedCopperAxe = new WeaponHandler("ph:supercharged_copper_axe", "supercharged_copper_axe_atk", [30, 12, 12, 12], [
-    { delay: 4, damage: 16, radius: 4.5, animation: "animation.charged_copper_axe.attack_1", sound: "weapon_slash.slash_heavy" },
-    { delay: 4, damage: 16, radius: 4.5, animation: "animation.charged_copper_axe.attack_2", sound: "weapon_slash.slash_heavy" },
-    { delay: 8, damage: 18, radius: 4.5, animation: "animation.charged_copper_axe.attack_3", sound: "weapon_slash.slash_heavy" },
+const superchargedCopperAxe = new WeaponHandler("ph:supercharged_copper_axe", "supercharged_copper_axe_atk", [12, 12, 12, 12], [
+    { delay: 4, damage: 30, radius: 4.5, animation: "animation.charged_copper_axe.attack_1", sound: "weapon_slash.slash_heavy" },
+    { delay: 4, damage: 30, radius: 4.5, animation: "animation.charged_copper_axe.attack_2", sound: "weapon_slash.slash_heavy" },
+    { delay: 8, damage: 31, radius: 4.5, animation: "animation.charged_copper_axe.attack_3", sound: "weapon_slash.slash_heavy" },
     {
-        delay: 3, damage: 18, radius: 4.5, animation: "animation.charged_copper_axe.attack_4", sound: "weapon_slash.slash_heavy", action: new CommandHandler([
+        delay: 3, damage: 31, radius: 4.5, animation: "animation.charged_copper_axe.attack_4", sound: "weapon_slash.slash_heavy", action: new CommandHandler([
             {
                 delay: 5, action: (src) => {
                     src.dimension.playSound("weapon_slash.slash_heavy", src.location);
                     src.dimension.spawnParticle("ph:lightning_flash", src.location);
                     src.dimension.spawnParticle("ph:lightning_sparks", src.location);
-                    src.runCommand(`damage @e[type=!item,family=!inanimate,rm=0.1,r=4] 18 entity_attack entity "${src.name}"`);
+                    applyCustomDamage(src, 31, 4.5);
                     src.runCommand('summon lightning_bolt ~~~5 ~ 0');
                     src.runCommand('summon lightning_bolt ~~~-5 ~ 0');
                     src.runCommand('particle ph:lightning_sparks ~~~5');
@@ -55,7 +55,7 @@ const superchargedCopperAxe = new WeaponHandler("ph:supercharged_copper_axe", "s
             {
                 delay: 2, action: (src) => {
                     src.dimension.playSound("weapon_slash.slash_heavy", src.location);
-                    src.runCommand(`damage @e[type=!item,family=!inanimate,rm=0.1,r=4] 18 entity_attack entity "${src.name}"`);
+                    applyCustomDamage(src, 31, 4.5);
                     src.runCommand('summon lightning_bolt ~5~~ ~ 0');
                     src.runCommand('summon lightning_bolt ~-5~~ ~ 0');
                     src.runCommand('particle ph:lightning_sparks ~5~~');
@@ -75,9 +75,9 @@ const superchargedCopperAxeSS = new SkillSwitcher("ph:supercharged_copper_axe", 
     { skillSMessage: "Ultimate Discharge" }
 ])
 
-const prismWeaver = new WeaponHandler("ph:prism_weaver", "prism_weaver_atk", [30, 15, 15], [
+const prismWeaver = new WeaponHandler("ph:prism_weaver", "prism_weaver_atk", [20, 15, 15], [
     {
-        delay: 4, damage: 13, radius: 2, animation: "animation.prism_weaver.attack_1", sound: "weapon_slash.magic_staff", action: new CommandHandler([
+        delay: 4, damage: 17, radius: 2, animation: "animation.prism_weaver.attack_1", sound: "weapon_slash.magic_staff", action: new CommandHandler([
             {
                 delay: 0, action: (src) => {
                     src.runCommand("summon ph:prism_weaver_laser ~-2~1~ facing @e[c=1,rm=2.5,family=!inanimate,type=!item]")
@@ -86,7 +86,7 @@ const prismWeaver = new WeaponHandler("ph:prism_weaver", "prism_weaver_atk", [30
         ])
     },
     {
-        delay: 8, damage: 13, radius: 2, animation: "animation.prism_weaver.attack_2", sound: "weapon_slash.magic_staff", action: new CommandHandler([
+        delay: 8, damage: 17, radius: 2, animation: "animation.prism_weaver.attack_2", sound: "weapon_slash.magic_staff", action: new CommandHandler([
             {
                 delay: 0, action: (src) => {
                     src.runCommand("summon ph:prism_weaver_laser ~2~1~ facing @e[c=1,rm=2.5,family=!inanimate,type=!item]")
@@ -95,7 +95,7 @@ const prismWeaver = new WeaponHandler("ph:prism_weaver", "prism_weaver_atk", [30
         ])
     },
     {
-        delay: 8, damage: 17, radius: 6, animation: "animation.prism_weaver.attack_3", sound: "weapon_slash.magic_staff", action: new CommandHandler([
+        delay: 8, damage: 18, radius: 6, animation: "animation.prism_weaver.attack_3", sound: "weapon_slash.magic_staff", action: new CommandHandler([
             {
                 delay: 0, action: (src) => {
                     src.runCommand("summon ph:prism_weaver_laser ~2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
@@ -114,25 +114,25 @@ const prismWeaverSS = new SkillSwitcher("ph:prism_weaver", "prism_weaver", [
     { skillSMessage: "Vortex Prism" }
 ])
 
-const auricPhotonizer = new WeaponHandler("ph:auric_photonizer", "auric_photonizer_atk", [30, 9, 9, 9, 9], [
-    { delay: 4, damage: 16, radius: 4.5, animation: "animation.auric_photonizer.attack_1", sound: "weapon_slash.slash_medium" },
-    { delay: 4, damage: 15, radius: 4.5, animation: "animation.auric_photonizer.attack_2", sound: "weapon_slash.slash_medium" },
-    { delay: 5, damage: 17, radius: 4.5, animation: "animation.auric_photonizer.attack_3", sound: "weapon_slash.slash_medium" },
-    { delay: 4, damage: 16, radius: 4.5, animation: "animation.auric_photonizer.attack_4", sound: "weapon_slash.slash_medium" },
+const auricPhotonizer = new WeaponHandler("ph:auric_photonizer", "auric_photonizer_atk", [10, 9, 9, 9, 9], [
+    { delay: 4, damage: 29, radius: 4.5, animation: "animation.auric_photonizer.attack_1", sound: "weapon_slash.slash_medium" },
+    { delay: 4, damage: 28, radius: 4.5, animation: "animation.auric_photonizer.attack_2", sound: "weapon_slash.slash_medium" },
+    { delay: 5, damage: 30, radius: 4.5, animation: "animation.auric_photonizer.attack_3", sound: "weapon_slash.slash_medium" },
+    { delay: 4, damage: 28, radius: 4.5, animation: "animation.auric_photonizer.attack_4", sound: "weapon_slash.slash_medium" },
     {
-        delay: 3, damage: 18, radius: 4.5, animation: "animation.auric_photonizer.attack_5", sound: "weapon_slash.slash_medium", action: new CommandHandler([
+        delay: 3, damage: 30, radius: 4.5, animation: "animation.auric_photonizer.attack_5", sound: "weapon_slash.slash_medium", action: new CommandHandler([
             {
                 delay: 5, action: (src) => {
                     src.dimension.playSound("weapon_slash.slash_medium", src.location);
                     src.dimension.spawnParticle("ph:lightning_flash", src.location);
                     src.dimension.spawnParticle("ph:lightning_sparks", src.location);
-                    src.runCommand(`damage @e[type=!item,family=!inanimate,rm=0.1,r=4] 18 entity_attack entity "${src.name}"`);
+                    applyCustomDamage(src, 30, 4.5);
                 }
             },
             {
                 delay: 2, action: (src) => {
                     src.dimension.playSound("weapon_slash.slash_medium", src.location);
-                    src.runCommand(`damage @e[type=!item,family=!inanimate,rm=0.1,r=4] 18 entity_attack entity "${src.name}"`);
+                    applyCustomDamage(src, 30, 4.5);
                 }
             }
         ])
@@ -146,11 +146,11 @@ const auricPhotonizerSS = new SkillSwitcher("ph:auric_photonizer", "auric_photon
     { skillSMessage: "Ethereal Blade" }
 ])
 
-const theBleedingSpire = new WeaponHandler("ph:the_bleeding_spire", "the_bleeding_spire_atk", [30, 14, 14, 14, 14], [
-    { delay: 8, damage: 15, radius: 4.5, animation: "animation.the_bleeding_spire.attack_1", sound: "weapon_slash.slash_medium" },
-    { delay: 8, damage: 14, radius: 4.5, animation: "animation.the_bleeding_spire.attack_2", sound: "weapon_slash.slash_medium" },
-    { delay: 6, damage: 15, radius: 4.5, animation: "animation.the_bleeding_spire.attack_3", sound: "weapon_slash.slash_medium" },
-    { delay: 8, damage: 14, radius: 4.5, animation: "animation.the_bleeding_spire.attack_4", sound: "weapon_slash.slash_medium" }
+const theBleedingSpire = new WeaponHandler("ph:the_bleeding_spire", "the_bleeding_spire_atk", [14, 14, 14, 14], [
+    { delay: 8, damage: 27, radius: 4.5, animation: "animation.the_bleeding_spire.attack_1", sound: "weapon_slash.slash_medium" },
+    { delay: 8, damage: 23, radius: 4.5, animation: "animation.the_bleeding_spire.attack_2", sound: "weapon_slash.slash_medium" },
+    { delay: 6, damage: 27, radius: 4.5, animation: "animation.the_bleeding_spire.attack_3", sound: "weapon_slash.slash_medium" },
+    { delay: 8, damage: 23, radius: 4.5, animation: "animation.the_bleeding_spire.attack_4", sound: "weapon_slash.slash_medium" }
 ])
 
 const theBleedingSpireSS = new SkillSwitcher("ph:the_bleeding_spire", "the_bleeding_spire", [
@@ -160,10 +160,10 @@ const theBleedingSpireSS = new SkillSwitcher("ph:the_bleeding_spire", "the_bleed
 ])
 
 const seiketsu = new WeaponHandler("ph:seiketsu", "seiketsu_atk", [9, 9, 9], [
-    { delay: 2, damage: 10, radius: 3, animation: "animation.seiketsu_1", sound: "weapon_slash.slash_medium" },
-    { delay: 2, damage: 10, radius: 3, animation: "animation.seiketsu_2", sound: "weapon_slash.slash_medium" },
+    { delay: 2, damage: 14, radius: 3, animation: "animation.seiketsu_1", sound: "weapon_slash.slash_medium" },
+    { delay: 2, damage: 14, radius: 3, animation: "animation.seiketsu_2", sound: "weapon_slash.slash_medium" },
     {
-        delay: 3, damage: 10, radius: 3, animation: "animation.seiketsu_3", sound: "weapon_slash.slash_heavy", action: new CommandHandler([
+        delay: 3, damage: 14, radius: 3, animation: "animation.seiketsu_3", sound: "weapon_slash.slash_heavy", action: new CommandHandler([
             {
                 delay: 1, action: (src) => {
                     const entities = src.dimension.getEntities({
@@ -198,35 +198,11 @@ const seiketsu = new WeaponHandler("ph:seiketsu", "seiketsu_atk", [9, 9, 9], [
 const weapons = [solarisVerdant, superchargedCopperAxe, prismWeaver, auricPhotonizer, theBleedingSpire, seiketsu];
 const switcherSkills = [solarisVerdantSS, superchargedCopperAxeSS, prismWeaverSS, auricPhotonizerSS, theBleedingSpireSS];
 
-// world.afterEvents.entityHitBlock.subscribe(({ damagingEntity: source, hitBlock }) => {
-//     const equippedItem = source?.getComponent('equippable')?.getEquipment('Mainhand');
-
-//     if (!equippedItem) return;
-
-//     for (const weapon of weapons) {
-//         if (equippedItem.typeId === weapon.itemId) {
-//             weapon.handleAttack(source);
-//         }
-//     }
-// })
-
-// world.afterEvents.entityHitEntity.subscribe(({ damagingEntity: source }) => {
-//     const equippedItem = source?.getComponent('equippable')?.getEquipment('Mainhand');
-
-//     if (!equippedItem) return;
-
-//     for (const weapon of weapons) {
-//         if (equippedItem?.typeId === weapon.itemId) {
-//             weapon.handleAttack(source);
-//         }
-//     }
-// })
-
 world.afterEvents.playerSwingStart.subscribe(({ player, heldItemStack, swingSource }) => {
     for (const weapon of weapons) {
         if (heldItemStack?.typeId === weapon.itemId) {
-            if (swingSource != "Mine" && swingSource != "Attack") return;
-            weapon.handleAttack(player);
+			if (swingSource != "Mine" && swingSource != "Attack") return;
+			weapon.handleAttack(player);
         }
     }
 })

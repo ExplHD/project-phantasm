@@ -20,7 +20,7 @@
 				"max_durability": 5100
 			},
 			"minecraft:icon": "ph_seiketsu",
-			"minecraft:damage": 10,
+			"minecraft:damage": 13,
 			"minecraft:enchantable": {
 				"value": 32,
 				"slot": "sword"
@@ -41,6 +41,13 @@
 						"repair_amount": "context.other->query.remaining_durability+0.12*context.other->query.max_durability"
 					}
 				]
+			},
+			"minecraft:piercing_weapon": {
+				"hitbox_margin": 0,
+				"reach": {
+					"min": 0,
+					"max": 0
+				}
 			},
 			"minecraft:rarity": "epic",
 			"minecraft:fire_resistant": {

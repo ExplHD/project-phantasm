@@ -13,11 +13,18 @@
             "minecraft:hand_equipped": true,
             "minecraft:can_destroy_in_creative": false,
             "minecraft:icon": "ph_the_bleeding_spire",
-            "minecraft:damage": 14,
+            "minecraft:damage": 25,
             "minecraft:enchantable": {
                 "value": 32,
                 "slot": "sword"
             },
+            "minecraft:piercing_weapon": {
+				"hitbox_margin": 0,
+				"reach": {
+					"min": 0,
+					"max": 0
+				}
+			},
             "minecraft:fire_resistant": {
                 "value": true
             },

@@ -1,0 +1,21 @@
+{
+    "format_version": "1.21.20",
+    "minecraft:structure_set": {
+        "description": {
+            "identifier": "ph:prismarine_boss_arena"
+        },
+        "structures": [
+            {
+                "structure": "ph:prismarine_boss_arena",
+                "weight": 1
+            }
+        ],
+        "placement": {
+            "type": "minecraft:random_spread",
+            "salt": 0,
+            "spread_type": "linear",
+            "separation": 14,
+            "spacing": 55
+        }
+    }
+}

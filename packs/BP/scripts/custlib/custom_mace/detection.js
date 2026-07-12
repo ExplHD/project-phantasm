@@ -188,7 +188,7 @@ system.runInterval(() => {
         const item = player.getComponent("minecraft:equippable")?.getEquipment(EquipmentSlot.Mainhand);
         const isMace = isCustomMace(item);
 
-        const blockAt = player.dimension.getBlock(player.location);
+        const blockAt = player?.dimension?.getBlock(player.location);
         const isInWeb = blockAt?.typeId === "minecraft:web";
         const isInvalid = player.isInWater || player.isClimbing || player.isGliding || player.isFlying || player.getEffect("minecraft:slow_falling") || player.getEffect("minecraft:levitation") || isInWeb;
 

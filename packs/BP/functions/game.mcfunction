@@ -13,11 +13,6 @@ execute as @e[type=ph:soul_of_nature] at @s if entity @a[rm=64,r=80,scores={sect
 execute as @e[type=ph:copper_mechanical_array] at @s if entity @a[rm=128,r=160,scores={sectick=19..}] run function boss_despawn/copper_mechanical_array
 execute as @e[type=ph:punicea_crimson_eye] at @s if entity @a[rm=64,r=80,scores={sectick=19..}] run function boss_despawn/punicea_crimson_eye
 
-# Gapple Cooldown
-scoreboard players remove @a[scores={sectick=19..,gapple_cooldown=1..}] gapple_cooldown 1
-titleraw @a[scores={sectick=19..,gapple_cooldown=1..},hasitem={item=golden_apple,location=slot.weapon.mainhand}] actionbar {"rawtext":[{"text":"§cGapple Cooldown : "},{"score":{"name":"*","objective":"gapple_cooldown"}}]}
-titleraw @a[scores={sectick=19..,gapple_cooldown=1..},hasitem={item=enchanted_golden_apple,location=slot.weapon.mainhand}] actionbar {"rawtext":[{"text":"§cGapple Cooldown : "},{"score":{"name":"*","objective":"gapple_cooldown"}}]}
-
 # Guidebook Runtime
 execute at @a[tag=!guidebook_phantasm_uc] run structure load mystructure:guidebook ~~~
 tag @a[tag=!guidebook_phantasm_uc] add guidebook_phantasm_uc

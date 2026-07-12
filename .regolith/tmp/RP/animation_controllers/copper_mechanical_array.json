@@ -1,1 +1,0 @@
-{"format_version":"1.10.0","animation_controllers":{"controller.animation.copper_mechanical_array":{"initial_state":"default","states":{"default":{"animations":["idle"],"transitions":[{"move":"query.modified_move_speed>0.16"}],"blend_transition":0.2},"move":{"animations":["walk"],"transitions":[{"default":"query.modified_move_speed<0.17"}]}}}}}

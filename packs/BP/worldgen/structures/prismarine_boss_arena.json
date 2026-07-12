@@ -1,0 +1,25 @@
+{
+	"format_version": "1.21.20",
+	"minecraft:jigsaw": {
+		"description": {
+			"identifier": "ph:prismarine_boss_arena"
+		},
+		"biome_filters": [
+			{
+				"test": "has_biome_tag",
+				"operator": "==",
+				"value": "ocean"
+			}
+		],
+		"start_pool": "ph:prismarine_boss_arena_main",
+		"start_height": {
+			"type": "constant",
+			"value": {
+				"from_sea": -22
+			}
+		},
+        "step": "underground_structures",
+		"terrain_adaptation": "beard_box",
+		"max_depth": 1
+	}
+}

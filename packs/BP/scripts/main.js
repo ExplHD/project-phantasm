@@ -3,19 +3,18 @@ import {
     CustomCommandParamType,
     CustomCommandStatus
 } from '@minecraft/server'
-import { } from 'weapons'
-import { } from 'loader'
-import { } from 'custom_components'
-import { } from 'vanilla_manipulation'
-import { } from 'specific_structure_position'
-import { } from 'formsGenerator'
-import { } from 'data/attack_sets'
-import { } from 'forms/skillUnlock'
-import { } from 'accessoriesRuntime'
-import { } from 'damage_indicator'
-import { } from 'dynamicLighting'
-import { } from 'dummy'
-import * as Phantasm from 'phantasmConstants'
+import { } from './weapons'
+import { } from './loader'
+import { } from './custom_components'
+import { } from './vanilla_manipulation'
+import { } from './formsGenerator'
+import { } from './data/attack_sets'
+import { } from './forms/skillUnlock'
+import { } from './accessoriesRuntime'
+import { } from './damage_indicator'
+import { } from './dynamicLighting'
+import { } from './dummy'
+import * as Phantasm from './phantasmConstants'
 
 // For Custom Library (PLEASE CREDIT THEM IF YOU WANT TO USE IT!)
 import { } from 'custlib/custom_mace/detection' // Credits to @biggamers4u for older mechanics, now ALL of the MECHANICS are remade by me.
