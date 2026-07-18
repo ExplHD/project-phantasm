@@ -29,7 +29,8 @@ Gunakan format seperti ini ketika membuat perubahan / menciptakan konten baru :
 + Menambah Combat Dummy - ExplerHD
 + Menambahkan Item Turtle Shell pada Prismarine Boss Arena, agar boss fight di arena itu lebih gampang - ExplerHD
 + Menambahkan Rusted Fortune Coin, Menggandakan + Item Magnet Ore, didapatkan dari 1% chance mining ore apapun - Passive Type - ExplerHD
-- Menambah Condensed Sea Nature, memberikan ketahanan yang jauh lebih lama di air, dan regenerasi yang sedikit lebih cepat di air, Passive Type - ExplerHD
++ Menambah Condensed Sea Nature, memberikan ketahanan yang jauh lebih lama di air, dan regenerasi yang sedikit lebih cepat di air, Passive Type - ExplerHD
++ Menambah Guide Screen yang akan muncuk ketika pertama kali join atau addon update dipasang - ExplerHD & ZeroMaster178
 
 ? To be planned :
 
@@ -65,5 +66,6 @@ Use the following format when making changes / creating new content:
 + Added a Turtle Shell item to the Prismarine Boss Arena to make the boss fight in that arena easier - ExplerHD
 + Added Rusted Fortune Coin, which doubles ore drops, and the Item Magnet Ore. Both can be obtained from a 1% chance when mining any ore - Passive Type - ExplerHD
 + Added Condensed Sea Nature, providing much longer underwater breathing and slightly faster health regeneration while underwater - Passive Type - ExplerHD
++ Added Guidescreen that will appears at first join or an Add-On Update is applied - ExplerHD & ZeroMaster178
 
 ? To be planned:
