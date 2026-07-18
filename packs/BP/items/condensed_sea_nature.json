@@ -1,0 +1,20 @@
+{
+    "format_version": "1.21.100",
+    "minecraft:item": {
+        "description": {
+            "identifier": "ph:condensed_sea_nature",
+            "menu_category": {
+                "category": "items"
+            }
+        },
+        "components": {
+            "minecraft:icon": "ph_condensed_sea_nature",
+            "minecraft:rarity": "epic",
+			"minecraft:fire_resistant": {
+                "value": true
+            },
+            "minecraft:allow_off_hand": true,
+            "minecraft:max_stack_size": 1
+        }
+    }
+}

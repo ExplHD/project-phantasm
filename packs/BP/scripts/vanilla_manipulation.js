@@ -77,7 +77,7 @@ function windPlungeRuntime(player) {
     const runInterval = system.runInterval(e => {
         if (!player.isOnGround) return;
         system.run(impact);
-        system.clearRun(intervalRun);
+        system.clearRun(runInterval);
     }, 2)
 
     player.applyKnockback({ x: 0, z: 0 }, -2);
@@ -183,6 +183,7 @@ function parryRuntime(source, itemStack) {
 let runBetterMending = Number();
 
 function startBetterMending(source, itemStack) {
+	if (!source.isSneaking) return;
     const enchantment = itemStack?.getComponent("minecraft:enchantable")?.getEnchantment("mending");
     if (itemStack.hasTag("minecraft:is_tools") || itemStack.hasTag("minecraft:is_armor")) return;
     if (!enchantment) return;

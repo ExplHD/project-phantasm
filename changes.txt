@@ -10,6 +10,7 @@ Gunakan format seperti ini ketika membuat perubahan / menciptakan konten baru :
 
 # Changes
 = Refactor sistem dari Custom Mace - ExplerHD
+ => Known Issue : Density Damage dari senjata ini masih brutal, Breach Armor Penetration masih belum di implementasi
 = Mengubah sistem Damage Indicator menggunakan Particle Runtime - ExplerHD
 = Mengubah Structure yang mana dari fixed position di darat menjadi structure yang dapat di locate, letaknya di bawah air - ExplerHD
 = Mengubah Bossfight Soul of Nature mengikuti struktur (underwater bossfight) - ExplerHD
@@ -17,17 +18,52 @@ Gunakan format seperti ini ketika membuat perubahan / menciptakan konten baru :
 = Seiketsu Damage +4 - ExplerHD
 = Sedikit mengubah visual pada serangan The Bleeding Spire - ExplerHD
 = Reworked semua damage dari Senjata Legendaris, agar dapat menyaingi Damage Senjata Epic yang di enchant - ExplerHD
+= Buat Soul of Nature, Punicea, and Auric Automaton mempunyai 650 HP, 3000 HP, and 1750 HP dikarenakan perubahan senjata sekarang. - ExplerHD
 = Menambah support Fire Aspect, Knockback, dan Weakness pada Senjata Legendaris - ExplerHD
 = Mengubah seluruh Senjata Legendaris agar dapat menyerang secara looping tiap pattern, tidak ada ending cooldown dari attack pattern lagi - ExplerHD
+= Memperbaiki bug dimana jika mencoba upgrade Dash Level ke level 2, yang muncul malah "Insufficient Experience Level" instead of "Maximum level of Dash is reached." - ExplerHD
 
 # Addition
 + Menambah particle damage_number, dan damage_icons - ExplerHD
 + Menambah fitur Better than Mending - ExplerHD
 + Menambah Combat Dummy - ExplerHD
 + Menambahkan Item Turtle Shell pada Prismarine Boss Arena, agar boss fight di arena itu lebih gampang - ExplerHD
++ Menambahkan Rusted Fortune Coin, Menggandakan + Item Magnet Ore, didapatkan dari 1% chance mining ore apapun - Passive Type - ExplerHD
+- Menambah Condensed Sea Nature, memberikan ketahanan yang jauh lebih lama di air, dan regenerasi yang sedikit lebih cepat di air, Passive Type - ExplerHD
 
 ? To be planned :
-List all of your upcoming plans here, using any point list and explain it.
-ExplerHD : 
-- Menambah Aksesoris Sea Life Crystal :
-  Aksesoris ini berfungsi untuk memberikan ketahanan yang jauh lebih lama di air, dan regenerasi yang sedikit lebih cepat di air, Passive Type
+
+Use the following format when making changes / creating new content:
+< - / = / + > <Removal/Changes/Addition> - <Author>
+
+1.5.0 (The Great Stability):
+
+# Removal
+- Removed the Glyph System, but you can still use the glyphs available in Phantasm - ExplerHD
+- Removed the mining functionality from Legendary Weapons, as they were never designed for that purpose - ExplerHD
+- Removed the Direct Hit feature from Legendary Weapons and Seiketsu - ExplerHD
+
+# Changes
+= Refactored the Custom Mace system - ExplerHD
+  => Known Issue: Density damage from this weapon is still extremely high, and Breach Armor Penetration has not been implemented yet.
+= Reworked the Damage Indicator system to use Runtime Particles - ExplerHD
+= Changed Structures from fixed ground positions to locatable underwater structures - ExplerHD
+= Updated the Soul of Nature boss fight to follow the new structure generation (underwater boss fight) - ExplerHD
+= Adjusted the placement of the Crimson Overgrowth structure to make it more logical and visible - ExplerHD
+= Increased Seiketsu damage by +4 - ExplerHD
+= Slightly updated the visuals of The Bleeding Spire attack - ExplerHD
+= Rebalanced the damage of all Legendary Weapons so they can compete with enchanted Epic Weapons - ExplerHD
+= Made Soul of Nature, Punicea, and Auric Automaton have 650 HP, 3000 HP, and 1750 HP due to Recent Weapons changes. - ExplerHD
+= Added support for Fire Aspect, Knockback, and Weakness on Legendary Weapons - ExplerHD
+= Updated all Legendary Weapons so their attack patterns now loop continuously without an ending cooldown - ExplerHD
+= Fixed a bug where upgrading Dash to Level 2 would display "Insufficient Experience Level" instead of "Maximum level of Dash is reached." - ExplerHD
+
+# Addition
++ Added the `damage_number` and `damage_icons` particles - ExplerHD
++ Added the Better than Mending feature - ExplerHD
++ Added a Combat Dummy - ExplerHD
++ Added a Turtle Shell item to the Prismarine Boss Arena to make the boss fight in that arena easier - ExplerHD
++ Added Rusted Fortune Coin, which doubles ore drops, and the Item Magnet Ore. Both can be obtained from a 1% chance when mining any ore - Passive Type - ExplerHD
++ Added Condensed Sea Nature, providing much longer underwater breathing and slightly faster health regeneration while underwater - Passive Type - ExplerHD
+
+? To be planned:

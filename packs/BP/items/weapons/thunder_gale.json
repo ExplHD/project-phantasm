@@ -27,7 +27,7 @@
 					"max": 100
 				}
 			},
-			"minecraft:damage": 12,
+			"minecraft:damage": 14,
 			"minecraft:repairable": {
 				"repair_items": [
 					{
@@ -60,7 +60,7 @@
 				"hitbox_margin": 0.125
 			},
 			"minecraft:kinetic_weapon": {
-				"delay": 7,
+				"delay": 6,
 				"reach": {
 					"min": 2,
 					"max": 4.5
@@ -70,7 +70,7 @@
 					"max": 7.5
 				},
 				"hitbox_margin": 0.25,
-				"damage_multiplier": 1.5,
+				"damage_multiplier": 1.6,
 				"damage_conditions": {
 					"max_duration": 300,
 					"min_relative_speed": 4.6

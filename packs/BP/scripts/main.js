@@ -3,6 +3,7 @@ import {
     CustomCommandParamType,
     CustomCommandStatus
 } from '@minecraft/server'
+// ======================================== General Script Behavior ========================================
 import { } from './weapons'
 import { } from './loader'
 import { } from './custom_components'
@@ -14,10 +15,12 @@ import { } from './accessoriesRuntime'
 import { } from './damage_indicator'
 import { } from './dynamicLighting'
 import { } from './dummy'
-import * as Phantasm from './phantasmConstants'
+
+// ======================================== Guide Screen ========================================
+import { } from './guidescreen/main_guide'
 
 // For Custom Library (PLEASE CREDIT THEM IF YOU WANT TO USE IT!)
-import { } from 'custlib/custom_mace/detection' // Credits to @biggamers4u for older mechanics, now ALL of the MECHANICS are remade by me.
+import { } from './custom_mace/detection' // Credits to @biggamers4u for older mechanics, now ALL of the MECHANICS are remade by me.
 
 console.warn("§a§lPhantasm 1.5.0 Activated!");
 

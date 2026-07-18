@@ -1,11 +1,33 @@
-import { world, system, ItemUseBeforeEvent } from '@minecraft/server'
+import { world, system, ItemUseBeforeEvent, ItemStack } from '@minecraft/server'
 import { applyDurabilityDamage, addScore, getAccessoryItems } from './main';
+import * as Phantasm from './phantasmConstants'
 
 const accessoryRegistry = {
     "ph:fire_bracelet": {
         onHitEntity(player, event, hitTarget) {
             player.addEffect("fire_resistance", 100, { showParticles: false });
             hitTarget.setOnFire(7, true);
+        }
+	},
+	"ph:rust_coin": {
+        onBreakBlock(player, event, block) {
+			const drop = Phantasm.ORE_DROPS.get(block.type.id);
+			if (!drop) return;
+
+			if (player.getGameMode() === "Creative") return;
+			system.run(() => { 
+				const itemDropped = player.dimension.getEntities({
+					location: player.location,
+					maxDistance: 5,
+					type: "minecraft:item"
+				})
+				itemDropped.forEach(item => { 
+					item.teleport(player.location)
+				})
+				
+				event.dimension.spawnParticle("ph:rusted_coin_fortune", block.center());
+				event.dimension.spawnItem(new ItemStack(drop, 1), player.location);
+			})
         }
     },
     "ph:the_crimson_watcher": {
@@ -84,6 +106,14 @@ const accessoryRegistry = {
                 }
             })
         }
+	},
+	"ph:condensed_sea_nature": {
+		onLoop(player, event) {
+			if (!player.isInWater) return;
+			player.dimension.spawnParticle("ph:time_polarizer_speed", player.location);
+			player.addEffect("water_breathing", 20);
+			player.addEffect("regeneration", 100, { amplifier: 1 })
+		}
     }
 };
 
@@ -134,7 +164,14 @@ world.afterEvents.entityHitEntity.subscribe((acc) => {
     const damagingEntity = acc.damagingEntity;
     const hitEntity = acc.hitEntity;
 
-    handleAccessory(damagingEntity, "onHitEntity", acc, hitEntity);
+	handleAccessory(damagingEntity, "onHitEntity", acc, hitEntity);
+})
+
+world.beforeEvents.playerBreakBlock.subscribe((acc) => {
+	const block = acc.block;
+	const player = acc.player;
+
+	handleAccessory(player, "onBreakBlock", acc, block);
 })
 
 system.runInterval((event) => {

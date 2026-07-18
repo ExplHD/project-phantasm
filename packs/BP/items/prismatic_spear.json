@@ -35,7 +35,7 @@
                     },
                     {
                         "items": [
-                            "ph:prismatic_sword"
+                            "ph:prismatic_spear"
                         ],
                         "repair_amount": "context.other->query.remaining_durability+0.12*context.other->query.max_durability"
                     }

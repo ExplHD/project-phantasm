@@ -89,12 +89,16 @@ solarisverdantSkill.addSkill(3, {
                     src.runCommand('summon ph:animirra_summon_ultimate ~~1~7 ~~');
                     src.runCommand('summon ph:animirra_summon_ultimate ~~1~-7 ~~');
                     src.runCommand('summon ph:animirra_summon_ultimate ~7~1~ ~~');
-                    src.runCommand('summon ph:animirra_summon_ultimate ~-7~1~ ~~');
+					src.runCommand('summon ph:animirra_summon_ultimate ~-7~1~ ~~');
                 }
             },
             {
                 delay: 10, action: (src) => {
-                    src.runCommand(`scriptevent ph:boss_summon 10, 20, 24, ph:animirra_meteor, custom_sfx.animirra_summon`);
+					src.runCommand(`scriptevent ph:boss_summon 24, 20, 24, ph:animirra_meteor, custom_sfx.animirra_summon`);
+					src.runCommand('summon ph:animirra_summon_ultimate ~~1~14 ~~');
+                    src.runCommand('summon ph:animirra_summon_ultimate ~~1~-14 ~~');
+                    src.runCommand('summon ph:animirra_summon_ultimate ~14~1~ ~~');
+                    src.runCommand('summon ph:animirra_summon_ultimate ~-14~1~ ~~');
                     source.runCommand('inputpermission set @s movement enabled');
                 }
             }
@@ -133,7 +137,7 @@ superchargedCopperAxeSkill.addSkill(2, {
         source.dimension.spawnParticle("ph:lightning_flash", source.location);
         source.dimension.spawnParticle("ph:copper_mech_explosion", source.location);
         source.applyKnockback({ x: source.getViewDirection().x * 2, z: source.getViewDirection().z * 2 }, 1.2);
-        source.dimension.createExplosion(source.location, 4, {
+        source.dimension.createExplosion(source.location, 6, {
             breaksBlocks: false,
             source: source
         })
@@ -543,7 +547,6 @@ auricPhotonizerSkill.addSkill(4, {
     action: (source) => {
         source.addTag("SWORDIMMUNE");
         source.runCommand(`scriptevent ph:boss_summon 32, 1, 24, ph:copper_mech_sword, custom_sfx.animirra_summon`);
-        source.runCommand(`inputpermission set @a[r=28] movement disabled`);
         const command = new CommandHandler([
             {
                 delay: 30, action: (src) => {
@@ -559,7 +562,6 @@ auricPhotonizerSkill.addSkill(4, {
             },
             {
                 delay: 15, action: (src) => {
-                    src.runCommand(`inputpermission set @a[r=28] movement enabled`);
                     src.removeTag("SWORDIMMUNE");
                 }
             }
@@ -610,7 +612,7 @@ theBleedingSpireSkill.addSkill(2, {
                 damagingEntity: source,
                 cause: "magic"
             })
-            source.addEffect("instant_health", 1, {
+            source.addEffect("instant_health", 2, {
                 amplifier: 2
             })
             if (entity?.typeId != "minecraft:player") {

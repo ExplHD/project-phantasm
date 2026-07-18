@@ -1,0 +1,98 @@
+{
+	"format_version": "1.21.100",
+	"minecraft:crafting_items_catalog": {
+		"categories": [
+			{
+				"category_name": "items",
+				"groups": [
+					{
+						"group_identifier": {
+							"name": "category.ph:boss_summon",
+							"icon": "ph:ancient_copper_core"
+						},
+						"items": ["ph:nature_soul_altar", "ph:suspicious_crimson_eye", "ph:ancient_copper_core"]
+					},
+					{
+						"group_identifier": {
+							"name": "category.ph:accessories",
+							"icon": "ph:hell_charge"
+						},
+						"items": [
+							"ph:hell_charge",
+							"ph:flow_channeler",
+							"ph:time_polarizer",
+							"ph:condensed_sea_nature",
+							"ph:auric_proton",
+							"ph:rust_coin",
+							"ph:weeping_repair",
+							"ph:the_crimson_watcher",
+							"ph:fire_bracelet",
+							"ph:impulse_booster"
+						]
+					},
+					{
+						"group_identifier": {
+							"name": "category.ph:usable_items",
+							"icon": "ph:auric_stock_battery"
+						},
+						"items": ["ph:auric_stock_battery", "ph:auric_battery_recharge_station", "ph:suspicious_mushroom", "ph:auric_communicator"]
+					},
+					{
+						"group_identifier": {
+							"name": "category.ph:treasure_bags",
+							"icon": "ph:soul_of_nature_treasure_bag"
+						},
+						"items": [
+							"ph:soul_of_nature_treasure_bag",
+							"ph:wither_treasure_bag",
+							"ph:punicea_crimson_eye_treasure_bag",
+							"ph:copper_mechanical_array_treasure_bag"
+						]
+					}
+				]
+			},
+			{
+				"category_name": "construction",
+				"groups": [
+					{
+						"group_identifier": {
+							"icon": "minecraft:command_block",
+							"name": "category.ph:admin_item"
+						},
+						"items": [
+							"minecraft:command_block",
+							"minecraft:chain_command_block",
+							"minecraft:repeating_command_block",
+							"minecraft:barrier",
+							"minecraft:structure_block",
+							"minecraft:structure_void",
+							"minecraft:jigsaw",
+							"minecraft:allow",
+							"minecraft:deny",
+							"minecraft:border_block",
+							"minecraft:light_block"
+						]
+					}
+				]
+			},
+			{
+				"category_name": "equipment",
+				"groups": [
+					{
+						"group_identifier": {
+							"name": "category.ph:other_weapons",
+							"icon": "ph:cruxshaper"
+						},
+						"items": [
+							"ph:cruxshaper",
+							"ph:nature_staff",
+							"ph:peacemaker_oath",
+							"ph:spectric_bow",
+							"ph:prism_weaver"
+						]
+					}
+				]
+			}
+		]
+	}
+}

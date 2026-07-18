@@ -140,6 +140,12 @@
 		},
 		"ph:dummy_spawn_egg": {
 			"textures": "textures/items/dummy"
+		},
+		"ph_condensed_sea_nature": {
+			"textures": "textures/items/condensed_sea_nature"
+		},
+		"ph_rust_coin": {
+			"textures": "textures/items/rust_coin"
 		}
 	},
 	"resource_pack_name": "Project Phantasm",

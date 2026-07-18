@@ -1,0 +1,24 @@
+{
+    "format_version": "1.21.100",
+    "minecraft:item": {
+        "description": {
+            "identifier": "ph:rust_coin",
+            "menu_category": {
+                "category": "items"
+            }
+        },
+        "components": {
+            "ph:rust_coin": {},
+            "minecraft:icon": "ph_rust_coin",
+            "minecraft:rarity": "epic",
+            "minecraft:display_name": {
+                "value": "Rusted Fortune Coin"
+            },
+			"minecraft:fire_resistant": {
+                "value": true
+            },
+            "minecraft:allow_off_hand": true,
+            "minecraft:max_stack_size": 1
+        }
+    }
+}

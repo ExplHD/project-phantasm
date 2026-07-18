@@ -24,8 +24,8 @@ export function skillUnlock(player) {
 function dashUnlock(player) {
     const exp = player.level;
     let dashLevel = player.getDynamicProperty("ph:dash_level") ?? 0;
-    const form = new MessageFormData()
-        .title("Confirm Selection")
+	const form = new MessageFormData()
+		.title("Confirm Selection")
         .body(`Are you sure you want to unlock the passive dash? to use it press jump twice\n\nCurrent Level : ${exp}\nRequired Level : 30`)
         .button1("Confirm")
         .button2("Cancel")
@@ -38,7 +38,7 @@ function dashUnlock(player) {
                     player.addLevels(-30);
                 } else {
                     player.playSound("note.bass");
-                    player.sendMessage("§cInsufficient Experience Level!");
+					if (dashLevel == 0) player.sendMessage("§cInsufficient Experience Level!"); else player.sendMessage("§cMaximum level for dash is reached");
                 }
             }
             if (r.selection == 1) {

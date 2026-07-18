@@ -2,6 +2,7 @@ import { world, system, CustomCommandParamType, CommandPermissionLevel, CustomCo
 import { setScore, getScore, addScore, removeScore, applyDurabilityDamage } from 'main'
 import { Forms } from 'formsGenerator'
 import { skillUnlock, propertiesCheck } from 'forms/skillUnlock'
+import { mainGuideScreen } from './guidescreen/main_guide'
 
 system.beforeEvents.startup.subscribe((initEvent) => {
     initEvent.itemComponentRegistry.registerCustomComponent("ph:charge_passive", {
@@ -712,26 +713,37 @@ system.beforeEvents.startup.subscribe((initEvent) => {
         }
     })
 
-    initEvent.customCommandRegistry.registerCommand({
-        name: "ph:unlockskill",
-        description: "Opens a skill unlock ui",
-        cheatsRequired: false,
-        permissionLevel: CommandPermissionLevel.Any
-    }, openForm)
+	initEvent.customCommandRegistry.registerCommand({
+		name: "ph:unlockskill",
+		description: "Opens a skill unlock ui",
+		cheatsRequired: false,
+		permissionLevel: CommandPermissionLevel.Any
+	}, openForm);
 
-    initEvent.customCommandRegistry.registerCommand({
-        name: "ph:cleardynamicproperties",
-        description: "Reset all of your dynamic properties",
-        cheatsRequired: false,
-        permissionLevel: CommandPermissionLevel.GameDirectors
-    }, clearDynamicProperty)
+	initEvent.customCommandRegistry.registerCommand({
+		name: "ph:cleardynamicproperties",
+		description: "Reset all of your dynamic properties",
+		cheatsRequired: true,
+		permissionLevel: CommandPermissionLevel.GameDirectors
+	}, clearDynamicProperty);
 
-    initEvent.customCommandRegistry.registerCommand({
-        name: "ph:dynamicproperties",
-        description: "Check all of your dynamic properties",
-        cheatsRequired: false,
-        permissionLevel: CommandPermissionLevel.GameDirectors
-    }, openProperties)
+	initEvent.customCommandRegistry.registerCommand({
+		name: "ph:dynamicproperties",
+		description: "Check all of your dynamic properties",
+		cheatsRequired: true,
+		permissionLevel: CommandPermissionLevel.GameDirectors
+	}, openProperties);
+    
+	initEvent.customCommandRegistry.registerCommand({
+		name: "ph:guide",
+		description: "Opens Guide Screen",
+		cheatsRequired: false,
+		permissionLevel: CommandPermissionLevel.Any
+	}, (origin) => {
+		system.run(() => {
+			mainGuideScreen(origin.sourceEntity);
+		})
+	});
 })
 
 function openForm({ sourceEntity: player }) {

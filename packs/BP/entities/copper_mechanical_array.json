@@ -200,8 +200,8 @@
         },
         "components": {
             "minecraft:health": {
-                "value": 2400,
-                "max": 2400
+                "value": 1750,
+                "max": 1750
             },
             "minecraft:boss": {
                 "hud_range": 80,

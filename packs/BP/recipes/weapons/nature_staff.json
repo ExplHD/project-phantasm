@@ -9,7 +9,7 @@
         ],
         "key": {
             "D": {
-                "item": "minecraft:diamond_block"
+                "item": "minecraft:prismatic_ingot"
             },
             "W": {
                 "item": "minecraft:nautilus_shell"
@@ -25,7 +25,7 @@
         ],
         "unlock": [
             {
-                "item": "minecraft:diamond"
+                "item": "minecraft:prismatic_ingot"
             },
             {
                 "item": "minecraft:nautilus_shell"

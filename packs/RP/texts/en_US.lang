@@ -46,6 +46,7 @@ item.ph:thunder_gale=Thunder Gale
 item.ph:seiketsu=Seiketsu
 item.ph:auric_charging_module=Auric Charging Module
 item.ph:auric_proton=Auric Proton
+item.ph:condensed_sea_nature=Condensed Sea Nature
 
 tile.ph:ancient_copper_core.name=Ancient Copper Core
 tile.ph:auric_battery.name=Auric Battery Block
@@ -98,3 +99,10 @@ subtitles.custom.laser_beam=Laser Beam
 subtitles.player.dash=Player's Dashing
 subtitles.entity.meteor_impact=Meteor's Impact
 subtitles.entity.metal_hitting=Metals being hit
+
+category.ph:boss_summon=Boss Summon
+category.ph:accessories=Accessories
+category.ph:usable_items=Usable Items
+category.ph:treasure_bags=Treasure Bags
+category.ph:admin_item=Operator Utilities
+category.ph:other_weapons=Other Weapon Types

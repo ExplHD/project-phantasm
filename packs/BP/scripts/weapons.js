@@ -237,7 +237,7 @@ world.afterEvents.entityDie.subscribe(({ damageSource, deadEntity }) => {
     const mainhand = killer?.getComponent("equippable")?.getEquipment("Mainhand");
 
     if (killer?.typeId === "minecraft:player" && mainhand?.typeId === "ph:charged_copper_axe") {
-        addScore(killer, "auric_charge", 1);
+        addScore(killer, "auric_charge", 4);
         deadEntity.dimension.spawnEntity("minecraft:lightning_bolt", deadEntity.location);
     }
 })
