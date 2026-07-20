@@ -344,7 +344,17 @@ world.beforeEvents.playerBreakBlock.subscribe((e) => {
             item_tag: "minecraft:is_pickaxe",
             tool: undefined
         }
-    ]
+	]
+
+    if (block.typeId.includes("ore")) {
+		const randomChance = Math.floor(Math.random() * 100);
+		console.warn(`Random Chance : ${randomChance}`)
+		if (player.getGameMode() === "Creative") return;
+		if (randomChance != 1) return;
+		system.run(() => { 
+			dimension.spawnItem(new ItemStack("ph:rust_coin", 1), block.location);
+		})
+    }
 
     for (const splittedData of blockAndItems) {
         if (block.typeId === splittedData.block) {
@@ -354,8 +364,10 @@ world.beforeEvents.playerBreakBlock.subscribe((e) => {
             if (gameMode == "Creative") return;
             if (enchantment) return;
             if (!enchantment && tags != undefined && splittedData.item_tag && tags.includes(splittedData.item_tag)) {
+            	e.cancel = true; // prevent original drop
                 system.run(() => {
-                    block.dimension.spawnItem(splittedData.item, block.location);
+                    dimension.setBlockType(blockLoc, "minecraft:air");
+                    dimension.spawnItem(splittedData.item, blockLoc);
                 })
             } else {
                 if (!splittedData.tool) {
@@ -363,7 +375,7 @@ world.beforeEvents.playerBreakBlock.subscribe((e) => {
                 }
                 if (itemStack.typeId == splittedData.tool) {
                     system.run(() => {
-                        block.dimension.spawnItem(splittedData.item, block.location);
+                        dimension.spawnItem(splittedData.item, block.location);
                     })
                 }
             }

@@ -246,25 +246,46 @@ world.afterEvents.playerInventoryItemChange.subscribe(({ player }) => {
     const container = player.getComponent("inventory")?.container;
     if (!container) return;
 
+    // Step 1: apply expected lore (kode kamu yang lama)
     for (let i = 0; i < container.size; i++) {
         const item = container.getItem(i);
         if (!item) continue;
-
         const expectedLore =
             Phantasm.addLore.get(item.typeId) ??
             (item.typeId.startsWith("ph:") ? ["§9Phantasm"] : undefined);
-
         if (!expectedLore) continue;
-
         const currentLore = item.getLore() ?? [];
-
         const isSame =
             currentLore.length === expectedLore.length &&
             currentLore.every((line, index) => line === expectedLore[index]);
-
         if (isSame) continue;
-
         item.setLore(expectedLore);
         container.setItem(i, item);
+    }
+
+    // Step 2: gabungin stack yang sekarang identik tapi masih kepisah slot
+    for (let i = 0; i < container.size; i++) {
+        const itemA = container.getItem(i);
+        if (!itemA || itemA.amount >= itemA.maxAmount) continue;
+
+        for (let j = i + 1; j < container.size; j++) {
+            const itemB = container.getItem(j);
+            if (!itemB) continue;
+            if (!itemA.isStackableWith(itemB)) continue;
+
+            const spaceLeft = itemA.maxAmount - itemA.amount;
+            if (spaceLeft <= 0) break;
+
+            const moveAmount = Math.min(spaceLeft, itemB.amount);
+            itemA.amount += moveAmount;
+            container.setItem(i, itemA);
+
+            if (moveAmount >= itemB.amount) {
+                container.setItem(j, undefined); // slot dikosongin total
+            } else {
+                itemB.amount -= moveAmount;	
+                container.setItem(j, itemB); // sisa amount-nya
+            }
+        }
     }
 });

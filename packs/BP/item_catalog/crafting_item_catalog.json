@@ -35,7 +35,13 @@
 							"name": "category.ph:usable_items",
 							"icon": "ph:auric_stock_battery"
 						},
-						"items": ["ph:auric_stock_battery", "ph:auric_battery_recharge_station", "ph:suspicious_mushroom", "ph:auric_communicator"]
+						"items": [
+							"ph:auric_stock_battery",
+							"ph:auric_battery_recharge_station",
+							"ph:suspicious_mushroom",
+							"ph:auric_communicator",
+							"ph:dummy_spawn_egg"
+						]
 					},
 					{
 						"group_identifier": {
@@ -83,13 +89,7 @@
 							"name": "category.ph:other_weapons",
 							"icon": "ph:cruxshaper"
 						},
-						"items": [
-							"ph:cruxshaper",
-							"ph:nature_staff",
-							"ph:peacemaker_oath",
-							"ph:spectric_bow",
-							"ph:prism_weaver"
-						]
+						"items": ["ph:cruxshaper", "ph:nature_staff", "ph:peacemaker_oath", "ph:spectric_bow", "ph:prism_weaver"]
 					}
 				]
 			}

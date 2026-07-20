@@ -1,5 +1,5 @@
 import { ActionFormData } from "@minecraft/server-ui";
-import * as GuideScreen from "./main_guide"
+import { mainGuideScreen } from "./main_guide"
 
 export function guideWeapons(player) {
 	const form = new ActionFormData()
@@ -20,7 +20,7 @@ export function guideWeapons(player) {
 		.button("§pThe Bleeding Spire", "textures/items/weapons/the_bleeding_spire")
 		.button("Back")
 		.show(player).then(r => {
-			if (r.canceled || r.selection == 13) GuideScreen.mainGuideScreen(player);
+			if (r.canceled || r.selection == 13) mainGuideScreen(player);
 			if (r.selection == 0) prismaticTools(player);
 			if (r.selection == 1) chargedCopperAxe(player);
 			if (r.selection == 2) cruxshaper(player);

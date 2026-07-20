@@ -2,11 +2,12 @@ import { ActionFormData } from '@minecraft/server-ui'
 import { world, system } from '@minecraft/server'
 
 import { guideWeapons } from './weapon_guide';
+import { mechanicsList } from './mechanic_guide';
 
 export function mainGuideScreen(player) {
 	const form = new ActionFormData()
 		.title("Guide")
-		.header("Phantasm Guide")
+		.header("Phantasm 1.5 Guide")
 		.divider()
 		.label("Phantasm is an add-on that adds a lot of content into your world, currently this add-on is updated regularly, so stay tuned for the next content that I will add. In this add-on, there's new weapons, new mechanics, new enemies, boss, and everything.")
 		.label("Click the button below to see the content of Phantasm!")
@@ -14,18 +15,20 @@ export function mainGuideScreen(player) {
 		// ========================================
 		// Untuk Divider ini, please buat dia menuju file baru seperti yang ada di contoh!
 		// ========================================
-		.button("Mechanics", "textures/ui/speed")
-		.button("Weapons", "textures/items/diamond_sword")
-		.button("Accessories", "textures/items/fire_bracelet")
-		.button("Structures", "textures/blocks/chest")
-		.button("Bosses", "textures/items/the_crimson_watcher")
-		.button("Enemies", "textures/items/zombie_spawn_egg")
+		.button("Mechanics", "textures/ui/speed") // Done
+		.button("Weapons", "textures/items/diamond_sword") // Done
+		.button("Items", "textures/items/essence_of_crimson") // OTW
+		.button("Accessories", "textures/items/fire_bracelet") // ZeroMaster178
+		.button("Structures", "textures/blocks/chest") // ZeroMaster178
+		.button("Bosses", "textures/items/the_crimson_watcher") // OTW
+		.button("Enemies", "textures/items/zombie_spawn_egg") // ZeroMaster178
 		.divider()
-		.button("Changelogs")
-		.button("Contact the Developer!")
+		.button("Changelogs") // Done
+		.button("Contact the Developer!") // ZeroMaster178, create it at this file
 		.button("Exit")
 		.show(player).then(r => { 
 			if (r.canceled) player.sendMessage("§eYou can use /guide to check the guide or list of features in Phantasm!");
+			if (r.selection == 0) mechanicsList(player);
 			if (r.selection == 1) guideWeapons(player);
 			if (r.selection == 6) Changelogs(player);
 		})
