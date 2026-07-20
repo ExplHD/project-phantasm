@@ -18,6 +18,7 @@ export function mainGuideScreen(player) {
 		.button("Mechanics", "textures/ui/speed") // Done
 		.button("Weapons", "textures/items/diamond_sword") // Done
 		.button("Items", "textures/items/essence_of_crimson") // OTW
+		.button("Blocks", "textures/items/essence_of_crimson") // OTW
 		.button("Accessories", "textures/items/fire_bracelet") // ZeroMaster178
 		.button("Structures", "textures/blocks/chest") // ZeroMaster178
 		.button("Bosses", "textures/items/the_crimson_watcher") // OTW
@@ -30,7 +31,14 @@ export function mainGuideScreen(player) {
 			if (r.canceled) player.sendMessage("§eYou can use /guide to check the guide or list of features in Phantasm!");
 			if (r.selection == 0) mechanicsList(player);
 			if (r.selection == 1) guideWeapons(player);
-			if (r.selection == 6) Changelogs(player);
+			if (r.selection == 2) guideItems(player);
+			if (r.selection == 3) guideBlocks(player);
+			if (r.selection == 4) guideAccessories(player);
+			if (r.selection == 5) guideStructures(player);
+			if (r.selection == 6) guideBosses(player);
+			if (r.selection == 7) guideEnemies(player);
+			if (r.selection == 8) Changelogs(player);
+			if (r.selection == 9) developer(player);
 		})
 }
 
