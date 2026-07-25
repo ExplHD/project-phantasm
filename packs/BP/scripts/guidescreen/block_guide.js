@@ -27,7 +27,7 @@ function ancientCopperCore(player) {
 		.label("This block can be found in Trial Chamber.")
 		.button("Back")
 		.show(player).then(r => {
-			if (r.canceled || r.selection == 0) mainGuideScreen(player);
+			if (r.canceled || r.selection == 0) guideBlocks(player);
 		})
 }
 
@@ -39,7 +39,7 @@ function auricRechargeStation(player) {
 		.label("This block can be crafted with Ancient Copper Core, Copper Block, Auric Charging Module.")
 		.button("Back")
 		.show(player).then(r => {
-			if (r.canceled || r.selection == 0) mainGuideScreen(player);
+			if (r.canceled || r.selection == 0) guideBlocks(player);
 		})
 }
 
@@ -51,7 +51,7 @@ function natureSoulAltar(player) {
 		.label("This block only found naturally in Prismarine Arena.")
 		.button("Back")
 		.show(player).then(r => {
-			if (r.canceled || r.selection == 0) mainGuideScreen(player);
+			if (r.canceled || r.selection == 0) guideBlocks(player);
 		})
 }
 
@@ -63,6 +63,6 @@ function suspiciousCrimsonEye(player) {
 		.label("This block only found naturally in Crimson Overgrowth.")
 		.button("Back")
 		.show(player).then(r => {
-			if (r.canceled || r.selection == 0) mainGuideScreen(player);
+			if (r.canceled || r.selection == 0) guideBlocks(player);
 		})
 }

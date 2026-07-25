@@ -7,7 +7,7 @@ export default function guideItems(player) {
 		.label("This is the list of Usable Items, any items that doesn't show up here is an Items that only be used as a recipe")
 		.button("Auric Communicator", "textures/items/auric_communicator")
 		.button("Auric Stock Battery", "textures/items/auric_stock_battery")
-		.button("Combat Dummy", "textures/items/combat_dummy")
+		.button("Combat Dummy", "textures/items/dummy")
 		.button("Flow Channeler", "textures/items/flow_channeler")
 		.button("Hell Charge", "textures/items/hell_charge")
 		.button("Suspicious Mushroom", "textures/items/suspicious_mushroom")
@@ -32,7 +32,7 @@ function auricCommunicator(player) {
 		.label("This item can be obtained from Auric Automaton : Copper Mechanical Array.")
 		.button("Back")
 		.show(player).then(r => {
-			if (r.canceled || r.selection == 0) mainGuideScreen(player);
+			if (r.canceled || r.selection == 0) guideItems(player);
 		})
 }
 
@@ -45,7 +45,7 @@ function auricStockBattery(player) {
 		.label("This item can be obtained from Crafting with Auric Stars / Ancient Copper Core with Copper Block, obtained from Trial Chamber, and from Auric Automaton : Copper Mechanical Array.")
 		.button("Back")
 		.show(player).then(r => {
-			if (r.canceled || r.selection == 0) mainGuideScreen(player);
+			if (r.canceled || r.selection == 0) guideItems(player);
 		})
 }
 
@@ -58,7 +58,7 @@ function combatDummy(player) {
 		.label("This item can be crafted with 2 Planks, 2 Sticks, and 3 Smooth Stone Slabs.")
 		.button("Back")
 		.show(player).then(r => {
-			if (r.canceled || r.selection == 0) mainGuideScreen(player);
+			if (r.canceled || r.selection == 0) guideItems(player);
 		})
 }
 
@@ -70,7 +70,7 @@ function flowChanneler(player) {
 		.label("This item can be obtained by killing Sealed Soul of Nature.")
 		.button("Back")
 		.show(player).then(r => {
-			if (r.canceled || r.selection == 0) mainGuideScreen(player);
+			if (r.canceled || r.selection == 0) guideItems(player);
 		})
 }
 
@@ -83,7 +83,7 @@ function hellCharge(player) {
 		.label("This item can be crafted with Magma Cream, and 4 Blaze Powder.")
 		.button("Back")
 		.show(player).then(r => {
-			if (r.canceled || r.selection == 0) mainGuideScreen(player);
+			if (r.canceled || r.selection == 0) guideItems(player);
 		})
 }
 
@@ -96,6 +96,6 @@ function suspiciousMushroom(player) {
 		.label("This item can be obtained from Punicea : A Crimson Eye.")
 		.button("Back")
 		.show(player).then(r => {
-			if (r.canceled || r.selection == 0) mainGuideScreen(player);
+			if (r.canceled || r.selection == 0) guideItems(player);
 		})
 }

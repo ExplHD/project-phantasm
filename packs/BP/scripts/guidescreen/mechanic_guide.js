@@ -43,7 +43,7 @@ function skillUnlockGuide(player) {
 		.button("Unlock Skill")
 		.button("Back")
 		.show(player).then(r => {
-			if (r.selection == 1 || r.cancelled) mainGuideScreen(player);
+			if (r.selection == 1 || r.cancelled) mechanicsList(player);
 			if(r.selection == 0) skillUnlock(player)
 		})
 }
@@ -58,7 +58,7 @@ function passiveDash(player) {
 		.divider()
 		.button("Back")
 		.show(player).then(r => {
-			if (r.selection == 0 || r.cancelled) mainGuideScreen(player);
+			if (r.selection == 0 || r.cancelled) mechanicsList(player);
 		})
 }
 
@@ -71,7 +71,7 @@ function extraHealth(player) {
 		.divider()
 		.button("Back")
 		.show(player).then(r => {
-			if (r.selection == 0 || r.cancelled) mainGuideScreen(player);
+			if (r.selection == 0 || r.cancelled) mechanicsList(player);
 		})
 }
 
@@ -85,7 +85,7 @@ function windPlunge(player) {
 		.divider()
 		.button("Back")
 		.show(player).then(r => {
-			if (r.selection == 0 || r.cancelled) mainGuideScreen(player);
+			if (r.selection == 0 || r.cancelled) mechanicsList(player);
 		})
 }
 
@@ -99,7 +99,7 @@ function dynamicLighting(player) {
 		.divider()
 		.button("Back")
 		.show(player).then(r => {
-			if (r.selection == 0 || r.cancelled) mainGuideScreen(player);
+			if (r.selection == 0 || r.cancelled) mechanicsList(player);
 		})
 }
 
@@ -113,7 +113,7 @@ function legendaryItems(player) {
 		.divider()
 		.button("Back")
 		.show(player).then(r => {
-			if (r.selection == 0 || r.cancelled) mainGuideScreen(player);
+			if (r.selection == 0 || r.cancelled) mechanicsList(player);
 		})
 }
 
@@ -127,7 +127,7 @@ function upgradingItems(player) {
 		.divider()
 		.button("Back")
 		.show(player).then(r => {
-			if (r.selection == 0 || r.cancelled) mainGuideScreen(player);
+			if (r.selection == 0 || r.cancelled) mechanicsList(player);
 		})
 }
 
@@ -141,7 +141,7 @@ function betterMending(player) {
 		.divider()
 		.button("Back")
 		.show(player).then(r => {
-			if (r.selection == 0 || r.cancelled) mainGuideScreen(player);
+			if (r.selection == 0 || r.cancelled) mechanicsList(player);
 		})
 }
 
@@ -155,7 +155,7 @@ function accessories(player) {
 		.divider()
 		.button("Back")
 		.show(player).then(r => {
-			if (r.selection == 0 || r.cancelled) mainGuideScreen(player);
+			if (r.selection == 0 || r.cancelled) mechanicsList(player);
 		})
 }
 
@@ -169,6 +169,6 @@ function auricCharges(player) {
 		.divider()
 		.button("Back")
 		.show(player).then(r => {
-			if (r.selection == 0 || r.cancelled) mainGuideScreen(player);
+			if (r.selection == 0 || r.cancelled) mechanicsList(player);
 		})
 }

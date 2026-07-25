@@ -27,7 +27,7 @@ function soulOfNature(player) {
 		.label("Defeating this boss ensure that Phantasm journey have just started and you will get a Treasure bag...")
 		.button("Back")
 		.show(player).then(r => {
-			if (r.canceled || r.selection == 0) mainGuideScreen(player);
+			if (r.canceled || r.selection == 0) guideBosses(player);
 		})
 }
 
@@ -40,7 +40,7 @@ function puniceaCrimsonEye(player) {
 		.label("Defeating this boss ensure that you learned how to dodge very well, and you will get a Treasure bag...")
 		.button("Back")
 		.show(player).then(r => {
-			if (r.canceled || r.selection == 0) mainGuideScreen(player);
+			if (r.canceled || r.selection == 0) guideBosses(player);
 		})
 }
 
@@ -53,6 +53,6 @@ function copperMechanicalArray(player) {
 		.label("Defeating this boss will drop a Treasure bag, completing the journey of Phantasm, for now... Stay tuned for the next Phantasm Update!")
 		.button("Back")
 		.show(player).then(r => {
-			if (r.canceled || r.selection == 0) mainGuideScreen(player);
+			if (r.canceled || r.selection == 0) guideBosses(player);
 		})
 }

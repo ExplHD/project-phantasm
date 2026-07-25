@@ -1,5 +1,5 @@
 import { world, system, CustomCommandParamType, CommandPermissionLevel, CustomCommandStatus, MolangVariableMap, EquipmentSlot, ItemStack, BlockType } from '@minecraft/server'
-import { setScore, getScore, addScore, removeScore, applyDurabilityDamage } from 'main'
+import { setScore, getScore, addScore, removeScore, applyDurabilityDamage, unstuckPlayer } from 'main'
 import { Forms } from 'formsGenerator'
 import { skillUnlock, propertiesCheck } from 'forms/skillUnlock'
 import { mainGuideScreen } from './guidescreen/main_guide'

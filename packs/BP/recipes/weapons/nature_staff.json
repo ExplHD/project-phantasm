@@ -25,7 +25,7 @@
         ],
         "unlock": [
             {
-                "item": "minecraft:prismatic_ingot"
+                "item": "ph:prismatic_ingot"
             },
             {
                 "item": "minecraft:nautilus_shell"

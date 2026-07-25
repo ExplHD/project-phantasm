@@ -2,15 +2,15 @@ import { ActionFormData } from "@minecraft/server-ui";
 import { mainGuideScreen } from "./main_guide";
 
 export default function guideEnemies(player) {
-  const form = new ActionFormData()
-    .title("Enemies")
-    .divider()
-    .label("currently we only have 1 type of Enemies, crimson tentacles")
-    .label("crimson tentacles spawn naturally in crimson biomes, when defeated drop essence of crimson, chance 50%%")
-    .divider()
-    .button("Back")
-    .show(player)
-    .then((r) => {
-      if (r.selection === 0 || r.canceled) mainGuideScreen(player);
-    });
+	const form = new ActionFormData()
+		.title("Enemies")
+		.divider()
+		.label("Currently we only have 1 type of enemies, Crimson Tentacles")
+		.label("Crimson Tentacles spawn naturally in Crimson Forest, when defeated drop Essence of Crimson with chance of 50%%")
+		.divider()
+		.button("Back")
+		.show(player)
+		.then((r) => {
+			if (r.selection === 0 || r.canceled) mainGuideScreen(player);
+		});
 }

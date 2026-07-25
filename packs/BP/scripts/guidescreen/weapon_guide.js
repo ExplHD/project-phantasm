@@ -46,7 +46,7 @@ function prismaticTools(player) {
 		.label("Prismatic Tools can be crafted with Prismatic Ingot, and Netherite Tools.")
 		.button("Back")
 		.show(player).then(r => {
-			if (r.canceled || r.selection == 0) mainGuideScreen(player);
+			if (r.canceled || r.selection == 0) guideWeapons(player);
 		})
 }
 
@@ -58,7 +58,7 @@ function chargedCopperAxe(player) {
 		.label("and when the enemies died, you will cast additional Lightning Attack, and adding 4 Auric Charges for you.")
 		.button("Back")
 		.show(player).then(r => {
-			if (r.canceled || r.selection == 0) mainGuideScreen(player);
+			if (r.canceled || r.selection == 0) guideWeapons(player);
 		})
 }
 
@@ -70,7 +70,7 @@ function cruxshaper(player) {
 		.label("You can get this weapon same as mace, but with additional of Blaze Rod to the recipe.")
 		.button("Back")
 		.show(player).then(r => {
-			if (r.canceled || r.selection == 0) mainGuideScreen(player);
+			if (r.canceled || r.selection == 0) guideWeapons(player);
 		})
 }
 
@@ -82,7 +82,7 @@ function natureStaff(player) {
 		.label("This weapon crafted with Prismatic Ingot, Stick, and Nautilus Shell")
 		.button("Back")
 		.show(player).then(r => {
-			if (r.canceled || r.selection == 0) mainGuideScreen(player);
+			if (r.canceled || r.selection == 0) guideWeapons(player);
 		})
 }
 
@@ -94,7 +94,7 @@ function peacemakerOath(player) {
 		.label("You can get this weapon at Trial Chamber, same as Auric Proton.")
 		.button("Back")
 		.show(player).then(r => {
-			if (r.canceled || r.selection == 0) mainGuideScreen(player);
+			if (r.canceled || r.selection == 0) guideWeapons(player);
 		})
 }
 
@@ -106,7 +106,7 @@ function seiketsu(player) {
 		.label("The katana crafted with Prismatic Sword, Blaze Rod, and Netherite Sword")
 		.button("Back")
 		.show(player).then(r => {
-			if (r.canceled || r.selection == 0) mainGuideScreen(player);
+			if (r.canceled || r.selection == 0) guideWeapons(player);
 		})
 }
 
@@ -118,7 +118,7 @@ function spectricBow(player) {
 		.label("This bow crafted with Iron Ingot, Whole Glowstone, and String")
 		.button("Back")
 		.show(player).then(r => {
-			if (r.canceled || r.selection == 0) mainGuideScreen(player);
+			if (r.canceled || r.selection == 0) guideWeapons(player);
 		})
 }
 
@@ -130,7 +130,7 @@ function thunderGale(player) {
 		.label("This Spear crafted with Prismatic Spear, Nether Star, and Netherite Spear")
 		.button("Back")
 		.show(player).then(r => {
-			if (r.canceled || r.selection == 0) mainGuideScreen(player);
+			if (r.canceled || r.selection == 0) guideWeapons(player);
 		})
 }
 
@@ -144,7 +144,7 @@ function animitta(player) {
 		.label("This weapon obtained from killing Soul of Nature with 50% change alongside with Prism Weaver, a 50/50 between those two weapons")
 		.button("Back")
 		.show(player).then(r => {
-			if (r.canceled || r.selection == 0) mainGuideScreen(player);
+			if (r.canceled || r.selection == 0) guideWeapons(player);
 		})
 }
 
@@ -158,7 +158,7 @@ function prismWeaver(player) {
 		.label("This weapon obtained from killing Soul of Nature with 50% change alongside with Animitta, a 50/50 between those two weapons")
 		.button("Back")
 		.show(player).then(r => {
-			if (r.canceled || r.selection == 0) mainGuideScreen(player);
+			if (r.canceled || r.selection == 0) guideWeapons(player);
 		})
 }
 
@@ -172,7 +172,7 @@ function theBleedingSpire(player) {
 		.label("This weapon obtained from killing Punicea")
 		.button("Back")
 		.show(player).then(r => {
-			if (r.canceled || r.selection == 0) mainGuideScreen(player);
+			if (r.canceled || r.selection == 0) guideWeapons(player);
 		})
 }
 
@@ -187,7 +187,7 @@ function superchargedCopperAxe(player) {
 		.label("This weapon obtained from killing Auric Automaton with 50% change alongside with Auric Photonizer, a 50/50 between those two weapons")
 		.button("Back")
 		.show(player).then(r => {
-			if (r.canceled || r.selection == 0) mainGuideScreen(player);
+			if (r.canceled || r.selection == 0) guideWeapons(player);
 		})
 }
 
@@ -202,6 +202,6 @@ function auricPhotonizer(player) {
 		.label("This weapon obtained from killing Auric Automaton with 50% change alongside with Auric Photonizer, a 50/50 between those two weapons")
 		.button("Back")
 		.show(player).then(r => {
-			if (r.canceled || r.selection == 0) mainGuideScreen(player);
+			if (r.canceled || r.selection == 0) guideWeapons(player);
 		})
 }

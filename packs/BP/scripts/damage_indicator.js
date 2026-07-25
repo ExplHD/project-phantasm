@@ -1,4 +1,4 @@
-import { world, MolangVariableMap } from '@minecraft/server'
+import { world, system, MolangVariableMap } from '@minecraft/server'
 
 const VarSets = {
     physical: {
@@ -95,18 +95,21 @@ world.afterEvents.entityHurt.subscribe(({ hurtEntity, damageSource, damage }) =>
     if (!hurtEntity || !hurtEntity.isValid) return;
     const loc = hurtEntity.location;
     loc.y += 1;
-    const players = hurtEntity.dimension.getEntities({ type: "player", location: loc, maxDistance: 64 });
+	const players = hurtEntity.dimension.getEntities({ type: "player", location: loc, maxDistance: 64 });
+	console.warn(`HURT FIRED: ${hurtEntity.typeId} dmg=${damageValue} cause=${damageSource.cause} tick=${system.currentTick}`);
+	
     for (const player of players) {
         const viewDir = player.getViewDirection();
         loc.x += -viewDir.x;
         loc.z += -viewDir.z;
         const rot = player.getRotation();
-        const molang = new MolangVariableMap();
+		const molang = new MolangVariableMap();
+		const iconMolang = new MolangVariableMap();
         let absDamage = Math.abs(damageValue);
         if (absDamage > 999999)
             absDamage = 999999;
         molang.setFloat("variable.length", 1.5);
-        molang.setFloat("variable.icon_offset", damageData.icon ?? 14);
+        iconMolang.setFloat("variable.icon_offset", damageData.icon ?? 14);
         molang.setFloat("variable.damage", damageValue);
         molang.setFloat("variable.roty", rot.y);
         molang.setFloat("variable.digits", `${absDamage}`.length);
@@ -123,7 +126,7 @@ world.afterEvents.entityHurt.subscribe(({ hurtEntity, damageSource, damage }) =>
         }
         catch { }
         try {
-            player.spawnParticle("ph:damage_icons", {x: loc.x, y: loc.y + 0.6, z:loc.z}, molang);
+            player.spawnParticle("ph:damage_icons", {x: loc.x, y: loc.y + 0.6, z:loc.z}, iconMolang);
         }
         catch { }
     }
