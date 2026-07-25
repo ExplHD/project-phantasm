@@ -47,6 +47,7 @@ item.ph:seiketsu=Seiketsu
 item.ph:auric_charging_module=Auric Charging Module
 item.ph:auric_proton=Auric Proton
 item.ph:condensed_sea_nature=Condensed Sea Nature
+item.ph:guidebook=Phantasm Guidebook
 
 tile.ph:ancient_copper_core.name=Ancient Copper Core
 tile.ph:auric_battery.name=Auric Battery Block

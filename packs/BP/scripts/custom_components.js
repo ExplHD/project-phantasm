@@ -760,7 +760,10 @@ system.beforeEvents.startup.subscribe((initEvent) => {
 		description: "Unstuck yourself when you cannot move.",
 		cheatsRequired: true,
 		permissionLevel: CommandPermissionLevel.Any
-	}, unstuckPlayer);
+	}, (origin) => { 
+		unstuckPlayer(origin.sourceEntity);
+		origin.sourceEntity.sendMessage("Successfully unstuck");
+	});
 })
 
 function openForm({ sourceEntity: player }) {

@@ -1,5 +1,5 @@
 import { world, system, ItemStack } from '@minecraft/server'
-import { addScore, runUntilMoved } from 'main'
+import { addScore, runUntilMoved, unstuckPlayer } from 'main'
 
 let objectives = [
     // System Scoreboard
@@ -61,7 +61,9 @@ world.afterEvents.playerSpawn.subscribe(({ player, initialSpawn }) => {
             amplifier: 255,
             showParticles: false
         })
-    }
+	}
+
+    unstuckPlayer(player)
 
     if (!initialSpawn) return;
     const health = player?.getComponent("minecraft:health")?.currentValue;

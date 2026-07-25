@@ -387,7 +387,7 @@ world.beforeEvents.playerBreakBlock.subscribe((e) => {
 world.beforeEvents.entityHurt.subscribe(data => {
     const player = data.hurtEntity;
     const cause = data?.damageSource?.cause;
-    if (cause === "fall" || cause === "magic" || cause == "none") return;
+    if (cause === "fall" || cause === "magic" || cause == "none" || cause == "selfDestruct") return;
 
     if (data.damage <= 0) return;
 

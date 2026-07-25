@@ -227,13 +227,12 @@ export function getAccessoryItems(player) {
     return items;
 }
 
-export function unstuckPlayer({ sourceEntity: player }) {
+export function unstuckPlayer(player) {
 	system.run(() => { 
 		player.runCommand("inputpermission set @s movement enabled")
 		player.runCommand("inputpermission set @s jump enabled")
 		player.runCommand("inputpermission set @s camera enabled")
 		player.removeTag("parried")
 		player.runCommand("camera @s clear")
-		player.sendMessage("Successfully reset inputpermission, some effects, and tags")
 	})
 }
