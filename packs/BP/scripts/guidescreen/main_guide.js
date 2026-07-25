@@ -7,6 +7,7 @@ import guideItems from './item_guide';
 import guideBlocks from './block_guide';
 import guideBosses from './boss_guide';
 import guideAccessories from './accessories_guide';
+import guideEnemies from './enemies_guide';
 
 export function mainGuideScreen(player) {
 	const form = new ActionFormData()
@@ -82,6 +83,32 @@ export function Changelogs(player) {
 		.divider()
 		.label("Stay tuned for the next content update!")
 		.button("Back")
+		.show(player).then(r => {
+			if(r.selection == 0) mainGuideScreen(player)
+		})
+}
+
+export function developer(player) {
+  const form = new ActionFormData()
+    .title("developer Contact")
+    .label("explhd")
+    .label("")
+    .label("")
+    .label("")
+    .label("")
+    .label("")
+    .label("")
+    .label("")
+    
+    .divider()
+    .label("ZeroMaster178")
+    .label("ig : zeromaster_178")
+    .label("mcpedl : Zeromaster 178")
+    .label("curseforge : Zeromaster178")
+    .label("tiktok : Zeromaster_178")
+    .label("youtube : zeromaster178")
+    .label("discord : zeromaster178")
+    .button("Back")
 		.show(player).then(r => {
 			if(r.selection == 0) mainGuideScreen(player)
 		})
