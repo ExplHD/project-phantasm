@@ -1,4 +1,4 @@
-import { world, system } from '@minecraft/server'
+import { world, system, ItemStack } from '@minecraft/server'
 import { addScore, runUntilMoved } from 'main'
 
 let objectives = [
@@ -72,7 +72,10 @@ world.afterEvents.playerSpawn.subscribe(({ player, initialSpawn }) => {
     let scaled = (health / maxHealth) * 100;
     runUntilMoved(player, 10, () => {
         player.runCommand(`title @s title bar0:${Math.min(100, Math.max(0, Math.floor(scaled)))}%% healthind:${Math.floor(health)}/${maxHealth} ${totalArmor}`);
-    });
+	});
+    if (player.getDynamicProperty("ph:guidebook_acquired") === undefined || player.getDynamicProperty("ph:guidebook_acquired") === false) {
+		player.dimension.spawnItem(new ItemStack("ph:guidebook"), player.location);
+    }
     const playerInput = player.inputInfo.lastInputModeUsed;
     if (playerInput == "Touch") {
         player.sendMessage("§eIt is recommended for you to use the Joystick + Crosshair with Action Button Enabled, for making the using weapon experience easier");
@@ -80,14 +83,16 @@ world.afterEvents.playerSpawn.subscribe(({ player, initialSpawn }) => {
     const properties = [
         "ph:dash_level",
         "ph:health_level",
-        "ph:plunge_unlock"
+		"ph:plunge_unlock",
+        "ph:guidebook_acquired"
     ]
     for (const property of properties) {
         if (player.getDynamicProperty(property) === undefined) {
             system.runTimeout(() => {
                 player.setDynamicProperty("ph:dash_level", 0);
                 player.setDynamicProperty("ph:health_level", 0);
-                player.setDynamicProperty("ph:plunge_unlock", false);
+				player.setDynamicProperty("ph:plunge_unlock", false);
+				player.setDynamicProperty("ph:guidebook_acquired", true);
             }, 20)
         }
     }

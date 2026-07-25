@@ -146,6 +146,9 @@
 		},
 		"ph_rust_coin": {
 			"textures": "textures/items/rust_coin"
+		},
+		"ph_guidebook": {
+			"textures": "textures/items/guidebook"
 		}
 	},
 	"resource_pack_name": "Project Phantasm",

@@ -1,8 +1,8 @@
-import { world, system, CustomCommandParamType, CommandPermissionLevel, CustomCommandStatus, MolangVariableMap, EquipmentSlot, ItemStack, BlockType } from '@minecraft/server'
+import { world, system, CommandPermissionLevel, CustomCommandStatus, MolangVariableMap, ItemStack } from '@minecraft/server'
 import { setScore, getScore, addScore, removeScore, applyDurabilityDamage, unstuckPlayer } from 'main'
-import { Forms } from 'formsGenerator'
 import { skillUnlock, propertiesCheck } from 'forms/skillUnlock'
 import { mainGuideScreen } from './guidescreen/main_guide'
+import openDynamicPropertyMenu from './dynamicPropertyEdit'
 
 system.beforeEvents.startup.subscribe((initEvent) => {
     initEvent.itemComponentRegistry.registerCustomComponent("ph:charge_passive", {
@@ -487,7 +487,13 @@ system.beforeEvents.startup.subscribe((initEvent) => {
                 source.inputPermissions.setPermissionCategory(2, true);
             }, window_time)
         }
-    })
+	})
+
+    initEvent.itemComponentRegistry.registerCustomComponent("ph:guidebook", {
+        onUse({ source }) {
+            mainGuideScreen(source);
+        }
+    });
 
     initEvent.blockComponentRegistry.registerCustomComponent("ph:boss_summon", {
         onPlayerInteract({ player, block, faceLocation }) {
@@ -732,7 +738,11 @@ system.beforeEvents.startup.subscribe((initEvent) => {
 		description: "Check all of your dynamic properties",
 		cheatsRequired: true,
 		permissionLevel: CommandPermissionLevel.GameDirectors
-	}, openProperties);
+	}, (origin) => {
+		system.run(() => {
+			openDynamicPropertyMenu(origin.sourceEntity);
+		})
+	});
     
 	initEvent.customCommandRegistry.registerCommand({
 		name: "ph:guide",
