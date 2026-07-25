@@ -2,7 +2,7 @@ import { ActionFormData } from "@minecraft/server-ui";
 import { mainGuideScreen } from "./main_guide";
 import { skillUnlock } from "../forms/skillUnlock";
 
-export function mechanicsList(player) {
+export default function mechanicsList(player) {
 	const form = new ActionFormData()
 		.title("Mechanics")
 		.body("There are the list of the mechanics in Phantasm, starting from the simple one to complex one.")

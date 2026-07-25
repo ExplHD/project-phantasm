@@ -744,6 +744,13 @@ system.beforeEvents.startup.subscribe((initEvent) => {
 			mainGuideScreen(origin.sourceEntity);
 		})
 	});
+
+	initEvent.customCommandRegistry.registerCommand({
+		name: "ph:unstuck",
+		description: "Unstuck yourself when you cannot move.",
+		cheatsRequired: true,
+		permissionLevel: CommandPermissionLevel.Any
+	}, unstuckPlayer);
 })
 
 function openForm({ sourceEntity: player }) {

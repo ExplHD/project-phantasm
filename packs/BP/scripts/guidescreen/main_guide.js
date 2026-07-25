@@ -1,8 +1,12 @@
 import { ActionFormData } from '@minecraft/server-ui'
 import { world, system } from '@minecraft/server'
 
-import { guideWeapons } from './weapon_guide';
-import { mechanicsList } from './mechanic_guide';
+import guideWeapons from './weapon_guide';
+import mechanicsList from './mechanic_guide';
+import guideItems from './item_guide';
+import guideBlocks from './block_guide';
+import guideBosses from './boss_guide';
+import guideAccessories from './accessories_guide';
 
 export function mainGuideScreen(player) {
 	const form = new ActionFormData()
@@ -17,15 +21,17 @@ export function mainGuideScreen(player) {
 		// ========================================
 		.button("Mechanics", "textures/ui/speed") // Done
 		.button("Weapons", "textures/items/diamond_sword") // Done
-		.button("Items", "textures/items/essence_of_crimson") // OTW
-		.button("Blocks", "textures/items/essence_of_crimson") // OTW
-		.button("Accessories", "textures/items/fire_bracelet") // ZeroMaster178
-		.button("Structures", "textures/blocks/chest") // ZeroMaster178
-		.button("Bosses", "textures/items/the_crimson_watcher") // OTW
+		.button("Items", "textures/items/essence_of_crimson") // Done
+		.button("Blocks", "textures/items/essence_of_crimson") // Done
+		.button("Accessories", "textures/items/fire_bracelet") // Done, tapi anda bisa sempurnakan dengan menambahkan list item aksesoris dan penjelasannya
+		.button("Bosses", "textures/items/the_crimson_watcher") // Done
 		.button("Enemies", "textures/items/zombie_spawn_egg") // ZeroMaster178
 		.divider()
 		.button("Changelogs") // Done
 		.button("Contact the Developer!") // ZeroMaster178, create it at this file
+		.divider()
+		.label("Are you stuck? You can press this button to unstuck yourself, or use /unstuck command. Sometimes, minecraft can be really bugged with inputpermission so I add these button and command for that reason.")
+		.button("Unstuck (reset some effects and tags)")
 		.button("Exit")
 		.show(player).then(r => { 
 			if (r.canceled) player.sendMessage("§eYou can use /guide to check the guide or list of features in Phantasm!");
@@ -34,11 +40,10 @@ export function mainGuideScreen(player) {
 			if (r.selection == 2) guideItems(player);
 			if (r.selection == 3) guideBlocks(player);
 			if (r.selection == 4) guideAccessories(player);
-			if (r.selection == 5) guideStructures(player);
-			if (r.selection == 6) guideBosses(player);
-			if (r.selection == 7) guideEnemies(player);
-			if (r.selection == 8) Changelogs(player);
-			if (r.selection == 9) developer(player);
+			if (r.selection == 5) guideBosses(player);
+			if (r.selection == 6) guideEnemies(player);
+			if (r.selection == 7) Changelogs(player);
+			if (r.selection == 8) developer(player);
 		})
 }
 

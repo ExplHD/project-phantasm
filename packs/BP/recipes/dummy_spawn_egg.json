@@ -14,7 +14,7 @@
         ],
         "key": {
             "P": {
-                "item": "minecraft:planks"
+                "tag": "minecraft:planks"
             },
             "S": {
                 "item": "minecraft:wooden_slab"

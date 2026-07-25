@@ -227,3 +227,11 @@ export function getAccessoryItems(player) {
 
     return items;
 }
+
+export function unstuckPlayer({ sourceEntity: player }) {
+	player.runCommand("inputpermission @s set movement enabled")
+	player.runCommand("inputpermission @s set jump enabled")
+	player.runCommand("inputpermission @s set camera enabled")
+	player.removeTag("parried")
+	player.runCommand("camera @s clear")
+}
