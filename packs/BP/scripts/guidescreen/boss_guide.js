@@ -5,10 +5,9 @@ export default function guideBosses(player) {
 	const form = new ActionFormData()
 		.title("Bosses")
 		.label("This is the list of Bosses that exist in the add-on, you will face each of these bosses through your progression.")
-		.button("Ancient Copper Core")
-		.button("Auric Battery Recharge Station")
-		.button("Nature Soul Altar")
-		.button("Suspicious Crimson Eye")
+		.button("Soul of Nature")
+		.button("Punicea - A Crimson Eye")
+		.button("Auric Automaton - Copper Mechanical Array")
 		.button("Back")
 		.show(player).then(r => {
 			if (r.selection === 4 || r.canceled) mainGuideScreen(player);

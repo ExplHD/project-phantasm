@@ -88,7 +88,7 @@
                                 "test": "actor_health",
                                 "subject": "self",
                                 "operator": "<",
-                                "value": 638
+                                "value": 400
                             },
                             "event": "start_armored_phase"
                         }
