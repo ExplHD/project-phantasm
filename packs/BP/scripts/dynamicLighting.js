@@ -72,12 +72,17 @@ world.afterEvents.playerInventoryItemChange.subscribe(({ player }) => {
         player.addTag(`light_${maxLight}`);
 
         let lastLightBlock;
-        runInterval = system.runInterval(() => {
+		runInterval = system.runInterval(() => {
+			const finalLocation = {
+				x: player.location.x,
+				y: player.location.y + 1,
+				z: player.location.z
+			}
             if (lastLightBlock?.typeId === `minecraft:light_block_${maxLight}`) {
                 lastLightBlock.setType("minecraft:air");
             }
 
-            const block = player.dimension.getBlock(player.location);
+            const block = player.dimension.getBlock(finalLocation);
 
             if (block.typeId !== "minecraft:air") return;
 
