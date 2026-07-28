@@ -5,10 +5,10 @@
 /gradlew
 /gradlew.bat
 /node_modules
+/.regolith
 /.idea
 /.vscode
 /.DS_Store
 /.gradle
 .directory
 LICENSE.rtf
-README.md
