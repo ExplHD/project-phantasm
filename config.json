@@ -9,6 +9,10 @@
 	"regolith": {
 		"dataPath": "data",
 		"filterDefinitions": {
+			"esbuild": {
+				"url": "github.com/ink0rr/regolith-filters",
+				"version": "0.3.1"
+			},
 			"js_obfuscator": {
 				"url": "github.com/lightyisreal/regolith-filters",
 				"version": "a41eb063951b2b6ca31c45504d6bd1bfaff968f4"
@@ -26,7 +30,11 @@
 					"readOnly": false,
 					"target": "development"
 				},
-				"filters": []
+				"filters": [
+					{
+						"filter": "esbuild"
+					}
+				]
 			},
 			"package-file": {
 				"export": {

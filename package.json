@@ -2,5 +2,8 @@
   "dependencies": {
     "@minecraft/server": "^2.8.0",
     "@minecraft/server-ui": "^2.1.0"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2"
   }
 }
