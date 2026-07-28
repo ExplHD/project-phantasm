@@ -43,7 +43,7 @@
 				"filters": [
 					{
 						"filter": "esbuild"
-					}
+					},
 					{
 						"filter": "js_obfuscator"
 					},
