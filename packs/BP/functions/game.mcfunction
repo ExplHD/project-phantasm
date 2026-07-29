@@ -14,6 +14,5 @@ execute as @e[type=ph:copper_mechanical_array] at @s if entity @a[rm=128,r=160,s
 execute as @e[type=ph:punicea_crimson_eye] at @s if entity @a[rm=64,r=80,scores={sectick=19..}] run function boss_despawn/punicea_crimson_eye
 
 # Guidebook Runtime
-execute at @a[tag=!guidebook_phantasm_uc] run structure load mystructure:guidebook ~~~
-tag @a[tag=!guidebook_phantasm_uc] add guidebook_phantasm_uc
+tag @a[tag=!guidebook_phantasm_uc] remove guidebook_phantasm_uc
 tag @a[tag=guidebook_phantasm_uc] remove guidebook_phantasm_ub
