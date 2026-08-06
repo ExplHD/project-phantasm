@@ -5,7 +5,7 @@ import { mainGuideScreen } from "./main_guide";
 export default function guideAccessories(player: Player) {
 	const form = new ActionFormData()
 		.title("Accessories")
-		.label("§cDISCLAIMER: ALL ACCESSORIES FUNCTION EXPLANATION SHOULD BE IN THE ITEM DESCRIPTION BECAUSE ITS USE ARE SELF EXPLANATORY")
+		.label("Every accessory explains its own effect in its item description, so hover over the item to read what it does!")
 		.divider()
 		.label("Accessories are an Item Type that can be used as a combat support, or anything to enhance your experience. Accessories can be found anywhere, from doing mining, looting structures, until fighting a boss")
 		.divider()

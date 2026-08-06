@@ -113,8 +113,8 @@ function seiketsu(player: Player) {
 
 function spectricBow(player: Player) {
 	const form = new ActionFormData()
-		.title("Seiketsu")
-		.label("a Bow that beats every Epic weapons in terms of Damage, and Range, The projectile speed is very fast depends on Charging Stage and have ridicilous damage up to 70 damage")
+		.title("Spectric Bow")
+		.label("a Bow that beats every Epic weapons in terms of Damage, and Range, The projectile speed is very fast depends on Charging Stage and have ridiculous damage up to 70 damage")
 		.label("You can use this bow normally, but best used with Spectral Arrow, crafted with 4 Glowstone Dust and 1 Arrow")
 		.label("This bow crafted with Iron Ingot, Whole Glowstone, and String")
 		.button("Back")
@@ -125,7 +125,7 @@ function spectricBow(player: Player) {
 
 function thunderGale(player: Player) {
 	const form = new ActionFormData()
-		.title("Seiketsu")
+		.title("Thunder Gale")
 		.label("This Spear weapons is the classic, but powerful one, being the Strongest Spear, dealing over 1.6x multiplier on Charge Attack, 14 Base Damage, and very fast Spear Cooldown")
 		.label("This weapon only provides you with speeds when equipping this weapon")
 		.label("This Spear crafted with Prismatic Spear, Nether Star, and Netherite Spear")
@@ -142,7 +142,7 @@ function animitta(player: Player) {
 		.label("Animirra :\nCreates 4 Stars summon that will attacks other entities, this skill alone is powerful, but you never realized it.")
 		.label("Solaris Slash :\nDoes an attack that creates 3 Solaris Slash, spreading in each direction.")
 		.label("Natura Vulkan :\nSummons 8 Special Stars summons, that will explode at enemies with small distance explosion, but very powerful, alongside of casting a Meteor Rain.")
-		.label("This weapon obtained from killing Soul of Nature with 50% change alongside with Prism Weaver, a 50/50 between those two weapons")
+		.label("This weapon obtained from killing Soul of Nature with 50% chance alongside with Prism Weaver, a 50/50 between those two weapons")
 		.button("Back")
 		.show(player).then(r => {
 			if (r.canceled || r.selection == 0) guideWeapons(player);
@@ -151,12 +151,12 @@ function animitta(player: Player) {
 
 function prismWeaver(player: Player) {
 	const form = new ActionFormData()
-		.title("Animitta")
+		.title("Prism Weaver")
 		.label("This is the first legendary weapons you will obtain alongside the Animitta, This weapon capable of doing long range attacks with low damage than other Legendary Weapons. This weapon have 3 skills :")
 		.label("Bubble Barrage :\nCasts a bursts of bubble projectiles in one attacks.")
 		.label("Prism Wave Wall :\nCasts a Prism Wall that deals massive damage when someone touches it.")
 		.label("Vortex Prism :\nPulls the target in large radius to you, and then repel them with massive damage.")
-		.label("This weapon obtained from killing Soul of Nature with 50% change alongside with Animitta, a 50/50 between those two weapons")
+		.label("This weapon obtained from killing Soul of Nature with 50% chance alongside with Animitta, a 50/50 between those two weapons")
 		.button("Back")
 		.show(player).then(r => {
 			if (r.canceled || r.selection == 0) guideWeapons(player);
@@ -180,12 +180,12 @@ function theBleedingSpire(player: Player) {
 function superchargedCopperAxe(player: Player) {
 	const form = new ActionFormData()
 		.title("Supercharged Copper Axe")
-		.label("This Legendary Axe, forged through the High-Grade Copper and Auric Material, is very powerful compared to other weapons, whis weapons have very slow attack speed but has lightning bolt attacks when completing the attack pattern. This weapon have 4 skills :")
+		.label("This Legendary Axe, forged through the High-Grade Copper and Auric Material, is very powerful compared to other weapons, this weapon has very slow attack speed but has lightning bolt attacks when completing the attack pattern. This weapon have 4 skills :")
 		.label("Charge :\nGrants 5 Charges for your 2 skills, and Boost yourself temporarily, giving you a lot of extra damage when you attacking a mob.")
 		.label("Powered Leap :\nCreates an explosion that deals high damage for others than you to make you leap forward to your target, also giving you 1 Charge for your other skills.")
 		.label("Discharge :\nDischarge your collected charge, and cast a Auric Laser that moves in their direction, hitting a target will gives them a lot of damage.")
 		.label("Ultimate Discharge :\nDoes the same thing with Discharge, but it's more powerful, and combined with medium-range lightning attacks that covers both close and medium range.")
-		.label("This weapon obtained from killing Auric Automaton with 50% change alongside with Auric Photonizer, a 50/50 between those two weapons")
+		.label("This weapon obtained from killing Auric Automaton with 50% chance alongside with Auric Photonizer, a 50/50 between those two weapons")
 		.button("Back")
 		.show(player).then(r => {
 			if (r.canceled || r.selection == 0) guideWeapons(player);
@@ -194,13 +194,13 @@ function superchargedCopperAxe(player: Player) {
 
 function auricPhotonizer(player: Player) {
 	const form = new ActionFormData()
-		.title("Animitta")
-		.label("This Legendary Sword, forged through the High-Grade Copper and Auric Material, is powerful compared to other weapons, whis weapons have very fast attack speed. This weapon have 4 skills :")
+		.title("Auric Photonizer")
+		.label("This Legendary Sword, forged through the High-Grade Copper and Auric Material, is powerful compared to other weapons, this weapon has very fast attack speed. This weapon have 4 skills :")
 		.label("Stab :\nDash and Stab forward with this weapons, any mob collided with you will deal a lot damage.")
 		.label("Powered Leap :\nLeaps backward to dodge your opponents, creates an explosion after short delay that deals a lot damage")
 		.label("Blade Barrage :\nSummon 5 Auric Double Blade, moving towards you, anyone other than you will deals a lot of damage")
 		.label("Ethereal Blade :\nSummon 3 sequence of a lot of Ethereal Sword stabbing in random direction dealing a lot of damage, you can still move while the skill is activated")
-		.label("This weapon obtained from killing Auric Automaton with 50% change alongside with Auric Photonizer, a 50/50 between those two weapons")
+		.label("This weapon obtained from killing Auric Automaton with 50% chance alongside with Supercharged Copper Axe, a 50/50 between those two weapons")
 		.button("Back")
 		.show(player).then(r => {
 			if (r.canceled || r.selection == 0) guideWeapons(player);

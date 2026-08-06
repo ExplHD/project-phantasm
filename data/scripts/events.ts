@@ -6,7 +6,7 @@ import { handleAccessory } from './accessoriesRuntime'
 import { loadScoreboards, onPlayerSpawn } from './loader'
 import { onDamageIndicator } from './damage_indicator'
 import { onDummyHurt } from './dummy'
-import { onDynamicLighting } from './dynamicLighting'
+import { clearPlayerLighting, onDynamicLighting } from './dynamicLighting'
 import { dashRuntime, windPlungeRuntime, vanillaBlockInteractFix, parryRuntime, startBetterMending, javaSaturationRegen, healthBarRuntime, specifiedFamilityAndSpeed } from './vanilla_manipulation'
 import { weapons, switcherSkills } from './weapons'
 
@@ -113,8 +113,7 @@ world.beforeEvents.playerBreakBlock.subscribe((e) => {
     ]
 
     if (block.typeId.includes("ore")) {
-        const randomChance = Math.floor(Math.random() * 100);
-        console.warn(`Random Chance : ${randomChance}`)
+		const randomChance = Math.floor(Math.random() * 100);
         if (player.getGameMode() === "Creative") return;
         if (randomChance != 1) return;
         system.run(() => {
@@ -176,6 +175,7 @@ world.afterEvents.worldLoad.subscribe(() => {
 
 world.afterEvents.playerSpawn.subscribe(({ player, initialSpawn }) => {
     onPlayerSpawn(player, initialSpawn)
+    onDynamicLighting(player)
 })
 
 world.afterEvents.playerSwingStart.subscribe(({ player, heldItemStack, swingSource }) => {
@@ -222,7 +222,8 @@ world.afterEvents.itemUse.subscribe(({ source, itemStack }) => {
 
 world.afterEvents.entityDie.subscribe(({ damageSource, deadEntity }) => {
     const killer = damageSource?.damagingEntity;
-    if (!killer?.isValid) return;
+	if (!killer?.isValid) return;
+	clearPlayerLighting(deadEntity as Player);
     const mainhand = killer?.getComponent("equippable")?.getEquipment(EquipmentSlot.Mainhand);
 
     if (killer?.typeId === "minecraft:player" && mainhand?.typeId === "ph:charged_copper_axe") {
@@ -328,6 +329,10 @@ world.afterEvents.entitySpawn.subscribe(({ entity, cause }) => {
         }
     }
 })
+
+world.beforeEvents.playerLeave.subscribe(({ player }) => {
+    clearPlayerLighting(player);
+});
 
 system.runInterval(() => {
     for (const player of world.getPlayers()) {

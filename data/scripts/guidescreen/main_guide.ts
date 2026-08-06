@@ -14,26 +14,24 @@ import guideEnemies from "./enemies_guide";
 export function mainGuideScreen(player: Player) {
 	const form = new ActionFormData()
 		.title("Guide")
-		.header("Phantasm 1.5 Guide")
+		.header("Phantasm Guide")
 		.divider()
 		.label(
-			"Phantasm is an add-on that adds a lot of content into your world, currently this add-on is updated regularly, so stay tuned for the next content that I will add. In this add-on, there's new weapons, new mechanics, new enemies, boss, and everything.",
+			"Phantasm is an add-on that adds a lot of content into your world: new weapons, mechanics, enemies, and bosses. This add-on is updated regularly, so stay tuned for the next content!",
 		)
-		.label("Click the button below to see the content of Phantasm!")
+		.label("New to the add-on? Click Getting Started below to learn where to begin!")
 		.divider()
-		// ========================================
-		// Untuk Divider ini, please buat dia menuju file baru seperti yang ada di contoh!
-		// ========================================
-		.button("Mechanics", "textures/ui/speed_effect") // Done
-		.button("Weapons", "textures/items/diamond_sword") // Done
-		.button("Items", "textures/items/essence_of_crimson") // Done
-		.button("Blocks", "textures/blocks/stonebrick_carved") // Done
-		.button("Accessories", "textures/items/fire_bracelet") // Done
-		.button("Bosses", "textures/items/the_crimson_watcher") // Done
-		.button("Enemies", "textures/items/egg_zombie") // Done
+		.button("Getting Started")
+		.button("Mechanics", "textures/ui/speed_effect")
+		.button("Weapons", "textures/items/diamond_sword")
+		.button("Items", "textures/items/essence_of_crimson")
+		.button("Blocks", "textures/blocks/stonebrick_carved")
+		.button("Accessories", "textures/items/fire_bracelet")
+		.button("Bosses", "textures/items/the_crimson_watcher")
+		.button("Enemies", "textures/items/egg_zombie")
 		.divider()
-		.button("Changelogs") // Done
-		.button("Contact the Developer!") // ZeroMaster178, create it at this file
+		.button("Changelogs")
+		.button("Contact the Developer!")
 		.divider()
 		.label(
 			"Are you stuck? You can press this button to unstuck yourself, or use /unstuck command. Sometimes, minecraft can be really bugged with inputpermission so I add these button and command for that reason.",
@@ -44,16 +42,42 @@ export function mainGuideScreen(player: Player) {
 		.show(player)
 		.then((r) => {
 			if (r.canceled) player.sendMessage("§eYou can use /guide to check the guide or list of features in Phantasm!");
-			if (r.selection == 0) mechanicsList(player);
-			if (r.selection == 1) guideWeapons(player);
-			if (r.selection == 2) guideItems(player);
-			if (r.selection == 3) guideBlocks(player);
-			if (r.selection == 4) guideAccessories(player);
-			if (r.selection == 5) guideBosses(player);
-			if (r.selection == 6) guideEnemies(player);
-			if (r.selection == 7) Changelogs(player);
-			if (r.selection == 8) developer(player);
-			if (r.selection == 9) unstuckPlayer(player);
+			if (r.selection == 0) gettingStarted(player);
+			if (r.selection == 1) mechanicsList(player);
+			if (r.selection == 2) guideWeapons(player);
+			if (r.selection == 3) guideItems(player);
+			if (r.selection == 4) guideBlocks(player);
+			if (r.selection == 5) guideAccessories(player);
+			if (r.selection == 6) guideBosses(player);
+			if (r.selection == 7) guideEnemies(player);
+			if (r.selection == 8) Changelogs(player);
+			if (r.selection == 9) developer(player);
+			if (r.selection == 10) unstuckPlayer(player);
+		});
+}
+
+export function gettingStarted(player: Player) {
+	const form = new ActionFormData()
+		.title("Getting Started")
+		.header("Where to begin?")
+		.divider()
+		.header("Early Game — Mining")
+		.label("- Mine ores to get a chance at the Rusted Fortune Coin and Item Magnet Ore (1% chance per ore).")
+		.label("- Use /unlockskill to upgrade your passive abilities: Passive Dash, Extra Health, and Wind Plunge.")
+		.divider()
+		.header("Mid Game — Exploration")
+		.label("- Explore Trial Chambers to find the Ancient Copper Core, Auric Proton, and the Peacemaker Oath.")
+		.label("- Visit the Crimson Forest: fight Crimson Tentacles for Essence of Crimson, and locate the Crimson Overgrowth.")
+		.divider()
+		.header("Bosses — Your Progression")
+		.label("1. Sealed Soul of Nature (Prismarine Arena, underwater) — your first boss, drops Prismatic Ingots and a treasure bag (Animitta / Prism Weaver).")
+		.label("2. Punicea : A Crimson Eye (Crimson Overgrowth) — drops The Bleeding Spire and Suspicious Mushroom.")
+		.label("3. Auric Automaton : Copper Mechanical Array (Ancient Copper Core ritual) — the final boss, drops Supercharged Copper Axe / Auric Photonizer.")
+		.divider()
+		.button("Back")
+		.show(player)
+		.then((r) => {
+			if (r.selection == 0 || r.canceled) mainGuideScreen(player);
 		});
 }
 
@@ -76,7 +100,7 @@ export function Changelogs(player: Player) {
 		.label("= Increased Seiketsu damage by +4 - ExplerHD")
 		.label("= Slightly updated the visuals of The Bleeding Spire attack - ExplerHD")
 		.label("= Rebalanced the damage of all Legendary Weapons so they can compete with enchanted Epic Weapons - ExplerHD")
-		.label("= Made Soul of Nature, Punicea, and Auric Automaton have 650 HP, 3000 HP, and 1750 HP due to Recent Weapons changes. - ExplerHD")
+		.label("= Made Soul of Nature, Punicea, and Auric Automaton have 500 HP, 3000 HP, and 1750 HP due to Recent Weapons changes. - ExplerHD")
 		.label("= Added support for Fire Aspect, Knockback, and Weakness on Legendary Weapons - ExplerHD")
 		.label("= Updated all Legendary Weapons so their attack patterns now loop continuously without an ending cooldown - ExplerHD")
 		.label('= Fixed a bug where upgrading Dash to Level 2 would display "Insufficient Experience Level" instead of "Maximum level of Dash is reached." - ExplerHD',)

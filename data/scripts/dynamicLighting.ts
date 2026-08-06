@@ -1,8 +1,6 @@
 import { world, system, BlockPermutation, Player, Block } from '@minecraft/server';
 import { getAccessoryItems } from './main';
 
-export let runInterval: number = Number()
-
 export const lightLevelMap: Record<string, number> = {
     "minecraft:beacon": 15,
     "minecraft:conduit": 15,
@@ -44,19 +42,39 @@ export const lightLevelMap: Record<string, number> = {
     "minecraft:small_amethyst_bud": 1
 };
 
-export function onDynamicLighting(player: Player): void {
-    const accessoryItems = getAccessoryItems(player);
+interface LightingState {
+    interval: number;
+    lastLightBlock: Block | undefined;
+    maxLight: number;
+}
 
-    // Deletes old Light Tag
+const lightingStates = new Map<string, LightingState>();
+
+function removeLightBlocks(player: Player): void {
     for (let i = 0; i <= 15; i++) {
-        player.removeTag(`light_${i}`);
         try {
             player.runCommand(`fill ~-16~-8~-16~16~8~16 air replace light_block_${i}`);
         } catch (e) {
-            console.warn(e);
+            // Ignore, e.g. chunk not loaded / command unavailable
         }
     }
-    system.clearRun(runInterval);
+}
+
+export function clearPlayerLighting(player: Player): void {
+    const state = lightingStates.get(player.id);
+    if (state && state.interval !== -1) {
+        system.clearRun(state.interval);
+    }
+    lightingStates.delete(player.id);
+
+    for (let i = 0; i <= 15; i++) {
+        player.removeTag(`light_${i}`);
+    }
+    removeLightBlocks(player);
+}
+
+export function onDynamicLighting(player: Player): void {
+    const accessoryItems = getAccessoryItems(player);
 
     let maxLight = -1;
 
@@ -68,31 +86,73 @@ export function onDynamicLighting(player: Player): void {
         maxLight = Math.max(maxLight, light);
     }
 
-    if (maxLight !== -1) {
-        player.addTag(`light_${maxLight}`);
+    const existing = lightingStates.get(player.id);
 
-        let lastLightBlock: Block | undefined;
-		runInterval = system.runInterval(() => {
-			const finalLocation = {
-				x: player.location.x,
-				y: player.location.y + 1,
-				z: player.location.z
-			}
-            if (lastLightBlock?.typeId === `minecraft:light_block_${maxLight}`) {
-                lastLightBlock.setType("minecraft:air");
-            }
+    // Nothing changed -> keep the current lighting running (avoids flickering)
+    if (existing && existing.maxLight === maxLight) return;
+
+    // Tear down the old state
+    if (existing && existing.interval !== -1) {
+        system.clearRun(existing.interval);
+    }
+    if (existing || maxLight !== -1) {
+        for (let i = 0; i <= 15; i++) {
+            player.removeTag(`light_${i}`);
+        }
+        removeLightBlocks(player);
+    }
+
+    if (maxLight === -1) {
+        lightingStates.delete(player.id);
+        return;
+    }
+
+    player.addTag(`light_${maxLight}`);
+
+    const state: LightingState = {
+        interval: -1,
+        lastLightBlock: undefined,
+        maxLight
+    };
+    lightingStates.set(player.id, state);
+
+    const updateLight = () => {
+        if (!player.isValid) return;
+
+        try {
+            const finalLocation = {
+                x: player.location.x,
+                y: player.location.y + 1,
+                z: player.location.z
+            };
 
             const block = player.dimension.getBlock(finalLocation);
+            if (!block) return;
 
-            if (!block || block.typeId !== "minecraft:air") return;
+            // Only place the light on air or liquid blocks (e.g. water).
+            // Inside solid blocks or non-solid ones like tall grass, doors and
+            // flowers we skip, so the block we're standing in isn't destroyed;
+            // the previous light is then removed again once we step back out.
+            if (!block.isAir && !block.isLiquid) return;
+
+            if (state.lastLightBlock?.typeId.startsWith('minecraft:light_block')) {
+                state.lastLightBlock.setType('minecraft:air');
+            }
 
             block.setPermutation(
-                BlockPermutation.resolve("minecraft:light_block", {
-                    block_light_level: maxLight
+                BlockPermutation.resolve('minecraft:light_block', {
+                    block_light_level: state.maxLight
                 })
             );
 
-            lastLightBlock = block;
-        }, 4);
-    }
+            state.lastLightBlock = block;
+        } catch (e) {
+            // Ignore e.g. LocationInUnloadedChunkError while dead / in unloaded chunks
+        }
+    };
+
+    // Place the light immediately so switching items doesn't flicker
+    updateLight();
+
+    state.interval = system.runInterval(updateLight, 4);
 }
