@@ -24,7 +24,7 @@ import { } from './guidescreen/main_guide'
 // For Custom Library (PLEASE CREDIT THEM IF YOU WANT TO USE IT!)
 import { } from './custom_mace/detection' // Credits to @biggamers4u for older mechanics, now ALL of the MECHANICS are remade by me.
 
-console.warn("§a§lPhantasm 1.5.0 Activated!");
+console.warn("§a§lPhantasm 1.5.1 Activated!");
 
 export function addScore(target: Entity, objective: string, score: number) {
     try {
