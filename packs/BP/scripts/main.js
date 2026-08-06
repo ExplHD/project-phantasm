@@ -1172,21 +1172,23 @@ function onPlayerSpawn(player, initialSpawn) {
     });
   }
   unstuckPlayer(player);
-  if (!initialSpawn) return;
   const health = player?.getComponent("minecraft:health")?.currentValue;
   const maxHealth = player?.getComponent("minecraft:health")?.effectiveMax;
   const totalArmor = player?.getComponent("minecraft:equippable")?.totalArmor;
-  if (!maxHealth || maxHealth <= 0) return;
-  const healthVal = health ?? 0;
-  let scaled = healthVal / maxHealth * 100;
-  runUntilMoved(player, 10, () => {
-    player.onScreenDisplay.setTitle(
-      `bar0:${Math.min(100, Math.max(0, Math.floor(scaled)))}% healthind:${Math.floor(healthVal)}/${maxHealth} ${totalArmor}`,
-      { fadeInDuration: 10, stayDuration: 70, fadeOutDuration: 20 }
-    );
-  });
+  if (maxHealth && maxHealth > 0) {
+    const healthVal = health ?? 0;
+    let scaled = healthVal / maxHealth * 100;
+    runUntilMoved(player, 10, () => {
+      player.onScreenDisplay.setTitle(
+        `bar0:${Math.min(100, Math.max(0, Math.floor(scaled)))}% healthind:${Math.floor(healthVal)}/${maxHealth} ${totalArmor}`,
+        { fadeInDuration: 10, stayDuration: 70, fadeOutDuration: 20 }
+      );
+    });
+  }
+  if (!initialSpawn) return;
   if (player.getDynamicProperty("ph:guidebook_acquired") === void 0 || player.getDynamicProperty("ph:guidebook_acquired") === false) {
     player.dimension.spawnItem(new ItemStack2("ph:guidebook"), player.location);
+    player.sendMessage("\xA7eWelcome to Phantasm! Pick up your Guidebook or use /guide to learn the features of this add-on.");
   }
   const playerInput = player.inputInfo.lastInputModeUsed;
   if (playerInput == "Touch") {
@@ -1747,6 +1749,7 @@ function healthBarDisplay(player, health, totalArmor, maxHealth) {
   );
 }
 function healthBarRuntime(player, eventType, beforeItemStack, afterItemStack) {
+  if (player.typeId !== "minecraft:player") return;
   const health = player?.getComponent("minecraft:health");
   const totalArmor = player?.getComponent("minecraft:equippable")?.totalArmor;
   const maxHealth = player?.getComponent("minecraft:health")?.effectiveMax;
@@ -2095,7 +2098,6 @@ world8.beforeEvents.playerBreakBlock.subscribe((e) => {
   ];
   if (block.typeId.includes("ore")) {
     const randomChance = Math.floor(Math.random() * 100);
-    console.warn(`Random Chance : ${randomChance}`);
     if (player.getGameMode() === "Creative") return;
     if (randomChance != 1) return;
     system9.run(() => {
@@ -2708,22 +2710,22 @@ function seiketsu2(player) {
   });
 }
 function spectricBow(player) {
-  const form = new ActionFormData2().title("Seiketsu").label("a Bow that beats every Epic weapons in terms of Damage, and Range, The projectile speed is very fast depends on Charging Stage and have ridicilous damage up to 70 damage").label("You can use this bow normally, but best used with Spectral Arrow, crafted with 4 Glowstone Dust and 1 Arrow").label("This bow crafted with Iron Ingot, Whole Glowstone, and String").button("Back").show(player).then((r) => {
+  const form = new ActionFormData2().title("Spectric Bow").label("a Bow that beats every Epic weapons in terms of Damage, and Range, The projectile speed is very fast depends on Charging Stage and have ridiculous damage up to 70 damage").label("You can use this bow normally, but best used with Spectral Arrow, crafted with 4 Glowstone Dust and 1 Arrow").label("This bow crafted with Iron Ingot, Whole Glowstone, and String").button("Back").show(player).then((r) => {
     if (r.canceled || r.selection == 0) guideWeapons(player);
   });
 }
 function thunderGale(player) {
-  const form = new ActionFormData2().title("Seiketsu").label("This Spear weapons is the classic, but powerful one, being the Strongest Spear, dealing over 1.6x multiplier on Charge Attack, 14 Base Damage, and very fast Spear Cooldown").label("This weapon only provides you with speeds when equipping this weapon").label("This Spear crafted with Prismatic Spear, Nether Star, and Netherite Spear").button("Back").show(player).then((r) => {
+  const form = new ActionFormData2().title("Thunder Gale").label("This Spear weapons is the classic, but powerful one, being the Strongest Spear, dealing over 1.6x multiplier on Charge Attack, 14 Base Damage, and very fast Spear Cooldown").label("This weapon only provides you with speeds when equipping this weapon").label("This Spear crafted with Prismatic Spear, Nether Star, and Netherite Spear").button("Back").show(player).then((r) => {
     if (r.canceled || r.selection == 0) guideWeapons(player);
   });
 }
 function animitta(player) {
-  const form = new ActionFormData2().title("Animitta").label("This is the first legendary weapons you will obtain alongside the Prism Weaver, This weapon capable of doing close, medium, and long range attacks with slightly lower damage than other Legendary Weapons. This weapon have 3 skills :").label("Animirra :\nCreates 4 Stars summon that will attacks other entities, this skill alone is powerful, but you never realized it.").label("Solaris Slash :\nDoes an attack that creates 3 Solaris Slash, spreading in each direction.").label("Natura Vulkan :\nSummons 8 Special Stars summons, that will explode at enemies with small distance explosion, but very powerful, alongside of casting a Meteor Rain.").label("This weapon obtained from killing Soul of Nature with 50% change alongside with Prism Weaver, a 50/50 between those two weapons").button("Back").show(player).then((r) => {
+  const form = new ActionFormData2().title("Animitta").label("This is the first legendary weapons you will obtain alongside the Prism Weaver, This weapon capable of doing close, medium, and long range attacks with slightly lower damage than other Legendary Weapons. This weapon have 3 skills :").label("Animirra :\nCreates 4 Stars summon that will attacks other entities, this skill alone is powerful, but you never realized it.").label("Solaris Slash :\nDoes an attack that creates 3 Solaris Slash, spreading in each direction.").label("Natura Vulkan :\nSummons 8 Special Stars summons, that will explode at enemies with small distance explosion, but very powerful, alongside of casting a Meteor Rain.").label("This weapon obtained from killing Soul of Nature with 50% chance alongside with Prism Weaver, a 50/50 between those two weapons").button("Back").show(player).then((r) => {
     if (r.canceled || r.selection == 0) guideWeapons(player);
   });
 }
 function prismWeaver2(player) {
-  const form = new ActionFormData2().title("Animitta").label("This is the first legendary weapons you will obtain alongside the Animitta, This weapon capable of doing long range attacks with low damage than other Legendary Weapons. This weapon have 3 skills :").label("Bubble Barrage :\nCasts a bursts of bubble projectiles in one attacks.").label("Prism Wave Wall :\nCasts a Prism Wall that deals massive damage when someone touches it.").label("Vortex Prism :\nPulls the target in large radius to you, and then repel them with massive damage.").label("This weapon obtained from killing Soul of Nature with 50% change alongside with Animitta, a 50/50 between those two weapons").button("Back").show(player).then((r) => {
+  const form = new ActionFormData2().title("Prism Weaver").label("This is the first legendary weapons you will obtain alongside the Animitta, This weapon capable of doing long range attacks with low damage than other Legendary Weapons. This weapon have 3 skills :").label("Bubble Barrage :\nCasts a bursts of bubble projectiles in one attacks.").label("Prism Wave Wall :\nCasts a Prism Wall that deals massive damage when someone touches it.").label("Vortex Prism :\nPulls the target in large radius to you, and then repel them with massive damage.").label("This weapon obtained from killing Soul of Nature with 50% chance alongside with Animitta, a 50/50 between those two weapons").button("Back").show(player).then((r) => {
     if (r.canceled || r.selection == 0) guideWeapons(player);
   });
 }
@@ -2733,12 +2735,12 @@ function theBleedingSpire2(player) {
   });
 }
 function superchargedCopperAxe2(player) {
-  const form = new ActionFormData2().title("Supercharged Copper Axe").label("This Legendary Axe, forged through the High-Grade Copper and Auric Material, is very powerful compared to other weapons, whis weapons have very slow attack speed but has lightning bolt attacks when completing the attack pattern. This weapon have 4 skills :").label("Charge :\nGrants 5 Charges for your 2 skills, and Boost yourself temporarily, giving you a lot of extra damage when you attacking a mob.").label("Powered Leap :\nCreates an explosion that deals high damage for others than you to make you leap forward to your target, also giving you 1 Charge for your other skills.").label("Discharge :\nDischarge your collected charge, and cast a Auric Laser that moves in their direction, hitting a target will gives them a lot of damage.").label("Ultimate Discharge :\nDoes the same thing with Discharge, but it's more powerful, and combined with medium-range lightning attacks that covers both close and medium range.").label("This weapon obtained from killing Auric Automaton with 50% change alongside with Auric Photonizer, a 50/50 between those two weapons").button("Back").show(player).then((r) => {
+  const form = new ActionFormData2().title("Supercharged Copper Axe").label("This Legendary Axe, forged through the High-Grade Copper and Auric Material, is very powerful compared to other weapons, this weapon has very slow attack speed but has lightning bolt attacks when completing the attack pattern. This weapon have 4 skills :").label("Charge :\nGrants 5 Charges for your 2 skills, and Boost yourself temporarily, giving you a lot of extra damage when you attacking a mob.").label("Powered Leap :\nCreates an explosion that deals high damage for others than you to make you leap forward to your target, also giving you 1 Charge for your other skills.").label("Discharge :\nDischarge your collected charge, and cast a Auric Laser that moves in their direction, hitting a target will gives them a lot of damage.").label("Ultimate Discharge :\nDoes the same thing with Discharge, but it's more powerful, and combined with medium-range lightning attacks that covers both close and medium range.").label("This weapon obtained from killing Auric Automaton with 50% chance alongside with Auric Photonizer, a 50/50 between those two weapons").button("Back").show(player).then((r) => {
     if (r.canceled || r.selection == 0) guideWeapons(player);
   });
 }
 function auricPhotonizer2(player) {
-  const form = new ActionFormData2().title("Animitta").label("This Legendary Sword, forged through the High-Grade Copper and Auric Material, is powerful compared to other weapons, whis weapons have very fast attack speed. This weapon have 4 skills :").label("Stab :\nDash and Stab forward with this weapons, any mob collided with you will deal a lot damage.").label("Powered Leap :\nLeaps backward to dodge your opponents, creates an explosion after short delay that deals a lot damage").label("Blade Barrage :\nSummon 5 Auric Double Blade, moving towards you, anyone other than you will deals a lot of damage").label("Ethereal Blade :\nSummon 3 sequence of a lot of Ethereal Sword stabbing in random direction dealing a lot of damage, you can still move while the skill is activated").label("This weapon obtained from killing Auric Automaton with 50% change alongside with Auric Photonizer, a 50/50 between those two weapons").button("Back").show(player).then((r) => {
+  const form = new ActionFormData2().title("Auric Photonizer").label("This Legendary Sword, forged through the High-Grade Copper and Auric Material, is powerful compared to other weapons, this weapon has very fast attack speed. This weapon have 4 skills :").label("Stab :\nDash and Stab forward with this weapons, any mob collided with you will deal a lot damage.").label("Powered Leap :\nLeaps backward to dodge your opponents, creates an explosion after short delay that deals a lot damage").label("Blade Barrage :\nSummon 5 Auric Double Blade, moving towards you, anyone other than you will deals a lot of damage").label("Ethereal Blade :\nSummon 3 sequence of a lot of Ethereal Sword stabbing in random direction dealing a lot of damage, you can still move while the skill is activated").label("This weapon obtained from killing Auric Automaton with 50% chance alongside with Supercharged Copper Axe, a 50/50 between those two weapons").button("Back").show(player).then((r) => {
     if (r.canceled || r.selection == 0) guideWeapons(player);
   });
 }
@@ -2802,7 +2804,7 @@ function betterMending(player) {
   });
 }
 function accessories(player) {
-  const form = new ActionFormData3().title("Accessories").header("Accessories").divider().label("This mechanic allow you to use an Accessory Type Items to make yourself stronger by a lot while sacrificing up tp 4 slots of your inventory, you can combine them to create such a perfect build that you'd like.").label("To use an Accessory Item, put the Accessory slot in Offhand Slot, and Hotbar Slots with + Sign.").divider().button("Back").show(player).then((r) => {
+  const form = new ActionFormData3().title("Accessories").header("Accessories").divider().label("This mechanic allow you to use an Accessory Type Items to make yourself stronger by a lot while sacrificing up to 4 slots of your inventory, you can combine them to create such a perfect build that you'd like.").label("To use an Accessory Item, put the Accessory slot in Offhand Slot, and Hotbar Slots with + Sign.").divider().button("Back").show(player).then((r) => {
     if (r.selection == 0 || r.canceled) mechanicsList(player);
   });
 }
@@ -2831,7 +2833,7 @@ function auricCommunicator(player) {
   });
 }
 function auricStockBattery(player) {
-  const form = new ActionFormData4().title("Auric Stock Battery").label("Auric Stock Battery is an item that used to recharge your Auric Charges quicky by one click.").label("This item can beused up to 2 times recharging your Auric Charges up to 100 per use.").label("Interact to use it, if the charges ran out,putit at Auric Battery Recharge Station.").label("This item can be obtained from Crafting with Auric Stars / Ancient Copper Core with Copper Block, obtained from Trial Chamber, and from Auric Automaton : Copper Mechanical Array.").button("Back").show(player).then((r) => {
+  const form = new ActionFormData4().title("Auric Stock Battery").label("Auric Stock Battery is an item that used to recharge your Auric Charges quickly by one click.").label("This item can be used up to 2 times recharging your Auric Charges up to 100 per use.").label("Interact to use it, if the charges ran out, put it at Auric Battery Recharge Station.").label("This item can be obtained from Crafting with Auric Stars / Ancient Copper Core with Copper Block, obtained from Trial Chamber, and from Auric Automaton : Copper Mechanical Array.").button("Back").show(player).then((r) => {
     if (r.canceled || r.selection == 0) guideItems(player);
   });
 }
@@ -2917,7 +2919,7 @@ function copperMechanicalArray(player) {
 // data/scripts/guidescreen/accessories_guide.ts
 import { ActionFormData as ActionFormData7 } from "@minecraft/server-ui";
 function guideAccessories(player) {
-  const form = new ActionFormData7().title("Accessories").label("\xA7cDISCLAIMER: ALL ACCESSORIES FUNCTION EXPLANATION SHOULD BE IN THE ITEM DESCRIPTION BECAUSE ITS USE ARE SELF EXPLANATORY").divider().label("Accessories are an Item Type that can be used as a combat support, or anything to enhance your experience. Accessories can be found anywhere, from doing mining, looting structures, until fighting a boss").divider().label("There are two types of accessories :").label("Active Accessories :\nActive accessories are an accessory that have both passive, and interactability, this type of accessories are recommended to use it at the hotbar with plus sign.").label("Passive Accessories :\nPassive accessories are an accessory that have only passive effect, this type of accessories are recommended to use it at offhand slot, but you can still use it at the hotbar with plus sign.").divider().label("To use accessory, put an accessories item type into Offhand Slot, or Hotbar with plus sign. The passive effect will automatically be applied as soon you equip it.").button("Back").show(player).then((r) => {
+  const form = new ActionFormData7().title("Accessories").label("Every accessory explains its own effect in its item description, so hover over the item to read what it does!").divider().label("Accessories are an Item Type that can be used as a combat support, or anything to enhance your experience. Accessories can be found anywhere, from doing mining, looting structures, until fighting a boss").divider().label("There are two types of accessories :").label("Active Accessories :\nActive accessories are an accessory that have both passive, and interactability, this type of accessories are recommended to use it at the hotbar with plus sign.").label("Passive Accessories :\nPassive accessories are an accessory that have only passive effect, this type of accessories are recommended to use it at offhand slot, but you can still use it at the hotbar with plus sign.").divider().label("To use accessory, put an accessories item type into Offhand Slot, or Hotbar with plus sign. The passive effect will automatically be applied as soon you equip it.").button("Back").show(player).then((r) => {
     if (r.selection === 0 || r.canceled) mainGuideScreen(player);
   });
 }
@@ -2925,33 +2927,39 @@ function guideAccessories(player) {
 // data/scripts/guidescreen/enemies_guide.ts
 import { ActionFormData as ActionFormData8 } from "@minecraft/server-ui";
 function guideEnemies(player) {
-  const form = new ActionFormData8().title("Enemies").divider().label("Currently we only have 1 type of enemies, Crimson Tentacles").label("Crimson Tentacles spawn naturally in Crimson Forest, when defeated drop Essence of Crimson with chance of 50%%").divider().button("Back").show(player).then((r) => {
+  const form = new ActionFormData8().title("Enemies").divider().label("Currently we only have 1 type of enemies, Crimson Tentacles").label("Crimson Tentacles spawn naturally in Crimson Forest, when defeated drop Essence of Crimson with chance of 50%").divider().button("Back").show(player).then((r) => {
     if (r.selection === 0 || r.canceled) mainGuideScreen(player);
   });
 }
 
 // data/scripts/guidescreen/main_guide.ts
 function mainGuideScreen(player) {
-  const form = new ActionFormData9().title("Guide").header("Phantasm 1.5 Guide").divider().label(
-    "Phantasm is an add-on that adds a lot of content into your world, currently this add-on is updated regularly, so stay tuned for the next content that I will add. In this add-on, there's new weapons, new mechanics, new enemies, boss, and everything."
-  ).label("Click the button below to see the content of Phantasm!").divider().button("Mechanics", "textures/ui/speed_effect").button("Weapons", "textures/items/diamond_sword").button("Items", "textures/items/essence_of_crimson").button("Blocks", "textures/blocks/stonebrick_carved").button("Accessories", "textures/items/fire_bracelet").button("Bosses", "textures/items/the_crimson_watcher").button("Enemies", "textures/items/egg_zombie").divider().button("Changelogs").button("Contact the Developer!").divider().label(
+  const form = new ActionFormData9().title("Guide").header("Phantasm Guide").divider().label(
+    "Phantasm is an add-on that adds a lot of content into your world: new weapons, mechanics, enemies, and bosses. This add-on is updated regularly, so stay tuned for the next content!"
+  ).label("New to the add-on? Click Getting Started below to learn where to begin!").divider().button("Getting Started").button("Mechanics", "textures/ui/speed_effect").button("Weapons", "textures/items/diamond_sword").button("Items", "textures/items/essence_of_crimson").button("Blocks", "textures/blocks/stonebrick_carved").button("Accessories", "textures/items/fire_bracelet").button("Bosses", "textures/items/the_crimson_watcher").button("Enemies", "textures/items/egg_zombie").divider().button("Changelogs").button("Contact the Developer!").divider().label(
     "Are you stuck? You can press this button to unstuck yourself, or use /unstuck command. Sometimes, minecraft can be really bugged with inputpermission so I add these button and command for that reason."
   ).button("Unstuck (reset some effects and tags)").divider().button("Exit").show(player).then((r) => {
     if (r.canceled) player.sendMessage("\xA7eYou can use /guide to check the guide or list of features in Phantasm!");
-    if (r.selection == 0) mechanicsList(player);
-    if (r.selection == 1) guideWeapons(player);
-    if (r.selection == 2) guideItems(player);
-    if (r.selection == 3) guideBlocks(player);
-    if (r.selection == 4) guideAccessories(player);
-    if (r.selection == 5) guideBosses(player);
-    if (r.selection == 6) guideEnemies(player);
-    if (r.selection == 7) Changelogs(player);
-    if (r.selection == 8) developer(player);
-    if (r.selection == 9) unstuckPlayer(player);
+    if (r.selection == 0) gettingStarted(player);
+    if (r.selection == 1) mechanicsList(player);
+    if (r.selection == 2) guideWeapons(player);
+    if (r.selection == 3) guideItems(player);
+    if (r.selection == 4) guideBlocks(player);
+    if (r.selection == 5) guideAccessories(player);
+    if (r.selection == 6) guideBosses(player);
+    if (r.selection == 7) guideEnemies(player);
+    if (r.selection == 8) Changelogs(player);
+    if (r.selection == 9) developer(player);
+    if (r.selection == 10) unstuckPlayer(player);
+  });
+}
+function gettingStarted(player) {
+  const form = new ActionFormData9().title("Getting Started").header("Where to begin?").divider().header("Early Game \u2014 Mining").label("- Mine ores to get a chance at the Rusted Fortune Coin and Item Magnet Ore (1% chance per ore).").label("- Use /unlockskill to upgrade your passive abilities: Passive Dash, Extra Health, and Wind Plunge.").divider().header("Mid Game \u2014 Exploration").label("- Explore Trial Chambers to find the Ancient Copper Core, Auric Proton, and the Peacemaker Oath.").label("- Visit the Crimson Forest: fight Crimson Tentacles for Essence of Crimson, and locate the Crimson Overgrowth.").divider().header("Bosses \u2014 Your Progression").label("1. Sealed Soul of Nature (Prismarine Arena, underwater) \u2014 your first boss, drops Prismatic Ingots and a treasure bag (Animitta / Prism Weaver).").label("2. Punicea : A Crimson Eye (Crimson Overgrowth) \u2014 drops The Bleeding Spire and Suspicious Mushroom.").label("3. Auric Automaton : Copper Mechanical Array (Ancient Copper Core ritual) \u2014 the final boss, drops Supercharged Copper Axe / Auric Photonizer.").divider().button("Back").show(player).then((r) => {
+    if (r.selection == 0 || r.canceled) mainGuideScreen(player);
   });
 }
 function Changelogs(player) {
-  const form = new ActionFormData9().title("Changelogs").header("v1.5.0").divider().header("Removal").label("- Removed the Glyph System, but you can still use the glyphs available in Phantasm - ExplerHD").label("- Removed the mining functionality from Legendary Weapons, as they were never designed for that purpose - ExplerHD").label("- Removed the Direct Hit feature from Legendary Weapons and Seiketsu - ExplerHD").divider().header("Changes").label("= Refactored the Custom Mace system - ExplerHD").label("= Reworked the Damage Indicator system to use Runtime Particles - ExplerHD").label("= Changed Prism Boss Arena from fixed ground positions to locatable underwater structures - ExplerHD").label("= Updated the Soul of Nature boss fight to follow the new structure generation (underwater boss fight) - ExplerHD").label("= Adjusted the placement of the Crimson Overgrowth structure to make it more logical and visible - ExplerHD").label("= Increased Seiketsu damage by +4 - ExplerHD").label("= Slightly updated the visuals of The Bleeding Spire attack - ExplerHD").label("= Rebalanced the damage of all Legendary Weapons so they can compete with enchanted Epic Weapons - ExplerHD").label("= Made Soul of Nature, Punicea, and Auric Automaton have 650 HP, 3000 HP, and 1750 HP due to Recent Weapons changes. - ExplerHD").label("= Added support for Fire Aspect, Knockback, and Weakness on Legendary Weapons - ExplerHD").label("= Updated all Legendary Weapons so their attack patterns now loop continuously without an ending cooldown - ExplerHD").label('= Fixed a bug where upgrading Dash to Level 2 would display "Insufficient Experience Level" instead of "Maximum level of Dash is reached." - ExplerHD').divider().header("Addition").label("+ Added the `damage_number` and `damage_icons` particles - ExplerHD").label("+ Added the Better than Mending feature - ExplerHD").label("+ Added a Combat Dummy - ExplerHD").label("+ Added a Turtle Shell item to the Prismarine Boss Arena to make the boss fight in that arena easier - ExplerHD").label("+ Added Rusted Fortune Coin, which doubles ore drops, and the Item Magnet Ore. Both can be obtained from a 1% chance when mining any ore - Passive Type - ExplerHD").label("+ Added Condensed Sea Nature, providing much longer underwater breathing and slightly faster health regeneration while underwater - Passive Type - ExplerHD").label("+ Added Guidescreen - ExplerHD & ZeroMaster178").divider().label("Stay tuned for the next content update!").button("Back").show(player).then((r) => {
+  const form = new ActionFormData9().title("Changelogs").header("v1.5.0").divider().header("Removal").label("- Removed the Glyph System, but you can still use the glyphs available in Phantasm - ExplerHD").label("- Removed the mining functionality from Legendary Weapons, as they were never designed for that purpose - ExplerHD").label("- Removed the Direct Hit feature from Legendary Weapons and Seiketsu - ExplerHD").divider().header("Changes").label("= Refactored the Custom Mace system - ExplerHD").label("= Reworked the Damage Indicator system to use Runtime Particles - ExplerHD").label("= Changed Prism Boss Arena from fixed ground positions to locatable underwater structures - ExplerHD").label("= Updated the Soul of Nature boss fight to follow the new structure generation (underwater boss fight) - ExplerHD").label("= Adjusted the placement of the Crimson Overgrowth structure to make it more logical and visible - ExplerHD").label("= Increased Seiketsu damage by +4 - ExplerHD").label("= Slightly updated the visuals of The Bleeding Spire attack - ExplerHD").label("= Rebalanced the damage of all Legendary Weapons so they can compete with enchanted Epic Weapons - ExplerHD").label("= Made Soul of Nature, Punicea, and Auric Automaton have 500 HP, 3000 HP, and 1750 HP due to Recent Weapons changes. - ExplerHD").label("= Added support for Fire Aspect, Knockback, and Weakness on Legendary Weapons - ExplerHD").label("= Updated all Legendary Weapons so their attack patterns now loop continuously without an ending cooldown - ExplerHD").label('= Fixed a bug where upgrading Dash to Level 2 would display "Insufficient Experience Level" instead of "Maximum level of Dash is reached." - ExplerHD').divider().header("Addition").label("+ Added the `damage_number` and `damage_icons` particles - ExplerHD").label("+ Added the Better than Mending feature - ExplerHD").label("+ Added a Combat Dummy - ExplerHD").label("+ Added a Turtle Shell item to the Prismarine Boss Arena to make the boss fight in that arena easier - ExplerHD").label("+ Added Rusted Fortune Coin, which doubles ore drops, and the Item Magnet Ore. Both can be obtained from a 1% chance when mining any ore - Passive Type - ExplerHD").label("+ Added Condensed Sea Nature, providing much longer underwater breathing and slightly faster health regeneration while underwater - Passive Type - ExplerHD").label("+ Added Guidescreen - ExplerHD & ZeroMaster178").divider().label("Stay tuned for the next content update!").button("Back").show(player).then((r) => {
     if (r.selection == 0) mainGuideScreen(player);
   });
 }
