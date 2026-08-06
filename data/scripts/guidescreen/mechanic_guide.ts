@@ -151,7 +151,7 @@ function accessories(player: Player) {
 		.title("Accessories")
 		.header("Accessories")
 		.divider()
-		.label("This mechanic allow you to use an Accessory Type Items to make yourself stronger by a lot while sacrificing up tp 4 slots of your inventory, you can combine them to create such a perfect build that you'd like.")
+		.label("This mechanic allow you to use an Accessory Type Items to make yourself stronger by a lot while sacrificing up to 4 slots of your inventory, you can combine them to create such a perfect build that you'd like.")
 		.label("To use an Accessory Item, put the Accessory slot in Offhand Slot, and Hotbar Slots with + Sign.")
 		.divider()
 		.button("Back")

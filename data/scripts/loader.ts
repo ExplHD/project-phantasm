@@ -1,10 +1,11 @@
 import { world, system, ItemStack, Player } from '@minecraft/server'
-import { addScore, runUntilMoved, unstuckPlayer } from './main'
+import { addScore, detectMove, runUntilMoved, unstuckPlayer } from './main'
 
 const objectives: string[] = [
     // System Scoreboard
     "delayatk",
-    "sectick",
+	"sectick",
+    "dash_cd",
     // Solaris Verdant (Animitta)
     "solaris_verdant",
     "solaris_verdant_atk",
@@ -49,7 +50,10 @@ const objectives: string[] = [
 export function loadScoreboards(): void {
     for (const objective of objectives) {
         if (!world.scoreboard.getObjective(objective)) {
-            world.scoreboard.addObjective(objective)
+			world.scoreboard.addObjective(objective)
+			for (const player of world.getPlayers()) {
+				addScore(player, objective, 0)
+            }
         }
     }
 }
@@ -66,19 +70,25 @@ export function onPlayerSpawn(player: Player, initialSpawn: boolean): void {
 
     unstuckPlayer(player)
 
-    if (!initialSpawn) return;
+    // Health bar shows on every spawn (both initial join and respawn)
     const health = player?.getComponent("minecraft:health")?.currentValue;
     const maxHealth = player?.getComponent("minecraft:health")?.effectiveMax;
     const totalArmor = player?.getComponent("minecraft:equippable")?.totalArmor;
-    if (!maxHealth || maxHealth <= 0) return;
+    if (maxHealth && maxHealth > 0) {
+        const healthVal = health ?? 0;
+        let scaled = (healthVal / maxHealth) * 100;
+        runUntilMoved(player, 10, () => {
+            player.onScreenDisplay.setTitle(
+                `bar0:${Math.min(100, Math.max(0, Math.floor(scaled)))}% healthind:${Math.floor(healthVal)}/${maxHealth} ${totalArmor}`,
+                { fadeInDuration: 10, stayDuration: 70, fadeOutDuration: 20 }
+            );
+        });
+    }
 
-    const healthVal = health ?? 0;
-    let scaled = (healthVal / maxHealth) * 100;
-    runUntilMoved(player, 10, () => {
-        player.runCommand(`title @s title bar0:${Math.min(100, Math.max(0, Math.floor(scaled)))}%% healthind:${Math.floor(healthVal)}/${maxHealth} ${totalArmor}`);
-	});
+    if (!initialSpawn) return;
     if (player.getDynamicProperty("ph:guidebook_acquired") === undefined || player.getDynamicProperty("ph:guidebook_acquired") === false) {
 		player.dimension.spawnItem(new ItemStack("ph:guidebook"), player.location);
+        player.sendMessage("§eWelcome to Phantasm! Pick up your Guidebook or use /guide to learn the features of this add-on.");
     }
     const playerInput = player.inputInfo.lastInputModeUsed;
     if (playerInput == "Touch") {

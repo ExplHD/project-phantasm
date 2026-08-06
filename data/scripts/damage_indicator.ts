@@ -109,7 +109,8 @@ export function onDamageIndicator({ hurtEntity, damageSource, damage }: EntityHu
         let absDamage = Math.abs(damageValue);
         if (absDamage > 999999)
             absDamage = 999999;
-        molang.setFloat("variable.length", 1.5);
+		molang.setFloat("variable.length", 1.5);
+        iconMolang.setFloat("variable.length", 1.5);
         iconMolang.setFloat("variable.icon_offset", damageData.icon ?? 14);
         molang.setFloat("variable.damage", damageValue);
         molang.setFloat("variable.roty", rot.y);
@@ -120,7 +121,7 @@ export function onDamageIndicator({ hurtEntity, damageSource, damage }: EntityHu
         molang.setFloat("variable.floored_thousandths", (Math.floor(absDamage / 1000) % 10));
         molang.setFloat("variable.floored_ten_thousandths", (Math.floor(absDamage / 10000) % 10));
         molang.setFloat("variable.floored_hundred_thousandths", (Math.floor(absDamage / 100000) % 10));
-        molang.setColorRGB("variable.damagecolor", damageData.color);
+		molang.setColorRGB("variable.damagecolor", damageData.color);
         try {
             player.spawnParticle("ph:damage_number", loc, molang);
             // player.spawnParticle("ph:damage_icons", loc, molang);

@@ -40,9 +40,9 @@ function auricCommunicator(player: Player) {
 function auricStockBattery(player: Player) {
 	const form = new ActionFormData()
 		.title("Auric Stock Battery")
-		.label("Auric Stock Battery is an item that used to recharge your Auric Charges quicky by one click.")
-		.label("This item can beused up to 2 times recharging your Auric Charges up to 100 per use.")
-		.label("Interact to use it, if the charges ran out,putit at Auric Battery Recharge Station.")
+		.label("Auric Stock Battery is an item that used to recharge your Auric Charges quickly by one click.")
+		.label("This item can be used up to 2 times recharging your Auric Charges up to 100 per use.")
+		.label("Interact to use it, if the charges ran out, put it at Auric Battery Recharge Station.")
 		.label("This item can be obtained from Crafting with Auric Stars / Ancient Copper Core with Copper Block, obtained from Trial Chamber, and from Auric Automaton : Copper Mechanical Array.")
 		.button("Back")
 		.show(player).then(r => {

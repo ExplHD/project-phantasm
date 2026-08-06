@@ -7,7 +7,7 @@ export default function guideEnemies(player: Player) {
 		.title("Enemies")
 		.divider()
 		.label("Currently we only have 1 type of enemies, Crimson Tentacles")
-		.label("Crimson Tentacles spawn naturally in Crimson Forest, when defeated drop Essence of Crimson with chance of 50%%")
+		.label("Crimson Tentacles spawn naturally in Crimson Forest, when defeated drop Essence of Crimson with chance of 50%")
 		.divider()
 		.button("Back")
 		.show(player)

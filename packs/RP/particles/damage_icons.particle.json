@@ -26,7 +26,7 @@
 				"creation_expression": "v.number = 1;"
 			},
 			"minecraft:emitter_rate_instant": {
-				"num_particles": "v.digits"
+				"num_particles": 1
 			},
 			"minecraft:emitter_lifetime_looping": {
 				"active_time": "v.length + 1"
@@ -62,7 +62,7 @@
 				"collision_radius": 0.2
 			},
 			"minecraft:particle_appearance_tinting": {
-				"color": ["v.damageColor.r", "v.damageColor.g", "v.damageColor.b", 1]
+				"color": [1, 1, 1, 1]
 			}
 		}
 	}

@@ -1111,6 +1111,7 @@ var objectives = [
   // System Scoreboard
   "delayatk",
   "sectick",
+  "dash_cd",
   // Solaris Verdant (Animitta)
   "solaris_verdant",
   "solaris_verdant_atk",
@@ -1155,6 +1156,9 @@ function loadScoreboards() {
   for (const objective of objectives) {
     if (!world3.scoreboard.getObjective(objective)) {
       world3.scoreboard.addObjective(objective);
+      for (const player of world3.getPlayers()) {
+        addScore(player, objective, 0);
+      }
     }
   }
 }
@@ -1176,7 +1180,10 @@ function onPlayerSpawn(player, initialSpawn) {
   const healthVal = health ?? 0;
   let scaled = healthVal / maxHealth * 100;
   runUntilMoved(player, 10, () => {
-    player.runCommand(`title @s title bar0:${Math.min(100, Math.max(0, Math.floor(scaled)))}%% healthind:${Math.floor(healthVal)}/${maxHealth} ${totalArmor}`);
+    player.onScreenDisplay.setTitle(
+      `bar0:${Math.min(100, Math.max(0, Math.floor(scaled)))}% healthind:${Math.floor(healthVal)}/${maxHealth} ${totalArmor}`,
+      { fadeInDuration: 10, stayDuration: 70, fadeOutDuration: 20 }
+    );
   });
   if (player.getDynamicProperty("ph:guidebook_acquired") === void 0 || player.getDynamicProperty("ph:guidebook_acquired") === false) {
     player.dimension.spawnItem(new ItemStack2("ph:guidebook"), player.location);
@@ -1310,6 +1317,7 @@ function onDamageIndicator({ hurtEntity, damageSource, damage }) {
     if (absDamage > 999999)
       absDamage = 999999;
     molang.setFloat("variable.length", 1.5);
+    iconMolang.setFloat("variable.length", 1.5);
     iconMolang.setFloat("variable.icon_offset", damageData.icon ?? 14);
     molang.setFloat("variable.damage", damageValue);
     molang.setFloat("variable.roty", rot.y);
@@ -1415,7 +1423,6 @@ function onDummyHurt(event) {
 
 // data/scripts/dynamicLighting.ts
 import { system as system7, BlockPermutation } from "@minecraft/server";
-var runInterval = Number();
 var lightLevelMap = {
   "minecraft:beacon": 15,
   "minecraft:conduit": 15,
@@ -1450,45 +1457,81 @@ var lightLevelMap = {
   "minecraft:sculk_sensor": 1,
   "minecraft:small_amethyst_bud": 1
 };
-function onDynamicLighting(player) {
-  const accessoryItems = getAccessoryItems(player);
+var lightingStates = /* @__PURE__ */ new Map();
+function removeLightBlocks(player) {
   for (let i = 0; i <= 15; i++) {
-    player.removeTag(`light_${i}`);
     try {
       player.runCommand(`fill ~-16~-8~-16~16~8~16 air replace light_block_${i}`);
     } catch (e) {
-      console.warn(e);
     }
   }
-  system7.clearRun(runInterval);
+}
+function clearPlayerLighting(player) {
+  const state = lightingStates.get(player.id);
+  if (state && state.interval !== -1) {
+    system7.clearRun(state.interval);
+  }
+  lightingStates.delete(player.id);
+  for (let i = 0; i <= 15; i++) {
+    player.removeTag(`light_${i}`);
+  }
+  removeLightBlocks(player);
+}
+function onDynamicLighting(player) {
+  const accessoryItems = getAccessoryItems(player);
   let maxLight = -1;
   for (const item of accessoryItems) {
     const light = lightLevelMap[item.typeId];
     if (light === void 0) continue;
     maxLight = Math.max(maxLight, light);
   }
-  if (maxLight !== -1) {
-    player.addTag(`light_${maxLight}`);
-    let lastLightBlock;
-    runInterval = system7.runInterval(() => {
+  const existing = lightingStates.get(player.id);
+  if (existing && existing.maxLight === maxLight) return;
+  if (existing && existing.interval !== -1) {
+    system7.clearRun(existing.interval);
+  }
+  if (existing || maxLight !== -1) {
+    for (let i = 0; i <= 15; i++) {
+      player.removeTag(`light_${i}`);
+    }
+    removeLightBlocks(player);
+  }
+  if (maxLight === -1) {
+    lightingStates.delete(player.id);
+    return;
+  }
+  player.addTag(`light_${maxLight}`);
+  const state = {
+    interval: -1,
+    lastLightBlock: void 0,
+    maxLight
+  };
+  lightingStates.set(player.id, state);
+  const updateLight = () => {
+    if (!player.isValid) return;
+    try {
       const finalLocation = {
         x: player.location.x,
         y: player.location.y + 1,
         z: player.location.z
       };
-      if (lastLightBlock?.typeId === `minecraft:light_block_${maxLight}`) {
-        lastLightBlock.setType("minecraft:air");
-      }
       const block = player.dimension.getBlock(finalLocation);
-      if (!block || block.typeId !== "minecraft:air") return;
+      if (!block) return;
+      if (!block.isAir && !block.isLiquid) return;
+      if (state.lastLightBlock?.typeId.startsWith("minecraft:light_block")) {
+        state.lastLightBlock.setType("minecraft:air");
+      }
       block.setPermutation(
         BlockPermutation.resolve("minecraft:light_block", {
-          block_light_level: maxLight
+          block_light_level: state.maxLight
         })
       );
-      lastLightBlock = block;
-    }, 4);
-  }
+      state.lastLightBlock = block;
+    } catch (e) {
+    }
+  };
+  updateLight();
+  state.interval = system7.runInterval(updateLight, 4);
 }
 
 // data/scripts/vanilla_manipulation.ts
@@ -1552,10 +1595,10 @@ function windPlungeRuntime(player) {
       player.removeTag("windPlunge");
     }
   }
-  const runInterval2 = system8.runInterval(() => {
+  const runInterval = system8.runInterval(() => {
     if (!player.isOnGround) return;
     system8.run(impact);
-    system8.clearRun(runInterval2);
+    system8.clearRun(runInterval);
   }, 2);
   player.applyKnockback({ x: 0, z: 0 }, -2);
   player.dimension.spawnParticle("minecraft:wind_explosion_emitter", player.location);
@@ -1698,7 +1741,10 @@ function javaSaturationRegen(player) {
 }
 function healthBarDisplay(player, health, totalArmor, maxHealth) {
   let scaled = health.currentValue / maxHealth * 100;
-  player.runCommand(`title @s title bar0:${Math.min(100, Math.max(0, Math.floor(scaled)))}%% healthind:${Math.floor(health.currentValue)}/${maxHealth} ${totalArmor}`);
+  player.onScreenDisplay.setTitle(
+    `bar0:${Math.min(100, Math.max(0, Math.floor(scaled)))}% healthind:${Math.floor(health.currentValue)}/${maxHealth} ${totalArmor}`,
+    { fadeInDuration: 10, stayDuration: 70, fadeOutDuration: 20 }
+  );
 }
 function healthBarRuntime(player, eventType, beforeItemStack, afterItemStack) {
   const health = player?.getComponent("minecraft:health");
@@ -2101,6 +2147,7 @@ world8.afterEvents.worldLoad.subscribe(() => {
 });
 world8.afterEvents.playerSpawn.subscribe(({ player, initialSpawn }) => {
   onPlayerSpawn(player, initialSpawn);
+  onDynamicLighting(player);
 });
 world8.afterEvents.playerSwingStart.subscribe(({ player, heldItemStack, swingSource }) => {
   for (const weapon of weapons) {
@@ -2139,6 +2186,7 @@ world8.afterEvents.itemUse.subscribe(({ source, itemStack }) => {
 world8.afterEvents.entityDie.subscribe(({ damageSource, deadEntity }) => {
   const killer = damageSource?.damagingEntity;
   if (!killer?.isValid) return;
+  clearPlayerLighting(deadEntity);
   const mainhand = killer?.getComponent("equippable")?.getEquipment(EquipmentSlot3.Mainhand);
   if (killer?.typeId === "minecraft:player" && mainhand?.typeId === "ph:charged_copper_axe") {
     addScore(killer, "auric_charge", 4);
@@ -2222,6 +2270,9 @@ world8.afterEvents.entitySpawn.subscribe(({ entity, cause }) => {
       }, 1);
     }
   }
+});
+world8.beforeEvents.playerLeave.subscribe(({ player }) => {
+  clearPlayerLighting(player);
 });
 system9.runInterval(() => {
   for (const player of world8.getPlayers()) {
@@ -3766,7 +3817,7 @@ function applyDurabilityDamage2(source, options = {}) {
   durability.damage = newDamage;
   inventory.setItem(slot, item);
 }
-function detectMove(entity, tickInterval = 1, callback) {
+function detectMove2(entity, tickInterval = 1, callback) {
   const startLocation = {
     x: Math.floor(entity.location.x),
     y: Math.floor(entity.location.y),
@@ -3841,7 +3892,7 @@ function unstuckPlayer(player) {
 export {
   addScore,
   applyDurabilityDamage2 as applyDurabilityDamage,
-  detectMove,
+  detectMove2 as detectMove,
   getAccessoryItems,
   getScore,
   removeScore2 as removeScore,

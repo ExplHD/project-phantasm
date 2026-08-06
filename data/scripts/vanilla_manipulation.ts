@@ -262,11 +262,15 @@ export function javaSaturationRegen(player: Player): void {
 
 export function healthBarDisplay(player: Player, health: any, totalArmor: any, maxHealth: number): void {
     let scaled = (health.currentValue / maxHealth) * 100;
-    player.runCommand(`title @s title bar0:${Math.min(100, Math.max(0, Math.floor(scaled)))}%% healthind:${Math.floor(health.currentValue)}/${maxHealth} ${totalArmor}`)
+    player.onScreenDisplay.setTitle(
+        `bar0:${Math.min(100, Math.max(0, Math.floor(scaled)))}% healthind:${Math.floor(health.currentValue)}/${maxHealth} ${totalArmor}`,
+        { fadeInDuration: 10, stayDuration: 70, fadeOutDuration: 20 }
+    );
 }
 
 // Health Bar Runtime
 export function healthBarRuntime(player: Player, eventType: string, beforeItemStack?: any, afterItemStack?: any): void {
+    if (player.typeId !== "minecraft:player") return;
     const health = player?.getComponent("minecraft:health");
     const totalArmor = player?.getComponent("minecraft:equippable")?.totalArmor;
     const maxHealth = player?.getComponent("minecraft:health")?.effectiveMax;
