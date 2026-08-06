@@ -1,6 +1,23 @@
 Gunakan format seperti ini ketika membuat perubahan / menciptakan konten baru :
 < - / = / + > <Removal/Changes/Addition> - <Siapa>
 
+1.5.1 (The Bugfix Update) :
+
+# Removal
+- Menghilangkan spam log debug yang muncul setiap menambang ore - ExplerHD
+
+# Changes
+= Menulis ulang Dynamic Light System: tidak ada lagi flicker saat ganti item, cahaya langsung terpasang, dan hanya muncul di blok udara / cairan sehingga tidak merusak rumput tinggi, bunga, atau pintu - ExplerHD
+= Health Bar sekarang memakai on-screen display bawaan, jadi tidak spam chat lagi dan tampil dengan benar saat respawn - ExplerHD
+= Memperbaiki crash ("setTitle of undefined") yang muncul setiap mob terkena damage - ExplerHD
+= Perombakan Guidescreen: memperbaiki judul senjata yang salah dan sumber drop yang keliru, merapikan typo, dan mengoreksi data HP yang kedaluwarsa - ExplerHD
+= Memperbaiki icon Damage Indicator yang salah posisi - ExplerHD
+= Memindahkan inisialisasi scoreboard cooldown Dash ke saat player join - ExplerHD
+
+# Addition
++ Menambahkan halaman Getting Started di Guidescreen beserta jalur progression yang disarankan, plus pesan selamat datang saat join pertama - ExplerHD
++ Menambahkan recipe crafting untuk mengubah Rusted Fortune Coin menjadi 4 Gold Block - ExplerHD
+
 1.5.0 (The Great Stability) :
 
 # Removal
@@ -36,6 +53,23 @@ Gunakan format seperti ini ketika membuat perubahan / menciptakan konten baru :
 
 Use the following format when making changes / creating new content:
 < - / = / + > <Removal/Changes/Addition> - <Author>
+
+1.5.1 (The Bugfix Update):
+
+# Removal
+- Removed the debug log spam that printed on every ore mined - ExplerHD
+
+# Changes
+= Rewrote the Dynamic Light System: no more flickering when switching items, lights are placed instantly, and they only spawn on air or liquid blocks so they won't break tall grass, flowers, or doors - ExplerHD
+= Health Bar now uses the native on-screen display, so it no longer spams the chat and shows correctly on respawn - ExplerHD
+= Fixed a crash ("setTitle of undefined") that occurred whenever a mob took damage - ExplerHD
+= Overhauled the Guidescreen: fixed wrong weapon titles and a wrong drop source, cleaned up typos, and corrected outdated HP data - ExplerHD
+= Fixed the Damage Indicator icons being mispositioned - ExplerHD
+= Moved the Dash cooldown scoreboard to be initialized when a player joins - ExplerHD
+
+# Addition
++ Added a Getting Started page to the Guidescreen with a recommended progression path, plus a welcome message on first join - ExplerHD
++ Added a crafting recipe to turn a Rusted Fortune Coin into 4 Gold Blocks - ExplerHD
 
 1.5.0 (The Great Stability):
 
