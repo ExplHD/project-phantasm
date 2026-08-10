@@ -1,0 +1,7 @@
+{
+	"format_version": "1.16.100",
+	"minecraft:texture_set": {
+		"color": "crosshair_warning",
+		"metalness_emissive_roughness": "crosshair_warning_mer"
+	}
+}

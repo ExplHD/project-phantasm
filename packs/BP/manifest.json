@@ -4,18 +4,7 @@
 		"product_type": "addon",
 		"authors": [
 			"ExplerHD"
-		],
-		"generated_with": {
-			"bridge": [
-				"3.0.2"
-			],
-			"dash": [
-				"0.13.0-beta"
-			],
-			"blockbench_item_wizard": [
-				"1.2.4"
-			]
-		}
+		]
 	},
 	"header": {
 		"name": "Phantasm",
@@ -29,7 +18,7 @@
 		"version": [
 			1,
 			5,
-			1
+			2
 		]
 	},
 	"modules": [
@@ -39,7 +28,7 @@
 			"version": [
 				1,
 				5,
-				1
+				2
 			]
 		},
 		{
@@ -60,7 +49,7 @@
 			"version": [
 				1,
 				5,
-				1
+				2
 			]
 		},
 		{

@@ -1,0 +1,7 @@
+{
+	"format_version": "1.16.100",
+	"minecraft:texture_set": {
+		"color": "slash_effect_white_2",
+		"metalness_emissive_roughness": "slash_effect_white_2_mer"
+	}
+}

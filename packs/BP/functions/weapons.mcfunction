@@ -1,4 +1,12 @@
 # Base Objective Runner
+scoreboard players add @a[scores={delayatk=1..}] delayatk 1
+scoreboard players set @a[scores={delayatk=31..}] delayatk 0
+scoreboard players set @a[scores={delayatk=30..}] solaris_verdant_atk 0
+scoreboard players set @a[scores={delayatk=30..}] supercharged_copper_axe_atk 0
+scoreboard players set @a[scores={delayatk=30..}] prism_weaver_atk 0
+scoreboard players set @a[scores={delayatk=30..}] auric_photonizer_atk 0
+scoreboard players set @a[scores={delayatk=30..}] the_bleeding_spire_atk 0
+scoreboard players set @a[scores={delayatk=30..}] seiketsu_atk 0
 scoreboard players add @a sectick 1
 scoreboard players set @a[scores={sectick=20..}] sectick 0
 execute at @a[scores={sectick=19..}] run function weapons/weapons_skill
