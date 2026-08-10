@@ -1,5 +1,5 @@
 import { world, system, ItemStack, Player } from '@minecraft/server'
-import { addScore, detectMove, runUntilMoved, unstuckPlayer } from './main'
+import { addScore, detectMove, runUntilMoved, setScore, unstuckPlayer } from './main'
 
 const objectives: string[] = [
     // System Scoreboard
@@ -51,11 +51,17 @@ export function loadScoreboards(): void {
     for (const objective of objectives) {
         if (!world.scoreboard.getObjective(objective)) {
 			world.scoreboard.addObjective(objective)
-			for (const player of world.getPlayers()) {
-				addScore(player, objective, 0)
-            }
         }
     }
+}
+
+function loadPlayerScore(player: Player) { 
+	for (const objective of objectives) {
+		addScore(player, objective, 0)
+		if (objective.includes("_atk")) {
+			setScore(player, objective, 0)
+		}
+	}
 }
 
 export function onPlayerSpawn(player: Player, initialSpawn: boolean): void {
@@ -85,7 +91,8 @@ export function onPlayerSpawn(player: Player, initialSpawn: boolean): void {
         });
     }
 
-    if (!initialSpawn) return;
+	if (!initialSpawn) return;
+	loadPlayerScore(player)
     if (player.getDynamicProperty("ph:guidebook_acquired") === undefined || player.getDynamicProperty("ph:guidebook_acquired") === false) {
 		player.dimension.spawnItem(new ItemStack("ph:guidebook"), player.location);
         player.sendMessage("§eWelcome to Phantasm! Pick up your Guidebook or use /guide to learn the features of this add-on.");

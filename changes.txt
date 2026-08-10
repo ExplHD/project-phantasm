@@ -1,6 +1,15 @@
 Gunakan format seperti ini ketika membuat perubahan / menciptakan konten baru :
 < - / = / + > <Removal/Changes/Addition> - <Siapa>
 
+1.5.2 (The Polish Update) :
+
+# Changes
+= Menambahkan cooldown antar serangan Senjata Legendaris (Solaris Verdant, Supercharged Copper Axe, Prism Weaver, Auric Photonizer, The Bleeding Spire, dan Seiketsu) agar attack pattern tidak bisa di-spam tanpa jeda - ExplerHD
+= Memperbaiki inisialisasi scoreboard player: semua score sekarang di-set ulang ketika player spawn (termasuk score serangan senjata), jadi tidak ada score sisa dari player lama - ExplerHD
+
+# Addition
++ Meng-upgrade beberapa tekstur particle agar memakai PBR (metalness/emissive/roughness) sehingga bisa memancarkan cahaya dan terlihat lebih halus: circle_fade, circle_load, crosshair_warning, slash_effect_white, slash_effect_white_2, sonic_explosion_grayscaled, sparkle, dan Damage Indicator - ExplerHD
+
 1.5.1 (The Bugfix Update) :
 
 # Removal
@@ -53,6 +62,15 @@ Gunakan format seperti ini ketika membuat perubahan / menciptakan konten baru :
 
 Use the following format when making changes / creating new content:
 < - / = / + > <Removal/Changes/Addition> - <Author>
+
+1.5.2 (The Polish Update):
+
+# Changes
+= Added a cooldown between Legendary Weapon attacks (Solaris Verdant, Supercharged Copper Axe, Prism Weaver, Auric Photonizer, The Bleeding Spire, and Seiketsu) so attack patterns can no longer be spammed without a pause - ExplerHD
+= Fixed player scoreboard initialization: all scores are now reset when a player spawns (including weapon attack scores), so no leftover scores remain from previous sessions - ExplerHD
+
+# Addition
++ Upgraded several particle textures to use PBR (metalness/emissive/roughness) so they can glow and look smoother: circle_fade, circle_load, crosshair_warning, slash_effect_white, slash_effect_white_2, sonic_explosion_grayscaled, sparkle, and the Damage Indicator - ExplerHD
 
 1.5.1 (The Bugfix Update):
 

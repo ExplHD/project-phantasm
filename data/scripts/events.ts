@@ -174,14 +174,14 @@ world.afterEvents.worldLoad.subscribe(() => {
 })
 
 world.afterEvents.playerSpawn.subscribe(({ player, initialSpawn }) => {
-    onPlayerSpawn(player, initialSpawn)
+	onPlayerSpawn(player, initialSpawn)
     onDynamicLighting(player)
 })
 
 world.afterEvents.playerSwingStart.subscribe(({ player, heldItemStack, swingSource }) => {
     for (const weapon of weapons) {
         if (heldItemStack?.typeId === weapon.itemId) {
-            if (swingSource != "Mine" && swingSource != "Attack") return;
+			if (swingSource != "Mine" && swingSource != "Attack") return;
             weapon.handleAttack(player);
         }
     }
