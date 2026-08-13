@@ -1,7 +1,7 @@
-import { world, system, BlockPermutation, Player, Block } from '@minecraft/server';
+import { world, system, BlockPermutation } from '@minecraft/server';
 import { getAccessoryItems } from './main';
 
-export const lightLevelMap: Record<string, number> = {
+export const lightLevelMap = {
     "minecraft:beacon": 15,
     "minecraft:conduit": 15,
     "minecraft:ochre_froglight": 15,
@@ -42,15 +42,9 @@ export const lightLevelMap: Record<string, number> = {
     "minecraft:small_amethyst_bud": 1
 };
 
-interface LightingState {
-    interval: number;
-    lastLightBlock: Block | undefined;
-    maxLight: number;
-}
+const lightingStates = new Map();
 
-const lightingStates = new Map<string, LightingState>();
-
-function removeLightBlocks(player: Player): void {
+function removeLightBlocks(player) {
     for (let i = 0; i <= 15; i++) {
         try {
             player.runCommand(`fill ~-16~-8~-16~16~8~16 air replace light_block_${i}`);
@@ -60,7 +54,7 @@ function removeLightBlocks(player: Player): void {
     }
 }
 
-export function clearPlayerLighting(player: Player): void {
+export function clearPlayerLighting(player) {
     const state = lightingStates.get(player.id);
     if (state && state.interval !== -1) {
         system.clearRun(state.interval);
@@ -73,7 +67,7 @@ export function clearPlayerLighting(player: Player): void {
     removeLightBlocks(player);
 }
 
-export function onDynamicLighting(player: Player): void {
+export function onDynamicLighting(player) {
     const accessoryItems = getAccessoryItems(player);
 
     let maxLight = -1;
@@ -109,7 +103,7 @@ export function onDynamicLighting(player: Player): void {
 
     player.addTag(`light_${maxLight}`);
 
-    const state: LightingState = {
+    const state = {
         interval: -1,
         lastLightBlock: undefined,
         maxLight
@@ -120,7 +114,11 @@ export function onDynamicLighting(player: Player): void {
         if (!player.isValid) return;
 
         try {
-			const finalLocation = player.getHeadLocation()
+            const finalLocation = {
+                x: player.location.x,
+                y: player.location.y + 1,
+                z: player.location.z
+            };
 
             const block = player.dimension.getBlock(finalLocation);
             if (!block) return;
