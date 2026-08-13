@@ -120,11 +120,7 @@ export function onDynamicLighting(player: Player): void {
         if (!player.isValid) return;
 
         try {
-            const finalLocation = {
-                x: player.location.x,
-                y: player.location.y + 1,
-                z: player.location.z
-            };
+			const finalLocation = player.getHeadLocation()
 
             const block = player.dimension.getBlock(finalLocation);
             if (!block) return;
