@@ -1,0 +1,15 @@
+{
+    "format_version": "1.26.0",
+    "minecraft:item": {
+        "description": {
+            "identifier": "ph:solarium_ingot",
+            "menu_category": {
+                "category": "items"
+            }
+        },
+        "components": {
+            "minecraft:icon": "ph_solarium_ingot",
+            "minecraft:rarity": "uncommon"
+        }
+    }
+}

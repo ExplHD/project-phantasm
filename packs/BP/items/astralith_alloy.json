@@ -1,0 +1,18 @@
+{
+    "format_version": "1.26.0",
+    "minecraft:item": {
+        "description": {
+            "identifier": "ph:astralith_alloy",
+            "menu_category": {
+                "category": "items"
+            }
+        },
+        "components": {
+            "minecraft:icon": "ph_astralith_alloy",
+            "minecraft:fire_resistant": {
+                "value": true
+            },
+            "minecraft:rarity": "rare"
+        }
+    }
+}

@@ -1,0 +1,28 @@
+{
+    "format_version": "1.26.0",
+    "minecraft:block": {
+        "description": {
+            "identifier": "ph:stardust",
+            "menu_category": {
+                "category": "construction"
+            }
+        },
+        "components": {
+            "minecraft:geometry": "minecraft:geometry.full_block",
+            "minecraft:material_instances": {
+                "*": {
+                    "texture": "ph_stardust",
+                    "render_method": "opaque"
+                }
+            },
+            "minecraft:map_color": "#E9DCB0",
+            "minecraft:destructible_by_explosion": {
+                "explosion_resistance": 2.5
+            },
+            "minecraft:destructible_by_mining": {
+                "seconds_to_destroy": 0.9
+            },
+            "tag:minecraft:is_shovel_item_destructible": {}
+        }
+    }
+}

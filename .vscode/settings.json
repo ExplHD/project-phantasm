@@ -1,0 +1,20 @@
+{
+	// Rockide: explicit pack locations (Regolith layout).
+	// Tanpa ini Rockide cuma nebak "./BP" dan "./packs" — kalau workspace kebuka
+	// di folder yang salah, autocomplete JSON/molang/mcfunction mati total.
+	"rockide.projectPaths": {
+		"behaviorPack": "./packs/BP",
+		"resourcePack": "./packs/RP"
+	},
+
+	// Jangan biarkan extension lain (Blockception, bridge., dsb) membajak JSON.
+	// Rockide kerja lewat jsonValidation bawaan, jadi biarkan default JSON language.
+	"json.schemas": [],
+
+	// TypeScript autocomplete untuk @minecraft/server (data/scripts).
+	// Pastikan node_modules ter-install (bun install / npm install).
+	"typescript.preferences.includePackageJsonAutoImports": "on",
+	"editor.quickSuggestions": {
+		"strings": true
+	}
+}

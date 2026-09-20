@@ -50,6 +50,10 @@ item.ph:condensed_sea_nature=Condensed Sea Nature
 item.ph:guidebook=Phantasm Guidebook
 item.ph:xeonnite_cube=Xeonnite Cube
 item.ph:xeonnite_shard=Xeonnite Shard
+item.ph:raw_solarium=Raw Solarium
+item.ph:solarium_ingot=Solarium Ingot
+item.ph:astralium=Astralium
+item.ph:astralith_alloy=Astralith Alloy
 
 tile.ph:ancient_copper_core.name=Ancient Copper Core
 tile.ph:auric_battery.name=Auric Battery Block
@@ -59,6 +63,14 @@ tile.ph:suspicious_crimson_eye.name=§eSuspicious Crimson Eye
 tile.ph:auric_battery_recharge_station.name=Auric Battery Recharge Station
 tile.ph:xeonnite_ore.name=Xeonnite Ore
 tile.ph:deepslate_xeonnite_ore.name=Deepslate Xeonnite Ore
+tile.ph:stardust.name=Stardust
+tile.ph:astralite.name=Astralite
+tile.ph:solarium_ore.name=Solarium Ore
+tile.ph:deepslate_solarium_ore.name=Deepslate Solarium Ore
+tile.ph:astralium_ore.name=Astralium Ore
+tile.ph:deepslate_astralium_ore.name=Deepslate Astralium Ore
+tile.ph:astralite_astralium_ore.name=Astralite Astralium Ore
+tile.ph:astralite_solarium_ore.name=Astralite Solarium Ore
 
 item.spawn_egg.entity.ph:crimson_tentacle.name=Spawn Crimson Tentacle
 item.spawn_egg.entity.ph:dummy.name=Combat Dummy

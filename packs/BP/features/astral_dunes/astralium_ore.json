@@ -1,0 +1,30 @@
+{
+    "format_version": "1.21.100",
+    "minecraft:ore_feature": {
+        "description": {
+            "identifier": "ph:astralium_ore_feature"
+        },
+        "discard_chance_on_air_exposure": 0.5,
+        "count": 4,
+        "replace_rules": [
+            {
+                "may_replace": [
+                    "minecraft:stone"
+                ],
+                "places_block": "ph:astralium_ore"
+            },
+            {
+                "may_replace": [
+                    "minecraft:deepslate"
+                ],
+                "places_block": "ph:deepslate_astralium_ore"
+            },
+            {
+                "may_replace": [
+                    "ph:astralite"
+                ],
+                "places_block": "ph:astralite_astralium_ore"
+            }
+        ]
+    }
+}

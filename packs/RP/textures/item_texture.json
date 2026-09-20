@@ -155,6 +155,18 @@
 		},
 		"ph_xeonnite_shard": {
 			"textures": "textures/items/xeonnite_shard"
+		},
+		"ph_raw_solarium": {
+			"textures": "textures/items/raw_solarium"
+		},
+		"ph_solarium_ingot": {
+			"textures": "textures/items/solarium_ingot"
+		},
+		"ph_astralium": {
+			"textures": "textures/items/astralium"
+		},
+		"ph_astralith_alloy": {
+			"textures": "textures/items/astralith_alloy"
 		}
 	},
 	"resource_pack_name": "Project Phantasm",

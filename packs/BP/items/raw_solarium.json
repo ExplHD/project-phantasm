@@ -1,0 +1,15 @@
+{
+    "format_version": "1.26.0",
+    "minecraft:item": {
+        "description": {
+            "identifier": "ph:raw_solarium",
+            "menu_category": {
+                "category": "items"
+            }
+        },
+        "components": {
+            "minecraft:icon": "ph_raw_solarium",
+            "minecraft:rarity": "common"
+        }
+    }
+}

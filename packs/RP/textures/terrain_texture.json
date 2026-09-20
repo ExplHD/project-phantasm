@@ -39,6 +39,30 @@
 		},
 		"ph_deepslate_xeonnite_ore": {
 			"textures": "textures/blocks/deepslate_xeonnite_ore"
+		},
+		"ph_stardust": {
+			"textures": "textures/blocks/stardust"
+		},
+		"ph_astralite": {
+			"textures": "textures/blocks/astralite"
+		},
+		"ph_solarium_ore": {
+			"textures": "textures/blocks/solarium_ore"
+		},
+		"ph_deepslate_solarium_ore": {
+			"textures": "textures/blocks/deepslate_solarium_ore"
+		},
+		"ph_astralium_ore": {
+			"textures": "textures/blocks/astralium_ore"
+		},
+		"ph_deepslate_astralium_ore": {
+			"textures": "textures/blocks/deepslate_astralium_ore"
+		},
+		"ph_astralite_astralium_ore": {
+			"textures": "textures/blocks/astralite_astralium_ore"
+		},
+		"ph_astralite_solarium_ore": {
+			"textures": "textures/blocks/astralite_solarium_ore"
 		}
 	}
 }
