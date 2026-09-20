@@ -1,0 +1,30 @@
+{
+    "format_version": "1.21.100",
+    "minecraft:ore_feature": {
+        "description": {
+            "identifier": "ph:solarium_ore_feature"
+        },
+        "discard_chance_on_air_exposure": 0.5,
+        "count": 6,
+        "replace_rules": [
+            {
+                "may_replace": [
+                    "minecraft:stone"
+                ],
+                "places_block": "ph:solarium_ore"
+            },
+            {
+                "may_replace": [
+                    "minecraft:deepslate"
+                ],
+                "places_block": "ph:deepslate_solarium_ore"
+            },
+            {
+                "may_replace": [
+                    "ph:astralite"
+                ],
+                "places_block": "ph:astralite_solarium_ore"
+            }
+        ]
+    }
+}

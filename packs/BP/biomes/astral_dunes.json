@@ -1,0 +1,44 @@
+{
+  "format_version": "1.26.20",
+  "minecraft:biome": {
+    "description": {
+      "identifier": "ph:astral_dunes"
+    },
+    "components": {
+      "minecraft:surface_builder": {
+          "builder": {
+              "type": "minecraft:overworld",
+              "top_material": "ph:stardust",
+              "mid_material": "ph:stardust",
+              "foundation_material": "ph:astralite",
+              "sea_material": "minecraft:water",
+              "sea_floor_material": "minecraft:sand",
+              "sea_floor_depth": 0
+          }
+      },
+      "minecraft:creature_spawn_probability": {
+          "probability": 0.60
+      },
+      "minecraft:replace_biomes": {
+          "replacements": [
+              {
+                  "dimension": "minecraft:overworld",
+                  "targets": [
+                      "minecraft:desert"
+                  ],
+                  "amount": 0.15,
+                  "noise_frequency_scale": 1
+              }
+          ]
+      },
+      "minecraft:tags": {
+          "tags": [
+              "ph:astral_dunes",
+              "deep",
+              "spawns_without_patrols",
+              "overworld"
+          ]
+      }
+    }
+  }
+}

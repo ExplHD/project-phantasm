@@ -18,5 +18,29 @@
 	},
 	"ph:auric_battery_recharge_station": {
 		"sound": "copper"
+	},
+	"ph:stardust": {
+		"sound": "sand"
+	},
+	"ph:astralite": {
+		"sound": "stone"
+	},
+	"ph:solarium_ore": {
+		"sound": "stone"
+	},
+	"ph:deepslate_solarium_ore": {
+		"sound": "deepslate"
+	},
+	"ph:astralium_ore": {
+		"sound": "stone"
+	},
+	"ph:deepslate_astralium_ore": {
+		"sound": "deepslate"
+	},
+	"ph:astralite_astralium_ore": {
+		"sound": "stone"
+	},
+	"ph:astralite_solarium_ore": {
+		"sound": "stone"
 	}
 }
