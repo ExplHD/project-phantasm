@@ -48,6 +48,8 @@ item.ph:auric_charging_module=Auric Charging Module
 item.ph:auric_proton=Auric Proton
 item.ph:condensed_sea_nature=Condensed Sea Nature
 item.ph:guidebook=Phantasm Guidebook
+item.ph:xeonnite_cube=Xeonnite Cube
+item.ph:xeonnite_shard=Xeonnite Shard
 
 tile.ph:ancient_copper_core.name=Ancient Copper Core
 tile.ph:auric_battery.name=Auric Battery Block
@@ -55,6 +57,8 @@ tile.ph:core_battery.name=Core Battery Block
 tile.ph:prismarine_battery.name=Prismatic Battery Block
 tile.ph:suspicious_crimson_eye.name=§eSuspicious Crimson Eye
 tile.ph:auric_battery_recharge_station.name=Auric Battery Recharge Station
+tile.ph:xeonnite_ore.name=Xeonnite Ore
+tile.ph:deepslate_xeonnite_ore.name=Deepslate Xeonnite Ore
 
 item.spawn_egg.entity.ph:crimson_tentacle.name=Spawn Crimson Tentacle
 item.spawn_egg.entity.ph:dummy.name=Combat Dummy

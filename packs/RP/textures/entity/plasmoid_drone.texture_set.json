@@ -1,0 +1,8 @@
+{
+	"format_version": "1.16.100",
+	"minecraft:texture_set": {
+		"color": "plasmoid_drone",
+		"metalness_emissive_roughness": "plasmoid_drone_mers",
+		"heightmap": "plasmoid_drone_height"
+	}
+}

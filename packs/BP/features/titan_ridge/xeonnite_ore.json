@@ -1,0 +1,24 @@
+{
+    "format_version": "1.21.100",
+    "minecraft:ore_feature": {
+        "description": {
+            "identifier": "ph:xeonnite_ore_feature"
+        },
+        "discard_chance_on_air_exposure": 0.1,
+        "count": 3,
+        "replace_rules": [
+            {
+                "may_replace": [
+                    "minecraft:stone"
+                ],
+                "places_block": "ph:xeonnite_ore"
+            },
+            {
+                "may_replace": [
+                    "minecraft:deepslate"
+                ],
+                "places_block": "ph:deepslate_xeonnite_ore"
+            }
+        ]
+    }
+}

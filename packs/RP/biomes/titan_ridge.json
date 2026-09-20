@@ -1,0 +1,22 @@
+{
+    "format_version": "1.21.130",
+    "minecraft:client_biome": {
+        "description": {
+            "identifier": "ph:titan_ridge"
+        },
+        "components": {
+            "minecraft:sky_color": {
+                "sky_color": "#717c8f"
+            },
+            "minecraft:fog_appearance": {
+                "fog_identifier": "ph:titan_ridge_fog"
+            },
+            "minecraft:water_appearance": {
+                "surface_color": "#0299c7"
+            },
+            "minecraft:dry_foliage_color": {
+                "color": "#717c8f"
+            }
+        }
+    }
+}

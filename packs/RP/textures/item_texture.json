@@ -149,6 +149,12 @@
 		},
 		"ph_guidebook": {
 			"textures": "textures/items/guidebook"
+		},
+		"ph_xeonnite_cube": {
+			"textures": "textures/items/xeonnite_cube"
+		},
+		"ph_xeonnite_shard": {
+			"textures": "textures/items/xeonnite_shard"
 		}
 	},
 	"resource_pack_name": "Project Phantasm",

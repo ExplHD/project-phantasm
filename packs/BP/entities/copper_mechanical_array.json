@@ -62,7 +62,7 @@
             },
             "ph:dash_timer": {
                 "minecraft:timer": {
-                    "time": 1.25,
+                    "time": 3.275,
                     "time_down_event": {
                         "event": "ph:dash"
                     }
@@ -83,7 +83,7 @@
             },
             "ph:slash_timer": {
                 "minecraft:timer": {
-                    "time": 1.5,
+                    "time": 3,
                     "time_down_event": {
                         "event": "ph:slash_attack"
                     }
@@ -91,7 +91,7 @@
             },
             "ph:lightning_pillar_timer": {
                 "minecraft:timer": {
-                    "time": 1.5,
+                    "time": 3,
                     "time_down_event": {
                         "event": "ph:lightning_pillar_attack"
                     }
@@ -548,7 +548,7 @@
                 },
                 "queue_command": {
                     "command": [
-                        "scriptevent ph:ram_dash 8, 35, 2, custom_sfx.judgement_cut"
+                        "scriptevent ph:ram_dash 17, 35, 2, custom_sfx.judgement_cut"
                     ]
                 }
             },

@@ -37,7 +37,7 @@
             "minecraft:icon": "ph:ocean_tide_helmet",
             "minecraft:wearable": {
                 "slot": "slot.armor.head",
-                "protection": 4
+                "protection": 3
             },
             "minecraft:repairable": {
                 "repair_items": [

@@ -1,0 +1,36 @@
+{
+    "format_version": "1.26.0",
+    "minecraft:block": {
+        "description": {
+            "identifier": "ph:deepslate_xeonnite_ore",
+            "menu_category": {
+                "category": "nature",
+                "group": "minecraft:itemGroup.name.ore"
+            }
+        },
+        "components": {
+            "minecraft:geometry": "minecraft:geometry.full_block",
+            "minecraft:material_instances": {
+                "*": {
+                    "texture": "ph_deepslate_xeonnite_ore",
+                    "render_method": "opaque"
+                }
+            },
+            "minecraft:map_color": "#FF1900",
+            "minecraft:destructible_by_explosion": false,
+            "minecraft:destructible_by_mining": {
+				"seconds_to_destroy": 910,
+				"item_specific_speeds": [
+					{
+						"item": {
+							"tags": "query.all_tags('minecraft:is_pickaxe', 'ph:prismatic_tier')"
+						},
+						"destroy_speed": 68
+					}
+				]
+			},
+            "minecraft:loot": "loot_tables/blocks/xeonnite_ore.json",
+            "tag:minecraft:is_pickaxe_item_destructible": {}
+        }
+    }
+}

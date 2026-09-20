@@ -36,7 +36,7 @@
             "minecraft:icon": "ph:naturalist_leggings",
             "minecraft:wearable": {
                 "slot": "slot.armor.legs",
-                "protection": 7
+                "protection": 3
             },
             "minecraft:repairable": {
                 "repair_items": [

@@ -1,0 +1,42 @@
+{
+    "format_version": "1.26.0",
+    "minecraft:client_entity": {
+        "description": {
+            "identifier": "ph:plasmoid_drone",
+            "materials": {
+                "default": "entity_emissive_alpha"
+            },
+            "geometry": {
+                "default": "geometry.plasmoid_drone"
+            },
+            "textures": {
+                "default": "textures/entity/plasmoid_drone"
+            },
+            "particle_effects": {
+                "plasmoid_drone_trail": "ph:plasmoid_drone_trail",
+                "plasmoid_drone_charge": "ph:plasmoid_drone_charge"
+            },
+            "animations": {
+                "move_controller": "controller.animation.plasmoid_drone",
+                "shoot_controller": "controller.animation.plasmoid_drone.shoot",
+                "look_at_target": "animation.plasmoid_drone.look_at_target",
+                "idle": "animation.plasmoid_drone.idle",
+                "move": "animation.plasmoid_drone.move",
+                "shoot": "animation.plasmoid_drone.shoot"
+            },
+            "scripts": {
+                "animate": [
+                    "move_controller",
+                    "shoot_controller",
+                    "idle",
+                    {
+                        "look_at_target": "query.has_target"
+                    }
+                ]
+            },
+            "render_controllers": [
+                "controller.render.plasmoid_drone"
+            ]
+        }
+    }
+}

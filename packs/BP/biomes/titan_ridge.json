@@ -1,0 +1,66 @@
+{
+    "format_version": "1.26.30",
+    "minecraft:biome": {
+        "description": {
+            "identifier": "ph:titan_ridge"
+        },
+        "components": {
+            "minecraft:overworld_height": {
+                "noise_params": [ 1.5, 0.8 ]
+            },
+            "minecraft:climate": {
+                "downfall": 10,
+                "temperature": 0.5
+            },
+            "minecraft:humidity": {
+                "is_humid": false
+            },
+            "minecraft:surface_builder": {
+                "builder": {
+                    "type": "minecraft:overworld",
+                    "top_material": "minecraft:air",
+                    "mid_material": "minecraft:air",
+                    "foundation_material": "minecraft:air",
+                    "sea_material": "minecraft:air",
+                    "sea_floor_material": "minecraft:air",
+                    "sea_floor_depth": 0
+                }
+            },
+            "minecraft:subsurface_builder": {
+                "builder": {
+                    "type": "minecraft:overworld",
+                    "top_material": "minecraft:cobbled_deepslate",
+                    "mid_material": "minecraft:tuff",
+                    "foundation_material": "minecraft:stone",
+                    "sea_floor_depth": 0,
+                    "sea_material": "minecraft:air",
+                    "sea_floor_material": "minecraft:air"
+                }
+            },
+            "minecraft:creature_spawn_probability": {
+                "probability": 0.60
+            },
+            "minecraft:replace_biomes": {
+                "replacements": [
+                    {
+                        "dimension": "minecraft:overworld",
+                        "targets": [
+                            "minecraft:plains",
+                            "minecraft:forest"
+                        ],
+                        "amount": 0.2,
+                        "noise_frequency_scale": 1
+                    }
+                ]
+            },
+            "minecraft:tags": {
+                "tags": [
+                    "ph:titan_ridge",
+                    "deep",
+                    "spawns_without_patrols",
+                    "overworld"
+                ]
+            }
+        }
+    }
+}

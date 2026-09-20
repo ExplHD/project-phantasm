@@ -1,0 +1,18 @@
+{
+    "format_version": "1.26.0",
+    "minecraft:item": {
+        "description": {
+            "identifier": "ph:xeonnite_cube",
+            "menu_category": {
+                "category": "items"
+            }
+        },
+        "components": {
+            "minecraft:icon": "ph_xeonnite_cube",
+            "minecraft:fire_resistant": {
+                "value": true
+            },
+            "minecraft:rarity": "rare"
+        }
+    }
+}

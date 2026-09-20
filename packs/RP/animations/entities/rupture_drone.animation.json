@@ -1,0 +1,59 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"animation.rupture_drone.move": {
+			"loop": true,
+			"animation_length": 0.0417,
+			"bones": {
+				"root": {
+					"rotation": [
+						"(query.has_target ? 0 : ((query.modified_move_speed < 0.45 ? 0 : math.clamp((query.modified_move_speed - 0.45) * 30, 0, 14)) + (math.abs(query.vertical_speed) < 0.35 ? 0 : (query.vertical_speed < 0 ? math.clamp(-query.vertical_speed * 20, 0, 12) : math.clamp(-query.vertical_speed * 45, -30, 0)))))",
+						0,
+						"math.clamp(query.yaw_speed * 0.02, -20, 20)"
+					]
+				}
+			},
+			"particle_effects": {
+				"0.0": {
+					"effect": "rupture_drone_trail",
+					"locator": "locator"
+				}
+			}
+		},
+		"animation.rupture_drone.look_at_target": {
+			"loop": true,
+			"bones": {
+				"root": {
+					"relative_to": {
+						"rotation": "entity"
+					},
+					"rotation": ["math.clamp(query.target_x_rotation, -45, 45)", "query.target_y_rotation", 0]
+				}
+			}
+		},
+		"animation.rupture_drone.blade_retracted": {
+			"loop": true,
+			"bones": {
+				"blade": {
+					"scale": [0, 0, 0]
+				}
+			}
+		},
+		"animation.rupture_drone.blade_extended": {
+			"loop": true,
+			"bones": {
+				"blade": {
+					"scale": [1, 1, 1]
+				}
+			}
+		},
+		"animation.rupture_drone.dash": {
+			"loop": true,
+			"bones": {
+				"root": {
+					"rotation": [15, 0, 0]
+				}
+			}
+		}
+	}
+}
