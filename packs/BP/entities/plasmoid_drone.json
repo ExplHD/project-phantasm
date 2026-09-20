@@ -1,0 +1,131 @@
+{
+    "format_version": "1.26.0",
+    "minecraft:entity": {
+        "description": {
+            "identifier": "ph:plasmoid_drone",
+            "is_spawnable": true,
+            "is_summonable": true,
+            "is_experimental": false,
+            "spawn_category": "monster"
+        },
+        "component_groups": {},
+        "components": {
+            "minecraft:health": {
+                "value": 16,
+                "max": 16
+            },
+            "minecraft:collision_box": {
+                "width": 0.4,
+                "height": 0.3
+            },
+            "minecraft:type_family": {
+                "family": [
+                    "drones",
+                    "titan_ridge"
+                ]
+            },
+            "minecraft:movement": {
+                "value": 0.5
+            },
+            "minecraft:flying_speed": {
+                "value": 0.15
+            },
+            "minecraft:can_fly": {},
+            "minecraft:jump.static": {},
+            "minecraft:physics": {
+                "has_gravity": false
+            },
+            "minecraft:navigation.hover": {
+                "can_path_over_water": true,
+                "can_path_from_air": true,
+                "can_sink": false,
+                "avoid_water": true,
+                "avoid_sun": false,
+                "avoid_damage_blocks": true,
+                "can_pass_doors": false
+            },
+            "minecraft:movement.hover": {
+                "max_turn": 180
+            },
+            "minecraft:behavior.nearest_attackable_target": {
+                "priority": 0,
+                "within_radius": 24,
+                "target_search_height": 10,
+                "must_see": true,
+                "reselect_targets": true,
+                "entity_types": [
+                    {
+                        "filters": {
+                            "test": "is_family",
+                            "subject": "other",
+                            "operator": "!=",
+                            "value": "titan_ridge"
+                        },
+                        "max_dist": 24,
+                        "walk_speed_multiplier": 2
+                    }
+                ]
+            },
+            "minecraft:behavior.ranged_attack": {
+                "speed_multiplier": 1,
+                "attack_radius": 24,
+                "priority": 1,
+                "ranged_fov": 180,
+                "target_in_sight_time": 0.5,
+                "charge_shoot_trigger": 1.5,
+                "charge_charged_trigger": 0.75
+            },
+            "minecraft:shooter": {
+                "def": "ph:plasmoid_drone_projectile",
+                "sound": "mob.plasmoid_drone.shoot"
+            },
+            "minecraft:behavior.hurt_by_target": {
+                "priority": 2,
+                "entity_types": [
+                    {
+                        "filters": {
+                            "test": "is_family",
+                            "subject": "other",
+                            "operator": "!=",
+                            "value": "titan_ridge"
+                        }
+                    }
+                ]
+            },
+            "minecraft:behavior.look_at_target": {
+                "priority": 3,
+                "look_distance": 24
+            },
+            "minecraft:behavior.random_hover": {
+                "priority": 4,
+                "hover_height": [ 3, 7 ],
+                "xz_dist": 32,
+                "y_dist": 7,
+                "interval": 1,
+                "y_offset": 1
+            },
+            "minecraft:behavior.float": {
+                "priority": 5
+            },
+            "minecraft:despawn": {
+                "despawn_from_distance": {}
+            },
+            "minecraft:nameable": {},
+            "minecraft:damage_sensor": {
+                "triggers": [
+                    {
+                        "on_damage": {
+                            "filters": {
+                                "test": "is_family",
+                                "subject": "damager",
+                                "value": "titan_ridge"
+                            }
+                        },
+                        "deals_damage": "no"
+                    }
+                ]
+            }
+        },
+        "events": {}
+    }
+}

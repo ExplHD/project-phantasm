@@ -1,0 +1,41 @@
+{
+    "format_version": "1.26.0",
+    "minecraft:client_entity": {
+        "description": {
+            "identifier": "ph:rupture_drone",
+            "materials": {
+                "default": "entity_emissive_alpha"
+            },
+            "geometry": {
+                "default": "geometry.rupture_drone"
+            },
+            "textures": {
+                "default": "textures/entity/rupture_drone"
+            },
+            "particle_effects": {
+                "rupture_drone_trail": "ph:rupture_drone_trail"
+            },
+            "animations": {
+                "move_controller": "controller.animation.rupture_drone",
+                "blade_controller": "controller.animation.rupture_drone.blade",
+                "look_at_target": "animation.rupture_drone.look_at_target",
+                "move": "animation.rupture_drone.move",
+                "blade_retracted": "animation.rupture_drone.blade_retracted",
+                "blade_extended": "animation.rupture_drone.blade_extended",
+                "dash": "animation.rupture_drone.dash"
+            },
+            "scripts": {
+                "animate": [
+                    "move_controller",
+                    "blade_controller",
+                    {
+                        "look_at_target": "query.has_target"
+                    }
+                ]
+            },
+            "render_controllers": [
+                "controller.render.rupture_drone"
+            ]
+        }
+    }
+}

@@ -37,7 +37,7 @@
             "minecraft:icon": "ph:ocean_tide_leggings",
             "minecraft:wearable": {
                 "slot": "slot.armor.legs",
-                "protection": 7
+                "protection": 6
             },
             "minecraft:repairable": {
                 "repair_items": [

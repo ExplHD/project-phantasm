@@ -412,6 +412,18 @@ system.afterEvents.scriptEventReceive.subscribe(({ id, message, sourceBlock, sou
             beginCollisionCheck(sourceEntity, 14, ramDamage, collisionRadius);
             sourceEntity.runCommand(`playsound ${ramDash[3]} @a[r=32] ~~~ 1 1 0.3`);
             break;
+        case "ph:ram_dash_3d":
+            if (!sourceEntity) return;
+            const ramDirection3d = sourceEntity.getViewDirection();
+
+            const ramDash3d = message.split(",");
+            const force3d = Number(ramDash3d[0]);
+            const ramDamage3d = Number(ramDash3d[1]);
+            const collisionRadius3d = Number(ramDash3d[2]);
+            sourceEntity.applyImpulse({ x: ramDirection3d.x * force3d, y: ramDirection3d.y * force3d, z: ramDirection3d.z * force3d });
+            beginCollisionCheck(sourceEntity, 14, ramDamage3d, collisionRadius3d, ramDash3d[4]);
+            sourceEntity.runCommand(`playsound ${ramDash3d[3]} @a[r=32] ~~~ 1 1 0.3`);
+            break;
         case "ph:laser_once":
             if (!sourceEntity) return;
             const laserBeamOnce = message.split(",");
@@ -502,7 +514,7 @@ function distancePointToSegment(point: { x: number; y: number; z: number }, star
     );
 }
 
-function beginCollisionCheck(dasher: any, duration: number, damage: number, collisionRadius: number) {
+function beginCollisionCheck(dasher: any, duration: number, damage: number, collisionRadius: number, spareFamily?: string) {
     let tick = 0;
     let prevPos = { ...dasher.location };
 
@@ -529,6 +541,7 @@ function beginCollisionCheck(dasher: any, duration: number, damage: number, coll
             if (target.hasTag("parried")) continue;
             if (target.id === dasher.id) continue;
             if (hitEntities.has(target.id)) continue;
+            if (spareFamily && target.getComponent("minecraft:type_family")?.getTypeFamilies()?.includes(spareFamily)) continue;
 
             const dist = distancePointToSegment(
                 target.location,

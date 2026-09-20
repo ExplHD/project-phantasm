@@ -35,7 +35,7 @@
             "minecraft:icon": "ph:naturalist_boots",
             "minecraft:wearable": {
                 "slot": "slot.armor.feet",
-                "protection": 4
+                "protection": 3
             },
             "minecraft:repairable": {
                 "repair_items": [

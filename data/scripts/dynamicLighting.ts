@@ -68,7 +68,7 @@ export function clearPlayerLighting(player: Player): void {
     lightingStates.delete(player.id);
 
     for (let i = 0; i <= 15; i++) {
-        player.removeTag(`light_${i}`);
+        system.run(() => { player.removeTag(`light_${i}`); });
     }
     removeLightBlocks(player);
 }

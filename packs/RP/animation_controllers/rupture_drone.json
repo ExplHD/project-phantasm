@@ -1,0 +1,55 @@
+{
+    "format_version": "1.10.0",
+    "animation_controllers": {
+        "controller.animation.rupture_drone": {
+            "initial_state": "idle",
+            "states": {
+                "idle": {
+                    "transitions": [
+                        {
+                            "move": "query.modified_move_speed > 0.25"
+                        }
+                    ]
+                },
+                "move": {
+                    "animations": [
+                        "move"
+                    ],
+                    "transitions": [
+                        {
+                            "idle": "query.modified_move_speed < 0.25"
+                        }
+                    ]
+                }
+            }
+        },
+        "controller.animation.rupture_drone.blade": {
+            "initial_state": "retracted",
+            "states": {
+                "retracted": {
+                    "animations": [
+                        "blade_retracted"
+                    ],
+                    "blend_transition": 0.2,
+                    "transitions": [
+                        {
+                            "extended": "query.has_target"
+                        }
+                    ]
+                },
+                "extended": {
+                    "animations": [
+                        "blade_extended",
+                        "dash"
+                    ],
+                    "blend_transition": 0.2,
+                    "transitions": [
+                        {
+                            "retracted": "!query.has_target"
+                        }
+                    ]
+                }
+            }
+        }
+    }
+}

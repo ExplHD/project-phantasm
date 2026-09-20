@@ -36,7 +36,7 @@
             "minecraft:icon": "ph:naturalist_chestplate",
             "minecraft:wearable": {
                 "slot": "slot.armor.chest",
-                "protection": 10
+                "protection": 8
             },
             "minecraft:repairable": {
                 "repair_items": [

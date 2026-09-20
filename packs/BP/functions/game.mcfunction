@@ -7,6 +7,7 @@ execute as @e[family=copper_mechanical,tag=locked] at @s run tp @s ~~~ facing @e
 execute at @e[type=ph:spectric_laser] run particle ph:spectric_laser_small ^1^^
 execute at @e[type=ph:spectric_laser] run particle ph:spectric_laser_small ^-1^^
 execute at @e[type=ph:peacemaker_oath_projectile] run particle ph:peacemaker_oath_flash ~~~
+execute at @e[type=ph:plasmoid_drone_projectile] run particle ph:plasmoid_drone_trail ~~~
 
 # Boss Despawn Mechanic
 execute as @e[type=ph:soul_of_nature] at @s if entity @a[rm=64,r=80,scores={sectick=19..}] run function boss_despawn/soul_of_nature

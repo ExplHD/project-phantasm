@@ -35,7 +35,7 @@
             "minecraft:icon": "ph:naturalist_helmet",
             "minecraft:wearable": {
                 "slot": "slot.armor.head",
-                "protection": 4
+                "protection": 6
             },
             "minecraft:repairable": {
                 "repair_items": [

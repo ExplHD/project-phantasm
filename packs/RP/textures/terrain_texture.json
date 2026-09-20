@@ -33,6 +33,12 @@
 		},
 		"ph_auric_battery_recharge_station_result": {
 			"textures": "textures/blocks/auric_battery_recharge_station_result"
+		},
+		"ph_xeonnite_ore": {
+			"textures": "textures/blocks/xeonnite_ore"
+		},
+		"ph_deepslate_xeonnite_ore": {
+			"textures": "textures/blocks/deepslate_xeonnite_ore"
 		}
 	}
 }

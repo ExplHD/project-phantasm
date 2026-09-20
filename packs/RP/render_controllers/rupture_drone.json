@@ -1,0 +1,14 @@
+{
+    "format_version": "1.10.0",
+    "render_controllers": {
+        "controller.render.rupture_drone": {
+            "materials": [
+                {
+                    "*": "Material.default"
+                }
+            ],
+            "geometry": "Geometry.default",
+            "textures": [ "Texture.default" ]
+        }
+    }
+}

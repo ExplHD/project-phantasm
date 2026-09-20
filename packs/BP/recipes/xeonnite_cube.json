@@ -1,0 +1,30 @@
+{
+    "format_version": "1.21.0",
+    "minecraft:recipe_shaped": {
+        "description": {
+            "identifier": "ph:xeonnite_cube"
+        },
+        "tags": [
+            "crafting_table"
+        ],
+        "assume_symmetry": false,
+        "pattern": [
+            "A ",
+            " A"
+        ],
+        "key": {
+            "A": {
+                "item": "ph:xeonnite_shard"
+            }
+        },
+        "unlock": [
+            {
+                "item": "ph:xeonnite_shard"
+            }
+        ],
+        "result": {
+            "item": "ph:xeonnite_cube",
+            "count": 1
+        }
+    }
+}

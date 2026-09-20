@@ -1,0 +1,29 @@
+{
+    "format_version": "1.21.100",
+    "minecraft:feature_rules": {
+        "description": {
+            "identifier": "ph:titan_ridge_rig_rule",
+            "places_feature": "ph:titan_ridge_rig"
+        },
+        "conditions": {
+            "minecraft:biome_filter": [
+                {
+                    "test": "has_biome_tag",
+                    "operator": "==",
+                    "value": "ph:titan_ridge"
+                }
+            ],
+            "placement_pass": "after_surface_pass"
+        },
+        "distribution": {
+			"iterations": 1,
+			"scatter_chance": {
+				"numerator": 1,
+				"denominator": 10
+			},
+			"x": 0,
+			"y": "query.heightmap(variable.worldx, variable.worldz)",
+			"z": 0
+		}
+    }
+}

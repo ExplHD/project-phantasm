@@ -1,0 +1,15 @@
+{
+    "format_version": "1.21.100",
+    "minecraft:structure_template_feature": {
+        "description": {
+            "identifier": "ph:titan_ridge_house_1"
+        },
+        "structure_name": "mystructure:titan_ridge/tr_house_1",
+        "facing_direction": "random",
+        "adjustment_radius": 12,
+        "constraints": {
+            "grounded": {},
+            "unburied": {}
+        }
+    }
+}

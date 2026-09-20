@@ -1,0 +1,37 @@
+{
+    "format_version": "1.16.100",
+    "minecraft:spawn_rules": {
+        "description": {
+            "identifier": "ph:plasmoid_drone",
+            "population_control": "monster"
+        },
+        "conditions": [
+            {
+                "minecraft:biome_filter": [
+                    {
+                        "test": "has_biome_tag",
+                        "operator": "==",
+                        "value": "ph:titan_ridge"
+                    }
+                ],
+                "minecraft:spawns_on_surface": {},
+                "minecraft:spawns_underground": {},
+                "minecraft:herd": {
+                    "min_size": 1,
+                    "max_size": 3
+                },
+                "minecraft:difficulty_filter": {
+                    "min": "easy",
+                    "max": "hard"
+                },
+                "minecraft:density_limit": {
+                    "surface": 15,
+                    "underground": 7
+                },
+                "minecraft:weight": {
+                    "default": 1
+                }
+            }
+        ]
+    }
+}

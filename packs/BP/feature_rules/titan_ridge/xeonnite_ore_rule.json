@@ -1,0 +1,35 @@
+{
+    "format_version": "1.21.100",
+    "minecraft:feature_rules": {
+        "description": {
+            "identifier": "ph:xeonnite_ore_rule",
+            "places_feature": "ph:xeonnite_ore_feature"
+        },
+        "conditions": {
+            "minecraft:biome_filter": [
+                {
+                    "test": "has_biome_tag",
+                    "operator": "==",
+                    "value": "ph:titan_ridge"
+                }
+            ],
+            "placement_pass": "underground_pass"
+        },
+        "distribution": {
+            "iterations": 10,
+            "coordinate_eval_order": "zyx",
+            "x": {
+                "distribution": "uniform",
+                "extent": [0, 16]
+            },
+            "y": {
+                "distribution": "uniform",
+                "extent": [-54, 16]
+            },
+            "z": {
+                "distribution": "uniform",
+                "extent": [0, 16]
+            }
+        }
+    }
+}

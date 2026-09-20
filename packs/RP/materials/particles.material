@@ -7,6 +7,7 @@
 			"blendSrc": "SourceAlpha",
 			"blendDst": "OneMinusSrcAlpha"
 		},
+		// Invert
 		"particles_blend_exclusion:particles_blend": {
 			"blendSrc": "OneMinusDestColor",
 			"blendDst": "OneMinusSrcColor"

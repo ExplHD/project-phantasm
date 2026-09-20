@@ -1,0 +1,14 @@
+{
+    "format_version": "1.21.0",
+    "minecraft:recipe_furnace": {
+        "description": {
+            "identifier": "ph:xeonnite_shard_stone"
+        },
+        "tags": [
+            "blast_furnace",
+            "furnace"
+        ],
+        "input": "ph:xeonnite_ore",
+        "output": "ph:xeonnite_shard"
+    }
+}
