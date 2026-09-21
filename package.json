@@ -4,6 +4,7 @@
     "@minecraft/server-ui": "^2.1.0"
   },
   "devDependencies": {
+    "esbuild": "^0.28.2",
     "typescript": "^7.0.2"
   }
 }

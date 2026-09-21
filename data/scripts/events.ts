@@ -153,6 +153,83 @@ world.beforeEvents.playerInteractWithBlock.subscribe((event) => {
     vanillaBlockInteractFix(player, item, block);
 })
 
+// ======================================== Crystall support pop ========================================
+// onTick di block JSON tidak jalan untuk block hasil world-gen/structure karena
+// tidak pernah masuk antrian random tick, jadi pop dicek secara global di sini.
+
+const crystallDrops: Record<string, string> = {
+    "ph:small_crystall_bud": "ph:small_crystall_bud_item",
+    "ph:large_crystall_bud": "ph:large_crystall_bud_item",
+    "ph:crystall_cluster": "ph:crystall_cluster_item"
+};
+
+function getCrystallSupport(block: any) {
+    let face: string;
+    try {
+        face = block.permutation.getState("minecraft:block_face");
+    } catch {
+        return undefined;
+    }
+    switch (face) {
+        case "up": return block.below();
+        case "down": return block.above();
+        // block_face = face support yang diklik, jadi support ada di arah lawan
+        case "north": return block.south();
+        case "south": return block.north();
+        case "east": return block.west();
+        case "west": return block.east();
+        default: return undefined;
+    }
+}
+
+function popCrystallIfFloating(block: any, drop = true): boolean {
+    if (!block?.isValid) return false;
+    const typeId: string = block.typeId;
+    const dropId: string | undefined = crystallDrops[typeId];
+    if (!dropId) return false;
+    const support = getCrystallSupport(block);
+    if (!support) return false;
+    if (!support.isAir && !support.isLiquid) return false;
+    const loc = block.location;
+    const center = { x: loc.x + 0.5, y: loc.y + 0.5, z: loc.z + 0.5 };
+    block.dimension.setBlockType(loc, "minecraft:air");
+    if (drop) {
+        try {
+            block.dimension.spawnItem(new ItemStack(dropId, 1), center);
+        } catch (err) {
+            console.warn(`[ph] crystall drop failed for ${typeId}: ${err}`);
+        }
+    }
+    try {
+        block.dimension.playSound("dig.amethyst", center);
+    } catch { }
+    return true;
+}
+
+// Pop instan saat player menghancurkan block penyangga (berlaku untuk semua
+// penempatan: manual, lama, maupun hasil structure/world-gen)
+world.afterEvents.playerBreakBlock.subscribe((e) => {
+    const loc = e.block.location;
+    const dimension = e.dimension;
+    let drop = true;
+    try {
+        drop = e.player?.getGameMode?.() !== "Creative";
+    } catch { }
+    system.run(() => {
+        const offsets = [
+            { x: 0, y: 1, z: 0 }, { x: 0, y: -1, z: 0 },
+            { x: 0, y: 0, z: 1 }, { x: 0, y: 0, z: -1 },
+            { x: 1, y: 0, z: 0 }, { x: -1, y: 0, z: 0 }
+        ];
+        for (const off of offsets) {
+            try {
+                const neighbor = dimension.getBlock({ x: loc.x + off.x, y: loc.y + off.y, z: loc.z + off.z });
+                if (neighbor) popCrystallIfFloating(neighbor, drop);
+            } catch { }
+        }
+    });
+});
+
 // ======================================== World After Events ========================================
 
 world.afterEvents.entityHitEntity.subscribe((acc) => {
@@ -345,6 +422,38 @@ system.runInterval(() => {
         javaSaturationRegen(player);
     }
 }, 6);
+
+// Safety net: pop bud/cluster world-gen yang sudah telanjur melayang
+// (support hilang sebelum script ini ada / hancur oleh ledakan / command).
+// Tiap 2 detik, box kecil di sekitar player biar murah.
+system.runInterval(() => {
+    for (const player of world.getPlayers()) {
+        try {
+            const base = player.location;
+            const dimension = player.dimension;
+            const bx = Math.floor(base.x);
+            const by = Math.floor(base.y);
+            const bz = Math.floor(base.z);
+            const HR = 5;
+            const VR = 4;
+            for (let dx = -HR; dx <= HR; dx++) {
+                for (let dy = -VR; dy <= VR; dy++) {
+                    for (let dz = -HR; dz <= HR; dz++) {
+                        let block: any;
+                        try {
+                            block = dimension.getBlock({ x: bx + dx, y: by + dy, z: bz + dz });
+                        } catch {
+                            continue;
+                        }
+                        if (block && block.typeId in crystallDrops) {
+                            popCrystallIfFloating(block, true);
+                        }
+                    }
+                }
+            }
+        } catch { }
+    }
+}, 40);
 
 // ======================================== System After Events ========================================
 

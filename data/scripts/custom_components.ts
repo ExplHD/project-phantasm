@@ -669,6 +669,49 @@ system.beforeEvents.startup.subscribe((initEvent: any) => {
         }
     })
 
+    initEvent.blockComponentRegistry.registerCustomComponent("ph:crystall_support", {
+        onTick({ block, dimension }: any) {
+            if (!block?.isValid) return;
+            let face: string;
+            try {
+                face = block.permutation.getState("minecraft:block_face");
+            } catch {
+                return;
+            }
+            let support: any;
+            switch (face) {
+                case "up": support = block.below(); break;
+                case "down": support = block.above(); break;
+                // block_face = face of support that was clicked, so support is opposite
+                case "north": support = block.south(); break;
+                case "south": support = block.north(); break;
+                case "east": support = block.west(); break;
+                case "west": support = block.east(); break;
+                default: return;
+            }
+            if (!support) return;
+            if (!support.isAir && !support.isLiquid) return;
+            // Support gone -> pop + drop item
+            let dropId: string | undefined;
+            try {
+                dropId = block.getComponent("ph:crystall_support")?.customComponentParameters?.params?.drop_item;
+            } catch {
+                dropId = undefined;
+            }
+            const loc = block.location;
+            const center = { x: loc.x + 0.5, y: loc.y + 0.5, z: loc.z + 0.5 };
+            dimension.setBlockType(loc, "minecraft:air");
+            if (dropId) {
+                try {
+                    dimension.spawnItem(new ItemStack(dropId, 1), center);
+                } catch { }
+            }
+            try {
+                dimension.playSound("dig.amethyst", center);
+            } catch { }
+        }
+    })
+
     initEvent.blockComponentRegistry.registerCustomComponent("ph:item_charger", {
         onPlayerInteract({ player, block, dimension }: any, { params }: any) {
             const item = params.item;
