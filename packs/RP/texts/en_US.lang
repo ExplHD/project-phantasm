@@ -73,6 +73,13 @@ tile.ph:astralite_astralium_ore.name=Astralite Astralium Ore
 tile.ph:astralite_solarium_ore.name=Astralite Solarium Ore
 tile.ph:construction_line_block.name=Construction Line Block
 tile.ph:xeonnite_block.name=Xeonnite Block
+tile.ph:condensed_crystall.name=Condensed Crystall
+tile.ph:small_crystall_bud.name=Small Crystall Bud
+tile.ph:large_crystall_bud.name=Large Crystall Bud
+tile.ph:crystall_cluster.name=Crystall Cluster
+item.ph:small_crystall_bud_item=Small Crystall Bud
+item.ph:large_crystall_bud_item=Large Crystall Bud
+item.ph:crystall_cluster_item=Crystall Cluster
 
 item.spawn_egg.entity.ph:crimson_tentacle.name=Spawn Crimson Tentacle
 item.spawn_egg.entity.ph:dummy.name=Combat Dummy

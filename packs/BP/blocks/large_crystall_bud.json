@@ -1,0 +1,117 @@
+{
+    "format_version": "1.26.0",
+    "minecraft:block": {
+        "description": {
+            "identifier": "ph:large_crystall_bud",
+            "menu_category": {
+                "category": "construction"
+            },
+            "traits": {
+                "minecraft:placement_position": {
+                    "enabled_states": [
+                        "minecraft:block_face"
+                    ]
+                }
+            }
+        },
+        "permutations": [
+            {
+                "condition": "q.block_state('minecraft:block_face') == 'up'",
+                "components": {
+                    "minecraft:transformation": {
+                        "rotation": [
+                            0,
+                            0,
+                            0
+                        ]
+                    }
+                }
+            },
+            {
+                "condition": "q.block_state('minecraft:block_face') == 'down'",
+                "components": {
+                    "minecraft:transformation": {
+                        "rotation": [
+                            180,
+                            0,
+                            0
+                        ]
+                    }
+                }
+            },
+            {
+                "condition": "q.block_state('minecraft:block_face') == 'north'",
+                "components": {
+                    "minecraft:transformation": {
+                        "rotation": [
+                            -90,
+                            0,
+                            0
+                        ]
+                    }
+                }
+            },
+            {
+                "condition": "q.block_state('minecraft:block_face') == 'south'",
+                "components": {
+                    "minecraft:transformation": {
+                        "rotation": [
+                            90,
+                            0,
+                            0
+                        ]
+                    }
+                }
+            },
+            {
+                "condition": "q.block_state('minecraft:block_face') == 'east'",
+                "components": {
+                    "minecraft:transformation": {
+                        "rotation": [
+                            0,
+                            0,
+                            -90
+                        ]
+                    }
+                }
+            },
+            {
+                "condition": "q.block_state('minecraft:block_face') == 'west'",
+                "components": {
+                    "minecraft:transformation": {
+                        "rotation": [
+                            0,
+                            0,
+                            90
+                        ]
+                    }
+                }
+            }
+        ],
+        "components": {
+            "minecraft:geometry": "geometry.cross",
+            "minecraft:material_instances": {
+                "*": {
+                    "texture": "ph_large_crystall_bud",
+                    "render_method": "blend"
+                }
+            },
+            "minecraft:collision_box": {
+                "origin": [-4, 0, -4],
+                "size": [8, 10, 8]
+            },
+            "minecraft:selection_box": {
+                "origin": [-4, 0, -4],
+                "size": [8, 10, 8]
+            },
+            "minecraft:map_color": "#A78BDB",
+            "minecraft:destructible_by_explosion": {
+                "explosion_resistance": 1.5
+            },
+            "minecraft:destructible_by_mining": {
+                "seconds_to_destroy": 1.5
+            },
+            "tag:minecraft:is_pickaxe_item_destructible": {}
+        }
+    }
+}

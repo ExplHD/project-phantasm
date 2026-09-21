@@ -1,0 +1,38 @@
+{
+    "format_version": "1.21.100",
+    "minecraft:feature_rules": {
+        "description": {
+            "identifier": "ph:cond_crystall_spike_rule",
+            "places_feature": "ph:cond_crystall_random_feature"
+        },
+        "conditions": {
+            "minecraft:biome_filter": [
+                {
+                    "test": "has_biome_tag",
+                    "operator": "==",
+                    "value": "ph:astral_dunes"
+                }
+            ],
+            "placement_pass": "surface_pass"
+        },
+        "distribution": {
+            "iterations": 8,
+            "coordinate_eval_order": "xzy",
+            "x": {
+                "distribution": "triangle",
+                "extent": [
+                    0,
+                    15
+                ]
+            },
+            "y": "query.heightmap(variable.worldx, variable.worldz)",
+            "z": {
+                "distribution": "triangle",
+                "extent": [
+                    0,
+                    15
+                ]
+            }
+        }
+    }
+}

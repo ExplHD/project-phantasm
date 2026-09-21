@@ -26,7 +26,7 @@
                   "targets": [
                       "minecraft:desert"
                   ],
-                  "amount": 0.15,
+                  "amount": 0.30,
                   "noise_frequency_scale": 1
               }
           ]
