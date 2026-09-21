@@ -377,16 +377,20 @@ system.beforeEvents.startup.subscribe((initEvent: any) => {
                 return;
             }
             const blockLoc = block.location;
-            block.dimension.runCommand("playsound random.toast @a[r=128] ~~~ 1 1.5 0.3");
+            block.dimension.playSound("random.toast", blockLoc);
             source.playSound("random.toast");
             block.dimension.spawnParticle("ph:auric_communicator_loading", { x: blockLoc.x, y: blockLoc.y + 1, z: blockLoc.z });
             if (auricMode == 1) {
                 source.addTag("AURIC_ORBITAL_NUKE");
                 system.runTimeout(() => {
-                    block.dimension.runCommand(`damage @e[r=48,tag=!AURIC_ORBITAL_NUKE,type=!item,family=!inanimate,x=${blockLoc.x},y=${blockLoc.y},z=${blockLoc.z}] 50 entity_explosion entity @e[tag=AURIC_ORBITAL_NUKE]`);
+                    block.dimension.playSound("random.explode", blockLoc);
+                    try {
+                        block.dimension.runCommand(`damage @e[r=48,tag=!AURIC_ORBITAL_NUKE,type=!item,family=!inanimate,x=${blockLoc.x},y=${blockLoc.y},z=${blockLoc.z}] 50 entity_explosion entity @e[tag=AURIC_ORBITAL_NUKE]`);
+                    } catch (e) {
+                        // No valid targets in range, strike visuals/sound still play
+                    }
                     block.dimension.spawnParticle("ph:auric_stab_shot", { x: blockLoc.x, y: 0, z: blockLoc.z });
                     block.dimension.spawnParticle("ph:auric_nuke_shot", { x: blockLoc.x, y: blockLoc.y + 1, z: blockLoc.z });
-                    block.dimension.runCommand("playsound random.explode @a[r=192] ~~~ 1 1 0.5");
                     removeScore(source, "auric_charge", 100);
                     source.startItemCooldown("auric_communicator", 600);
                     source.removeTag("AURIC_ORBITAL_NUKE");
@@ -397,8 +401,12 @@ system.beforeEvents.startup.subscribe((initEvent: any) => {
             source.addTag("AURIC_ORBITAL_LASER");
             system.runTimeout(() => {
                 for (let i = 0; i < 381; i += 10) {
-                    block.dimension.runCommand(`damage @e[r=10,tag=!AURIC_ORBITAL_LASER,type=!item,family=!inanimate,x=${blockLoc.x},y=${i},z=${blockLoc.z}] 80 entity_explosion entity @e[tag=AURIC_ORBITAL_LASER]`);
-                    block.dimension.runCommand(`playsound random.explode @a[r=128] ~ ${i} ~ 1 1 0.5`);
+                    try {
+                        block.dimension.runCommand(`damage @e[r=10,tag=!AURIC_ORBITAL_LASER,type=!item,family=!inanimate,x=${blockLoc.x},y=${i},z=${blockLoc.z}] 80 entity_explosion entity @e[tag=AURIC_ORBITAL_LASER]`);
+                    } catch (e) {
+                        // No valid targets at this height, keep striking other heights
+                    }
+                    block.dimension.playSound("random.explode", { x: blockLoc.x, y: i, z: blockLoc.z });
                 }
                 block.dimension.spawnParticle("ph:auric_stab_shot_refined", { x: blockLoc.x, y: 0, z: blockLoc.z });
                 block.dimension.spawnParticle("ph:auric_stab_shot_line", { x: blockLoc.x, y: 0, z: blockLoc.z });

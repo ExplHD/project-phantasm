@@ -510,6 +510,7 @@ auricPhotonizerSkill.addSkill(2, {
                     src.runCommand(`execute at @e[name=BACKLEAP] run particle ph:auric_photonizer_explode ~~0.5~`);
                     src.runCommand(`execute at @e[name=BACKLEAP] run particle ph:copper_mech_explode ~~0.5~`);
                     src.runCommand(`kill @e[name=BACKLEAP]`);
+                    src.dimension.playSound("random.explode", src.location);
                     src.removeTag("BACKLEAP")
                 }
             }
@@ -563,6 +564,7 @@ auricPhotonizerSkill.addSkill(4, {
             {
                 delay: 15, action: (src: Player) => {
                     src.removeTag("SWORDIMMUNE");
+                    src.runCommand(`inputpermission set @a[r=28] movement enabled`);
                 }
             }
         ])

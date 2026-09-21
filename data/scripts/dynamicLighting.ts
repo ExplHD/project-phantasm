@@ -60,15 +60,36 @@ function removeLightBlocks(player: Player): void {
     }
 }
 
-export function clearPlayerLighting(player: Player): void {
-    const state = lightingStates.get(player.id);
-    if (state && state.interval !== -1) {
-        system.clearRun(state.interval);
+function safeRemoveTag(player: Player, tag: string): void {
+    if (!player?.isValid) return;
+    try {
+        if (player.hasTag(tag)) player.removeTag(tag);
+    } catch (e) {
+        // Ignore InvalidEntityError (entity died/left between scheduling and run)
     }
-    lightingStates.delete(player.id);
+}
+
+export function clearPlayerLighting(player: Player): void {
+    let key: string | undefined;
+    try {
+        key = player?.id;
+    } catch (e) {
+        return;
+    }
+    const state = key !== undefined ? lightingStates.get(key) : undefined;
+    if (state && state.interval !== -1) {
+        try {
+            system.clearRun(state.interval);
+        } catch (e) {
+            // Ignore
+        }
+    }
+    if (key !== undefined) lightingStates.delete(key);
+
+    if (!player?.isValid) return;
 
     for (let i = 0; i <= 15; i++) {
-        system.run(() => { player.removeTag(`light_${i}`); });
+        safeRemoveTag(player, `light_${i}`);
     }
     removeLightBlocks(player);
 }

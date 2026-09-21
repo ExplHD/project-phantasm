@@ -222,8 +222,14 @@ world.afterEvents.itemUse.subscribe(({ source, itemStack }) => {
 
 world.afterEvents.entityDie.subscribe(({ damageSource, deadEntity }) => {
     const killer = damageSource?.damagingEntity;
+	if (deadEntity?.typeId === "minecraft:player") {
+		try {
+			clearPlayerLighting(deadEntity as Player);
+		} catch (e) {
+			// Ignore cleanup errors for invalid entities
+		}
+	}
 	if (!killer?.isValid) return;
-	clearPlayerLighting(deadEntity as Player);
     const mainhand = killer?.getComponent("equippable")?.getEquipment(EquipmentSlot.Mainhand);
 
     if (killer?.typeId === "minecraft:player" && mainhand?.typeId === "ph:charged_copper_axe") {

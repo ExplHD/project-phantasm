@@ -2,26 +2,25 @@
     "format_version": "1.26.0",
     "minecraft:block": {
         "description": {
-            "identifier": "ph:astralite",
+            "identifier": "ph:construction_line_block",
             "menu_category": {
-                "category": "construction",
-                "group": "minecraft:itemGroup.name.stone"
+                "category": "construction"
             }
         },
         "components": {
             "minecraft:geometry": "minecraft:geometry.full_block",
             "minecraft:material_instances": {
                 "*": {
-                    "texture": "ph_astralite",
+                    "texture": "ph_construction_line_block",
                     "render_method": "opaque"
                 }
             },
             "minecraft:map_color": "#7A7FA8",
             "minecraft:destructible_by_explosion": {
-                "explosion_resistance": 30
+                "explosion_resistance": 32
             },
             "minecraft:destructible_by_mining": {
-                "seconds_to_destroy": 7.5
+                "seconds_to_destroy": 10
             },
             "tag:minecraft:is_pickaxe_item_destructible": {}
         }

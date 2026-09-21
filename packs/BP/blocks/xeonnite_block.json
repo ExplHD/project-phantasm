@@ -2,27 +2,32 @@
     "format_version": "1.26.0",
     "minecraft:block": {
         "description": {
-            "identifier": "ph:astralite",
+            "identifier": "ph:xeonnite_block",
             "menu_category": {
-                "category": "construction",
-                "group": "minecraft:itemGroup.name.stone"
+                "category": "construction"
             }
         },
         "components": {
             "minecraft:geometry": "minecraft:geometry.full_block",
             "minecraft:material_instances": {
                 "*": {
-                    "texture": "ph_astralite",
+                    "texture": "ph_xeonnite_block",
                     "render_method": "opaque"
                 }
             },
-            "minecraft:map_color": "#7A7FA8",
-            "minecraft:destructible_by_explosion": {
-                "explosion_resistance": 30
-            },
+            "minecraft:map_color": "#FF1900",
+            "minecraft:destructible_by_explosion": false,
             "minecraft:destructible_by_mining": {
-                "seconds_to_destroy": 7.5
-            },
+				"seconds_to_destroy": 900,
+				"item_specific_speeds": [
+					{
+						"item": {
+							"tags": "query.all_tags('minecraft:is_pickaxe', 'ph:prismatic_tier')"
+						},
+						"destroy_speed": 68
+					}
+				]
+			},
             "tag:minecraft:is_pickaxe_item_destructible": {}
         }
     }

@@ -71,6 +71,8 @@ tile.ph:astralium_ore.name=Astralium Ore
 tile.ph:deepslate_astralium_ore.name=Deepslate Astralium Ore
 tile.ph:astralite_astralium_ore.name=Astralite Astralium Ore
 tile.ph:astralite_solarium_ore.name=Astralite Solarium Ore
+tile.ph:construction_line_block.name=Construction Line Block
+tile.ph:xeonnite_block.name=Xeonnite Block
 
 item.spawn_egg.entity.ph:crimson_tentacle.name=Spawn Crimson Tentacle
 item.spawn_egg.entity.ph:dummy.name=Combat Dummy
@@ -98,6 +100,9 @@ entity.ph:crimson_tentacle.name=Crimson Tentacle
 entity.ph:suspicious_crimson_eye.name=Suspicious Crimson Eye
 entity.ph:crimson_laser.name=Crimson Laser
 entity.ph=crimson_stray_projectile.name=Crimson Stray Projectile
+entity.ph:plasmoid_drone.name=Plasmoid Drone
+entity.ph:plasmoid_drone_projectile.name=Plasmoid Laser
+entity.ph:rupture_drone.name=Rupture Drone
 
 subtitles.weapons.slash_light=Light Sweeping
 subtitles.weapons.slash_medium=Regular Sweeping

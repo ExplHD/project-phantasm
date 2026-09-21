@@ -63,6 +63,12 @@
 		},
 		"ph_astralite_solarium_ore": {
 			"textures": "textures/blocks/astralite_solarium_ore"
+		},
+		"ph_construction_line_block": {
+			"textures": "textures/blocks/construction_line_block"
+		},
+		"ph_xeonnite_block": {
+		    "textures": "textures/blocks/xeonnite_block"
 		}
 	}
 }

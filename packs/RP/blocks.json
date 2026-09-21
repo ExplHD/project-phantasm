@@ -42,5 +42,11 @@
 	},
 	"ph:astralite_solarium_ore": {
 		"sound": "stone"
+	},
+	"ph:construction_line_block": {
+		"sound": "metal"
+	},
+	"ph:xeonnite_block": {
+		"sound": "netherite"
 	}
 }
