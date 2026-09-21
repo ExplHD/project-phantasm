@@ -1,0 +1,26 @@
+{
+	"format_version": "1.21.100",
+	"minecraft:weighted_random_feature": {
+		"description": {
+			"identifier": "ph:cond_crystall_random_feature"
+		},
+		"features": [
+			[
+				"ph:cond_crystall_spike_1",
+				4
+			],
+			[
+				"ph:cond_crystall_spike_2",
+				2
+			],
+			[
+				"ph:cond_crystall_spike_3",
+				6
+			],
+			[
+				"ph:cond_crystall_spike_4",
+				4
+			]
+		]
+	}
+}

@@ -1,0 +1,15 @@
+{
+    "format_version": "1.13.0",
+    "minecraft:structure_template_feature": {
+      "description": {
+        "identifier": "ph:cond_crystall_spike_1"
+      },
+      "structure_name": "mystructure:astral_dunes/cond_crystall_1",
+      "adjustment_radius": 2,
+      "facing_direction": "random",
+      "constraints": {
+        "grounded": {},
+        "unburied": {}
+      }
+    }
+  }

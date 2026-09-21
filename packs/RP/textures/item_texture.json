@@ -156,6 +156,15 @@
 		"ph_xeonnite_shard": {
 			"textures": "textures/items/xeonnite_shard"
 		},
+		"ph_small_crystall_bud_item": {
+			"textures": "textures/blocks/small_crystall_bud"
+		},
+		"ph_large_crystall_bud_item": {
+			"textures": "textures/blocks/large_crystall_bud"
+		},
+		"ph_crystall_cluster_item": {
+			"textures": "textures/blocks/crystall_cluster"
+		},
 		"ph_raw_solarium": {
 			"textures": "textures/items/raw_solarium"
 		},

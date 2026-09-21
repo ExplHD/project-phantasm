@@ -69,6 +69,18 @@
 		},
 		"ph_xeonnite_block": {
 		    "textures": "textures/blocks/xeonnite_block"
+		},
+		"ph_condensed_crystall": {
+		    "textures": "textures/blocks/condensed_crystall"
+		},
+		"ph_small_crystall_bud": {
+		    "textures": "textures/blocks/small_crystall_bud"
+		},
+		"ph_large_crystall_bud": {
+		    "textures": "textures/blocks/large_crystall_bud"
+		},
+		"ph_crystall_cluster": {
+		    "textures": "textures/blocks/crystall_cluster"
 		}
 	}
 }

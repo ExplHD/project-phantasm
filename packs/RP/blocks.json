@@ -48,5 +48,17 @@
 	},
 	"ph:xeonnite_block": {
 		"sound": "netherite"
+	},
+	"ph:condensed_crystall": {
+		"sound": "amethyst"
+	},
+	"ph:small_crystall_bud": {
+		"sound": "small_amethyst_bud"
+	},
+	"ph:large_crystall_bud": {
+		"sound": "large_amethyst_bud"
+	},
+	"ph:crystall_cluster": {
+		"sound": "amethyst_cluster"
 	}
 }
