@@ -172,7 +172,7 @@
                 },
                 "queue_command": {
                     "command": [
-                        "scriptevent ph:ram_dash_3d 2.5, 32, 2.5, mob.ghast.fireball, titan_ridge"
+                        "scriptevent ph:ram_dash_3d 2.5, 20, 2.5, mob.ghast.fireball, titan_ridge"
                     ]
                 }
             },

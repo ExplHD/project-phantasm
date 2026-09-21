@@ -734,6 +734,7 @@ auricPhotonizerSkill.addSkill(2, {
           src.runCommand(`execute at @e[name=BACKLEAP] run particle ph:auric_photonizer_explode ~~0.5~`);
           src.runCommand(`execute at @e[name=BACKLEAP] run particle ph:copper_mech_explode ~~0.5~`);
           src.runCommand(`kill @e[name=BACKLEAP]`);
+          src.dimension.playSound("random.explode", src.location);
           src.removeTag("BACKLEAP");
         }
       }
@@ -789,6 +790,7 @@ auricPhotonizerSkill.addSkill(4, {
         delay: 15,
         action: (src) => {
           src.removeTag("SWORDIMMUNE");
+          src.runCommand(`inputpermission set @a[r=28] movement enabled`);
         }
       }
     ]);
@@ -1474,14 +1476,31 @@ function removeLightBlocks(player) {
     }
   }
 }
-function clearPlayerLighting(player) {
-  const state = lightingStates.get(player.id);
-  if (state && state.interval !== -1) {
-    system7.clearRun(state.interval);
+function safeRemoveTag(player, tag) {
+  if (!player?.isValid) return;
+  try {
+    if (player.hasTag(tag)) player.removeTag(tag);
+  } catch (e) {
   }
-  lightingStates.delete(player.id);
+}
+function clearPlayerLighting(player) {
+  let key;
+  try {
+    key = player?.id;
+  } catch (e) {
+    return;
+  }
+  const state = key !== void 0 ? lightingStates.get(key) : void 0;
+  if (state && state.interval !== -1) {
+    try {
+      system7.clearRun(state.interval);
+    } catch (e) {
+    }
+  }
+  if (key !== void 0) lightingStates.delete(key);
+  if (!player?.isValid) return;
   for (let i = 0; i <= 15; i++) {
-    player.removeTag(`light_${i}`);
+    safeRemoveTag(player, `light_${i}`);
   }
   removeLightBlocks(player);
 }
@@ -1518,11 +1537,7 @@ function onDynamicLighting(player) {
   const updateLight = () => {
     if (!player.isValid) return;
     try {
-      const finalLocation = {
-        x: player.location.x,
-        y: player.location.y + 1,
-        z: player.location.z
-      };
+      const finalLocation = player.getHeadLocation();
       const block = player.dimension.getBlock(finalLocation);
       if (!block) return;
       if (!block.isAir && !block.isLiquid) return;
@@ -2193,8 +2208,13 @@ world8.afterEvents.itemUse.subscribe(({ source, itemStack }) => {
 });
 world8.afterEvents.entityDie.subscribe(({ damageSource, deadEntity }) => {
   const killer = damageSource?.damagingEntity;
+  if (deadEntity?.typeId === "minecraft:player") {
+    try {
+      clearPlayerLighting(deadEntity);
+    } catch (e) {
+    }
+  }
   if (!killer?.isValid) return;
-  clearPlayerLighting(deadEntity);
   const mainhand = killer?.getComponent("equippable")?.getEquipment(EquipmentSlot3.Mainhand);
   if (killer?.typeId === "minecraft:player" && mainhand?.typeId === "ph:charged_copper_axe") {
     addScore(killer, "auric_charge", 4);
@@ -2349,6 +2369,17 @@ system9.afterEvents.scriptEventReceive.subscribe(({ id, message, sourceBlock, so
       beginCollisionCheck(sourceEntity, 14, ramDamage, collisionRadius);
       sourceEntity.runCommand(`playsound ${ramDash[3]} @a[r=32] ~~~ 1 1 0.3`);
       break;
+    case "ph:ram_dash_3d":
+      if (!sourceEntity) return;
+      const ramDirection3d = sourceEntity.getViewDirection();
+      const ramDash3d = message.split(",");
+      const force3d = Number(ramDash3d[0]);
+      const ramDamage3d = Number(ramDash3d[1]);
+      const collisionRadius3d = Number(ramDash3d[2]);
+      sourceEntity.applyImpulse({ x: ramDirection3d.x * force3d, y: ramDirection3d.y * force3d, z: ramDirection3d.z * force3d });
+      beginCollisionCheck(sourceEntity, 14, ramDamage3d, collisionRadius3d, ramDash3d[4]);
+      sourceEntity.runCommand(`playsound ${ramDash3d[3]} @a[r=32] ~~~ 1 1 0.3`);
+      break;
     case "ph:laser_once":
       if (!sourceEntity) return;
       const laserBeamOnce = message.split(",");
@@ -2417,7 +2448,7 @@ function distancePointToSegment(point, start, end) {
     (px - closestX) ** 2 + (py - closestY) ** 2 + (pz - closestZ) ** 2
   );
 }
-function beginCollisionCheck(dasher, duration, damage, collisionRadius) {
+function beginCollisionCheck(dasher, duration, damage, collisionRadius, spareFamily) {
   let tick = 0;
   let prevPos = { ...dasher.location };
   const hitEntities = /* @__PURE__ */ new Set();
@@ -2438,6 +2469,7 @@ function beginCollisionCheck(dasher, duration, damage, collisionRadius) {
       if (target.hasTag("parried")) continue;
       if (target.id === dasher.id) continue;
       if (hitEntities.has(target.id)) continue;
+      if (spareFamily && target.getComponent("minecraft:type_family")?.getTypeFamilies()?.includes(spareFamily)) continue;
       const dist = distancePointToSegment(
         target.location,
         prevPos,
@@ -3388,16 +3420,19 @@ system12.beforeEvents.startup.subscribe((initEvent) => {
         return;
       }
       const blockLoc = block.location;
-      block.dimension.runCommand("playsound random.toast @a[r=128] ~~~ 1 1.5 0.3");
+      block.dimension.playSound("random.toast", blockLoc);
       source.playSound("random.toast");
       block.dimension.spawnParticle("ph:auric_communicator_loading", { x: blockLoc.x, y: blockLoc.y + 1, z: blockLoc.z });
       if (auricMode == 1) {
         source.addTag("AURIC_ORBITAL_NUKE");
         system12.runTimeout(() => {
-          block.dimension.runCommand(`damage @e[r=48,tag=!AURIC_ORBITAL_NUKE,type=!item,family=!inanimate,x=${blockLoc.x},y=${blockLoc.y},z=${blockLoc.z}] 50 entity_explosion entity @e[tag=AURIC_ORBITAL_NUKE]`);
+          block.dimension.playSound("random.explode", blockLoc);
+          try {
+            block.dimension.runCommand(`damage @e[r=48,tag=!AURIC_ORBITAL_NUKE,type=!item,family=!inanimate,x=${blockLoc.x},y=${blockLoc.y},z=${blockLoc.z}] 50 entity_explosion entity @e[tag=AURIC_ORBITAL_NUKE]`);
+          } catch (e) {
+          }
           block.dimension.spawnParticle("ph:auric_stab_shot", { x: blockLoc.x, y: 0, z: blockLoc.z });
           block.dimension.spawnParticle("ph:auric_nuke_shot", { x: blockLoc.x, y: blockLoc.y + 1, z: blockLoc.z });
-          block.dimension.runCommand("playsound random.explode @a[r=192] ~~~ 1 1 0.5");
           removeScore2(source, "auric_charge", 100);
           source.startItemCooldown("auric_communicator", 600);
           source.removeTag("AURIC_ORBITAL_NUKE");
@@ -3407,8 +3442,11 @@ system12.beforeEvents.startup.subscribe((initEvent) => {
       source.addTag("AURIC_ORBITAL_LASER");
       system12.runTimeout(() => {
         for (let i = 0; i < 381; i += 10) {
-          block.dimension.runCommand(`damage @e[r=10,tag=!AURIC_ORBITAL_LASER,type=!item,family=!inanimate,x=${blockLoc.x},y=${i},z=${blockLoc.z}] 80 entity_explosion entity @e[tag=AURIC_ORBITAL_LASER]`);
-          block.dimension.runCommand(`playsound random.explode @a[r=128] ~ ${i} ~ 1 1 0.5`);
+          try {
+            block.dimension.runCommand(`damage @e[r=10,tag=!AURIC_ORBITAL_LASER,type=!item,family=!inanimate,x=${blockLoc.x},y=${i},z=${blockLoc.z}] 80 entity_explosion entity @e[tag=AURIC_ORBITAL_LASER]`);
+          } catch (e) {
+          }
+          block.dimension.playSound("random.explode", { x: blockLoc.x, y: i, z: blockLoc.z });
         }
         block.dimension.spawnParticle("ph:auric_stab_shot_refined", { x: blockLoc.x, y: 0, z: blockLoc.z });
         block.dimension.spawnParticle("ph:auric_stab_shot_line", { x: blockLoc.x, y: 0, z: blockLoc.z });
