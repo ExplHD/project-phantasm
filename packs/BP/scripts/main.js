@@ -2155,6 +2155,86 @@ world8.beforeEvents.playerInteractWithBlock.subscribe((event) => {
   const { player, itemStack: item, block } = event;
   vanillaBlockInteractFix(player, item, block);
 });
+var crystallDrops = {
+  "ph:small_crystall_bud": "ph:small_crystall_bud_item",
+  "ph:large_crystall_bud": "ph:large_crystall_bud_item",
+  "ph:crystall_cluster": "ph:crystall_cluster_item"
+};
+function getCrystallSupport(block) {
+  let face;
+  try {
+    face = block.permutation.getState("minecraft:block_face");
+  } catch {
+    return void 0;
+  }
+  switch (face) {
+    case "up":
+      return block.below();
+    case "down":
+      return block.above();
+    // block_face = face support yang diklik, jadi support ada di arah lawan
+    case "north":
+      return block.south();
+    case "south":
+      return block.north();
+    case "east":
+      return block.west();
+    case "west":
+      return block.east();
+    default:
+      return void 0;
+  }
+}
+function popCrystallIfFloating(block, drop = true) {
+  if (!block?.isValid) return false;
+  const typeId = block.typeId;
+  const dropId = crystallDrops[typeId];
+  if (!dropId) return false;
+  const support = getCrystallSupport(block);
+  if (!support) return false;
+  if (!support.isAir && !support.isLiquid) return false;
+  const loc = block.location;
+  const center = { x: loc.x + 0.5, y: loc.y + 0.5, z: loc.z + 0.5 };
+  block.dimension.setBlockType(loc, "minecraft:air");
+  if (drop) {
+    try {
+      block.dimension.spawnItem(new ItemStack4(dropId, 1), center);
+    } catch (err) {
+      console.warn(`[ph] crystall drop failed for ${typeId}: ${err}`);
+    }
+  }
+  try {
+    block.dimension.playSound("dig.amethyst", center);
+  } catch {
+  }
+  return true;
+}
+world8.afterEvents.playerBreakBlock.subscribe((e) => {
+  const loc = e.block.location;
+  const dimension = e.dimension;
+  let drop = true;
+  try {
+    drop = e.player?.getGameMode?.() !== "Creative";
+  } catch {
+  }
+  system9.run(() => {
+    const offsets = [
+      { x: 0, y: 1, z: 0 },
+      { x: 0, y: -1, z: 0 },
+      { x: 0, y: 0, z: 1 },
+      { x: 0, y: 0, z: -1 },
+      { x: 1, y: 0, z: 0 },
+      { x: -1, y: 0, z: 0 }
+    ];
+    for (const off of offsets) {
+      try {
+        const neighbor = dimension.getBlock({ x: loc.x + off.x, y: loc.y + off.y, z: loc.z + off.z });
+        if (neighbor) popCrystallIfFloating(neighbor, drop);
+      } catch {
+      }
+    }
+  });
+});
 world8.afterEvents.entityHitEntity.subscribe((acc) => {
   const damagingEntity = acc.damagingEntity;
   const hitEntity = acc.hitEntity;
@@ -2307,6 +2387,35 @@ system9.runInterval(() => {
     javaSaturationRegen(player);
   }
 }, 6);
+system9.runInterval(() => {
+  for (const player of world8.getPlayers()) {
+    try {
+      const base = player.location;
+      const dimension = player.dimension;
+      const bx = Math.floor(base.x);
+      const by = Math.floor(base.y);
+      const bz = Math.floor(base.z);
+      const HR = 5;
+      const VR = 4;
+      for (let dx = -HR; dx <= HR; dx++) {
+        for (let dy = -VR; dy <= VR; dy++) {
+          for (let dz = -HR; dz <= HR; dz++) {
+            let block;
+            try {
+              block = dimension.getBlock({ x: bx + dx, y: by + dy, z: bz + dz });
+            } catch {
+              continue;
+            }
+            if (block && block.typeId in crystallDrops) {
+              popCrystallIfFloating(block, true);
+            }
+          }
+        }
+      }
+    } catch {
+    }
+  }
+}, 40);
 system9.afterEvents.scriptEventReceive.subscribe(({ id, message, sourceBlock, sourceEntity }) => {
   const parseMessage = (message2) => message2.split(",").map((v) => v.trim());
   switch (id) {
@@ -3666,6 +3775,62 @@ system12.beforeEvents.startup.subscribe((initEvent) => {
         block.setPermutation(block.permutation.withState("ph:activation_state", 1));
         block.dimension.spawnEntity("minecraft:lightning_bolt", block.center());
         removeScore2(player, "auric_charge", chargeMin);
+      }
+    }
+  });
+  initEvent.blockComponentRegistry.registerCustomComponent("ph:crystall_support", {
+    onTick({ block, dimension }) {
+      if (!block?.isValid) return;
+      let face;
+      try {
+        face = block.permutation.getState("minecraft:block_face");
+      } catch {
+        return;
+      }
+      let support;
+      switch (face) {
+        case "up":
+          support = block.below();
+          break;
+        case "down":
+          support = block.above();
+          break;
+        // block_face = face of support that was clicked, so support is opposite
+        case "north":
+          support = block.south();
+          break;
+        case "south":
+          support = block.north();
+          break;
+        case "east":
+          support = block.west();
+          break;
+        case "west":
+          support = block.east();
+          break;
+        default:
+          return;
+      }
+      if (!support) return;
+      if (!support.isAir && !support.isLiquid) return;
+      let dropId;
+      try {
+        dropId = block.getComponent("ph:crystall_support")?.customComponentParameters?.params?.drop_item;
+      } catch {
+        dropId = void 0;
+      }
+      const loc = block.location;
+      const center = { x: loc.x + 0.5, y: loc.y + 0.5, z: loc.z + 0.5 };
+      dimension.setBlockType(loc, "minecraft:air");
+      if (dropId) {
+        try {
+          dimension.spawnItem(new ItemStack5(dropId, 1), center);
+        } catch {
+        }
+      }
+      try {
+        dimension.playSound("dig.amethyst", center);
+      } catch {
       }
     }
   });

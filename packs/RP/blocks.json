@@ -50,7 +50,7 @@
 		"sound": "netherite"
 	},
 	"ph:condensed_crystall": {
-		"sound": "amethyst"
+		"sound": "amethyst_block"
 	},
 	"ph:small_crystall_bud": {
 		"sound": "small_amethyst_bud"

@@ -111,6 +111,14 @@
             "minecraft:destructible_by_mining": {
                 "seconds_to_destroy": 1.5
             },
+            "minecraft:loot": "loot_tables/blocks/large_crystall_bud.json",
+            "minecraft:tick": {
+                "interval_range": [10, 10],
+                "looping": true
+            },
+            "ph:crystall_support": {
+                "drop_item": "ph:large_crystall_bud_item"
+            },
             "tag:minecraft:is_pickaxe_item_destructible": {}
         }
     }
