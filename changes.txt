@@ -8,10 +8,12 @@ Phantasm 1.6.0 / 2.0.0 :
 = Dynamic Lighting now based on head location - ExplerHD
 = Fixed grasshopper animation IDs (graasshoper -> grasshopper, attack_1 -> attack) + renamed anim file to grasshopper.animation.json - zeromaster178
 = Fixed grasshopper geometry ID (geometry.graasshoper -> geometry.grasshopper) + renamed vara3.png -> var3.png - zeromaster178
-= Grasshopper attack behavior melee_attack -> delayed_attack (fix query.is_attacking error, pakai query.is_delayed_attacking) - zeromaster178
+= Lizardman controller fix (is_attacking -> is_delayed_attacking, run pakai has_target bukan is_sprinting, tambah initial_state) - zeromaster178
+= Lizardman anim smoothing (idle life_time *120 -> *3, walk/run distance *180-440 -> *38.17/*57.3, legs 65 -> 48) + controller pakai modified_move_speed + hysteresis - zeromaster178
 
 # Addition :
 + Grasshopper hostile mob ph:grasshopper (BP entity, RP entity, animation controller, render controller 3 variant texture, lang) - zeromaster178
 + Grasshopper ambient hop via jump_to_block (cooldown 4-8s) + kalem random_stroll - zeromaster178
 + Furnace + blast furnace recipe raw solarium -> solarium ingot - zeromaster178
 + Crafting table recipe astralium + solarium ingot -> astralith alloy - zeromaster178
++ Lizardman hostile mob ph:lizardman (BP entity, RP entity, render controller, lang; model/anim/controller sudah ada) - zeromaster178

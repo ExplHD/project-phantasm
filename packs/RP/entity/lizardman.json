@@ -1,0 +1,36 @@
+{
+    "format_version": "1.10.0",
+    "minecraft:client_entity": {
+        "description": {
+            "identifier": "ph:lizardman",
+            "materials": {
+                "default": "entity_alphatest"
+            },
+            "geometry": {
+                "default": "geometry.lizardman"
+            },
+            "textures": {
+                "default": "textures/entity/lizardman"
+            },
+            "animations": {
+                "general": "controller.animation.lizardman",
+                "idle": "animation.lizardman.idle",
+                "walk": "animation.lizardman.walk",
+                "run": "animation.lizardman.run",
+                "attack": "animation.lizardman.attack"
+            },
+            "scripts": {
+                "animate": [
+                    "general"
+                ]
+            },
+            "render_controllers": [
+                "controller.render.lizardman"
+            ],
+            "spawn_egg": {
+                "base_color": "#4A7C2F",
+                "overlay_color": "#D8B93C"
+            }
+        }
+    }
+}
