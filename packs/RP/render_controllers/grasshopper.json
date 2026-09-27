@@ -1,0 +1,16 @@
+{
+    "format_version": "1.10.0",
+    "render_controllers": {
+        "controller.render.grasshopper": {
+            "geometry": "Geometry.default",
+            "materials": [
+                {
+                    "*": "Material.default"
+                }
+            ],
+            "textures": [
+                "query.variant == 0 ? Texture.var1 : (query.variant == 1 ? Texture.var2 : Texture.var3)"
+            ]
+        }
+    }
+}
