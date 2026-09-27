@@ -1,5 +1,5 @@
 {
-	"format_version": "1.26.0",
+	"format_version": "1.26.20",
 	"minecraft:block": {
 		"description": {
 			"identifier": "ph:auric_battery_recharge_station",
@@ -82,7 +82,9 @@
 			"minecraft:map_color": "#ffe600",
 			"minecraft:light_emission": 15,
 			"minecraft:light_dampening": 1,
-			"tag:minecraft:is_pickaxe_item_destructible": {},
+			"minecraft:tags": [
+			    "minecraft:is_pickaxe_item_destructible"
+			],
 			"ph:item_charger": {
 				"item": "ph:auric_stock_battery",
 				"max_battery_stack": 4,
