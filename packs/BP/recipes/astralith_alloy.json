@@ -1,0 +1,10 @@
+{
+    "format_version": "1.21.0",
+    "minecraft:recipe_shapeless": {
+        "description": { "identifier": "ph:astralith_alloy" },
+        "tags": ["crafting_table"],
+        "ingredients": [{ "item": "ph:astralium" }, { "item": "ph:solarium_ingot" }],
+        "unlock": [{ "item": "ph:astralium" }, { "item": "ph:solarium_ingot" }],
+        "result": { "item": "ph:astralith_alloy" }
+    }
+}

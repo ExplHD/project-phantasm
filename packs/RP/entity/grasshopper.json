@@ -1,0 +1,38 @@
+{
+    "format_version": "1.10.0",
+    "minecraft:client_entity": {
+        "description": {
+            "identifier": "ph:grasshopper",
+            "materials": {
+                "default": "entity_alphatest"
+            },
+            "geometry": {
+                "default": "geometry.grasshopper"
+            },
+            "textures": {
+                "default": "textures/entity/grasshoppers/var1",
+                "var1": "textures/entity/grasshoppers/var1",
+                "var2": "textures/entity/grasshoppers/var2",
+                "var3": "textures/entity/grasshoppers/var3"
+            },
+            "animations": {
+                "general": "controller.animation.grasshopper",
+                "walk": "animation.grasshopper.walk",
+                "jump": "animation.grasshopper.jump",
+                "attack": "animation.grasshopper.attack"
+            },
+            "scripts": {
+                "animate": [
+                    "general"
+                ]
+            },
+            "render_controllers": [
+                "controller.render.grasshopper"
+            ],
+            "spawn_egg": {
+                "base_color": "#5A7D2A",
+                "overlay_color": "#2E4015"
+            }
+        }
+    }
+}

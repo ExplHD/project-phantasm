@@ -1,0 +1,75 @@
+{
+    "format_version": "1.10.0",
+    "animation_controllers": {
+        "controller.animation.grasshopper": {
+            "initial_state": "default",
+            "states": {
+                "default": {
+                    "blend_transition": 0.2,
+                    "transitions": [
+                        {
+                            "attack": "query.is_delayed_attacking"
+                        },
+                        {
+                            "jump": "!query.is_on_ground"
+                        },
+                        {
+                            "walk": "query.modified_move_speed > 0.1"
+                        }
+                    ]
+                },
+                "walk": {
+                    "animations": [
+                        "walk"
+                    ],
+                    "blend_transition": 0.2,
+                    "transitions": [
+                        {
+                            "attack": "query.is_delayed_attacking"
+                        },
+                        {
+                            "jump": "!query.is_on_ground"
+                        },
+                        {
+                            "default": "query.modified_move_speed < 0.1"
+                        }
+                    ]
+                },
+                "jump": {
+                    "animations": [
+                        "jump"
+                    ],
+                    "blend_transition": 0.2,
+                    "transitions": [
+                        {
+                            "attack": "query.is_delayed_attacking"
+                        },
+                        {
+                            "walk": "query.is_on_ground && query.modified_move_speed > 0.1"
+                        },
+                        {
+                            "default": "query.is_on_ground"
+                        }
+                    ]
+                },
+                "attack": {
+                    "animations": [
+                        "attack"
+                    ],
+                    "blend_transition": 0.15,
+                    "transitions": [
+                        {
+                            "jump": "query.all_animations_finished && !query.is_on_ground"
+                        },
+                        {
+                            "walk": "query.all_animations_finished && query.modified_move_speed > 0.1"
+                        },
+                        {
+                            "default": "query.all_animations_finished"
+                        }
+                    ]
+                }
+            }
+        }
+    }
+}

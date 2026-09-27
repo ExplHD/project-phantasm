@@ -82,6 +82,7 @@ item.ph:large_crystall_bud_item=Large Crystall Bud
 item.ph:crystall_cluster_item=Crystall Cluster
 
 item.spawn_egg.entity.ph:crimson_tentacle.name=Spawn Crimson Tentacle
+item.spawn_egg.entity.ph:grasshopper.name=Spawn Grasshopper
 item.spawn_egg.entity.ph:dummy.name=Combat Dummy
 
 entity.ph:charged_copper_laser.name=§6Charged Lightning
@@ -110,6 +111,7 @@ entity.ph=crimson_stray_projectile.name=Crimson Stray Projectile
 entity.ph:plasmoid_drone.name=Plasmoid Drone
 entity.ph:plasmoid_drone_projectile.name=Plasmoid Laser
 entity.ph:rupture_drone.name=Rupture Drone
+entity.ph:grasshopper.name=Grasshopper
 
 subtitles.weapons.slash_light=Light Sweeping
 subtitles.weapons.slash_medium=Regular Sweeping
