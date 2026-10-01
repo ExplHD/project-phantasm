@@ -10,10 +10,11 @@ import guideBlocks from "./block_guide";
 import guideBosses from "./boss_guide";
 import guideAccessories from "./accessories_guide";
 import guideEnemies from "./enemies_guide";
+import { guideTitle } from "./guidebook_title";
 
 export function mainGuideScreen(player: Player) {
 	const form = new ActionFormData()
-		.title("Guide")
+		.title(guideTitle("Guide"))
 		.header("Phantasm Guide")
 		.divider()
 		.label(
@@ -58,7 +59,7 @@ export function mainGuideScreen(player: Player) {
 
 export function gettingStarted(player: Player) {
 	const form = new ActionFormData()
-		.title("Getting Started")
+		.title(guideTitle("Getting Started"))
 		.header("Where to begin?")
 		.divider()
 		.header("Early Game — Mining")
@@ -83,7 +84,7 @@ export function gettingStarted(player: Player) {
 
 export function Changelogs(player: Player) {
 	const form = new ActionFormData()
-		.title("Changelogs")
+		.title(guideTitle("Changelogs"))
 		.header("v1.5.2")
 		.divider()
 		.header("Changes")
@@ -150,7 +151,7 @@ export function Changelogs(player: Player) {
 
 export function developer(player: Player) {
 	const form = new ActionFormData()
-		.title("Developer Contact")
+		.title(guideTitle("Developer Contact"))
 		.header("Contact Us!")
 		
 		.divider()

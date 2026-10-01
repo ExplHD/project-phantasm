@@ -1,10 +1,11 @@
 import { ActionFormData } from "@minecraft/server-ui";
 import type { Player } from "@minecraft/server";
 import { mainGuideScreen } from "./main_guide";
+import { guideTitle } from "./guidebook_title";
 
 export default function guideAccessories(player: Player) {
 	const form = new ActionFormData()
-		.title("Accessories")
+		.title(guideTitle("Accessories"))
 		.label("Every accessory explains its own effect in its item description, so hover over the item to read what it does!")
 		.divider()
 		.label("Accessories are an Item Type that can be used as a combat support, or anything to enhance your experience. Accessories can be found anywhere, from doing mining, looting structures, until fighting a boss")

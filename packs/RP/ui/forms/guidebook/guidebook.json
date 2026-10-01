@@ -1,0 +1,335 @@
+{
+	// Phantasm guidebook — open-book skin for guide ActionForms.
+	// Routed from ui/server_form.json when the form title carries the
+	// guidebook marker. Button order and callback indices are unchanged:
+	// every collection item keeps its original index, clicks still emit
+	// button.form_button_click, so BP response handling is untouched.
+	// Protocol: title = visible title + invisible "§r§0§7" marker (see
+	// data/scripts/guidescreen/guidebook_title.ts). Body text arrives as
+	// #form_text; .label/.header/.divider/.button rows arrive via the
+	// form_buttons collection in sender order.
+	"namespace": "ph_guidebook",
+
+	// Root: fixed-size book spread centered on screen.
+	"book": {
+		"type": "panel",
+		"size": [312, 220],
+		"anchor_from": "center",
+		"anchor_to": "center",
+		"controls": [
+			{
+				"book_cover": {
+					"type": "image",
+					"texture": "textures/ui/forms/guidebook/book_cover",
+					"size": ["100%", "100%"],
+					"anchor_from": "top_left",
+					"anchor_to": "top_left",
+					"offset": [0, 0]
+				}
+			},
+			{
+				"book_pages": {
+					"type": "image",
+					"texture": "textures/ui/forms/guidebook/book_page",
+					"size": [296, 204],
+					"anchor_from": "top_left",
+					"anchor_to": "top_left",
+					"offset": [8, 8]
+				}
+			},
+			{
+				"book_emblem": {
+					"type": "image",
+					"texture": "textures/items/guidebook",
+					"size": [26, 26],
+					"anchor_from": "top_left",
+					"anchor_to": "top_left",
+					"offset": [22, 14]
+				}
+			},
+			{
+				"book_title": {
+					"type": "label",
+					"size": [238, "default"],
+					"anchor_from": "top_left",
+					"anchor_to": "top_left",
+					"offset": [54, 14],
+					"text": "#title_text",
+					"color": [0.42, 0.26, 0.09],
+					"font_size": "large"
+				}
+			},
+			{
+				"book_rule_top": {
+					"type": "image",
+					"texture": "textures/ui/forms/guidebook/divider",
+					"size": [280, 6],
+					"anchor_from": "top_left",
+					"anchor_to": "top_left",
+					"offset": [16, 52]
+				}
+			},
+			{
+				"book_scroll@common.scrolling_panel": {
+					"anchor_from": "top_left",
+					"anchor_to": "top_left",
+					"offset": [16, 62],
+					"$show_background": false,
+					"size": [280, 142],
+					"$scrolling_content": "ph_guidebook.book_content",
+					"$scroll_size": [5, "100% - 4px"],
+					"$scrolling_pane_size": ["100% - 4px", "100% - 2px"],
+					"$scrolling_pane_offset": [2, 0],
+					"$scroll_bar_right_padding_size": [0, 0]
+				}
+			}
+		]
+	},
+
+	// Scrollable page content: body paragraph, then chapter rows in order.
+	"book_content": {
+		"type": "stack_panel",
+		"size": ["100% - 4px", "100%c"],
+		"orientation": "vertical",
+		"anchor_from": "top_left",
+		"anchor_to": "top_left",
+		"controls": [
+			{
+				"book_body": {
+					"type": "label",
+					"size": ["100%", "default"],
+					"text": "#form_text",
+					"color": [0.29, 0.20, 0.12]
+				}
+			},
+			{
+				"book_gap": {
+					"type": "panel",
+					"size": ["100%", 4]
+				}
+			},
+			{
+				"book_buttons@ph_guidebook.book_buttons": {}
+			}
+		]
+	},
+
+	// Collection owner: mirrors vanilla long_form_dynamic_buttons_panel so
+	// indices, icons and click events behave exactly like the vanilla form.
+	"book_buttons": {
+		"type": "stack_panel",
+		"size": ["100% - 4px", "100%c"],
+		"offset": [2, 0],
+		"orientation": "vertical",
+		"anchor_from": "top_middle",
+		"anchor_to": "top_middle",
+		"factory": {
+			"name": "buttons",
+			"control_ids": {
+				"button": "ph_guidebook.book_button",
+				"label": "@ph_guidebook.book_label",
+				"header": "@ph_guidebook.book_header",
+				"divider": "@ph_guidebook.book_divider"
+			}
+		},
+		"collection_name": "form_buttons",
+		"bindings": [
+			{
+				"binding_name": "#form_button_contents",
+				"binding_name_override": "#collection_length"
+			}
+		]
+	},
+
+	// Chapter tab: icon (when the button carries a texture) + pressable row.
+	"book_button": {
+		"type": "stack_panel",
+		"size": ["100%", 30],
+		"orientation": "horizontal",
+		"controls": [
+			{
+				"book_button_icon_panel": {
+					"type": "panel",
+					"size": [30, "100%c"],
+					// Gutter is always reserved so iconless tabs align
+					// with icon tabs; only the image itself hides.
+					"controls": [
+						{
+							"book_button_icon": {
+								"type": "image",
+								"layer": 2,
+								"size": [26, 26],
+								"offset": [2, 2],
+								"bindings": [
+									{
+										"binding_name": "#form_button_texture",
+										"binding_name_override": "#texture",
+										"binding_type": "collection",
+										"binding_collection_name": "form_buttons"
+									},
+									{
+										"binding_name": "#form_button_texture_file_system",
+										"binding_name_override": "#texture_file_system",
+										"binding_type": "collection",
+										"binding_collection_name": "form_buttons"
+									},
+									{
+										"binding_type": "view",
+										"source_property_name": "(not ((#texture = '') or (#texture = 'loading')))",
+										"target_property_name": "#visible"
+									}
+								]
+							}
+						}
+					]
+				}
+			},
+			{
+				"chapter_button@common.button": {
+					"$pressed_button_name": "button.form_button_click",
+					"$button_bindings": [
+						{
+							"binding_type": "collection_details",
+							"binding_collection_name": "form_buttons"
+						}
+					],
+					"anchor_from": "top_left",
+					"anchor_to": "top_left",
+					"size": ["fill", 30],
+					"controls": [
+						{ "default@ph_guidebook.chapter_default": {} },
+						{ "hover@ph_guidebook.chapter_hover": {} },
+						{ "pressed@ph_guidebook.chapter_pressed": {} }
+					]
+				}
+			}
+		]
+	},
+
+	// Chapter tab states: leather tab + cream ink label. Each state binds
+	// the same collection text; the button parent owns click dispatch.
+	"chapter_label": {
+		"type": "label",
+		// Content-sized height + centered anchor = text sits in the
+		// vertical middle of the 30px tab.
+		"size": ["100% - 16px", "default"],
+		"anchor_from": "center",
+		"anchor_to": "center",
+		"text": "#chapter_text",
+		"text_alignment": "center",
+		"color": [0.95, 0.88, 0.72],
+		"bindings": [
+			{
+				"binding_name": "#form_button_text",
+				"binding_name_override": "#chapter_text",
+				"binding_type": "collection",
+				"binding_collection_name": "form_buttons"
+			}
+		]
+	},
+
+	"chapter_default": {
+		"type": "panel",
+		"size": ["100%", "100%"],
+		"controls": [
+			{
+				"chapter_default_bg": {
+					"type": "image",
+					"texture": "textures/ui/forms/guidebook/chapter_default",
+					"size": ["100%", "100%"]
+				}
+			},
+			{ "chapter_default_label@ph_guidebook.chapter_label": {} }
+		]
+	},
+
+	"chapter_hover": {
+		"type": "panel",
+		"size": ["100%", "100%"],
+		"controls": [
+			{
+				"chapter_hover_bg": {
+					"type": "image",
+					"texture": "textures/ui/forms/guidebook/chapter_hover",
+					"size": ["100%", "100%"]
+				}
+			},
+			{
+				"chapter_hover_label@ph_guidebook.chapter_label": {
+					// Hover tab is light parchment, so ink-dark text
+					// (opposite of the default cream-on-leather).
+					"color": [0.30, 0.20, 0.12]
+				}
+			}
+		]
+	},
+
+	"chapter_pressed": {
+		"type": "panel",
+		"size": ["100%", "100%"],
+		"controls": [
+			{
+				"chapter_pressed_bg": {
+					"type": "image",
+					"texture": "textures/ui/forms/guidebook/chapter_pressed",
+					"size": ["100%", "100%"]
+				}
+			},
+			{
+				"chapter_pressed_label@ph_guidebook.chapter_label": {
+					"color": [0.78, 0.66, 0.48]
+				}
+			}
+		]
+	},
+
+	// Body paragraph row (.label): dark ink on parchment.
+	"book_label": {
+		"type": "label",
+		"size": ["100%", "default"],
+		"text": "#book_label_text",
+		"color": [0.29, 0.20, 0.12],
+		"bindings": [
+			{
+				"binding_name": "#form_button_text",
+				"binding_name_override": "#book_label_text",
+				"binding_type": "collection",
+				"binding_collection_name": "form_buttons"
+			}
+		]
+	},
+
+	// Chapter heading row (.header): gold, centered.
+	"book_header": {
+		"type": "label",
+		"size": ["100%", "default"],
+		"text": "#book_header_text",
+		"text_alignment": "center",
+		"color": [0.48, 0.30, 0.11],
+		"font_size": "large",
+		"bindings": [
+			{
+				"binding_name": "#form_button_text",
+				"binding_name_override": "#book_header_text",
+				"binding_type": "collection",
+				"binding_collection_name": "form_buttons"
+			}
+		]
+	},
+
+	// Gold rule row (.divider).
+	"book_divider": {
+		"type": "panel",
+		"size": ["100%", 12],
+		"controls": [
+			{
+				"book_divider_rule": {
+					"type": "image",
+					"texture": "textures/ui/forms/guidebook/divider",
+					"size": [240, 6],
+					"offset": [14, 3]
+				}
+			}
+		]
+	}
+}

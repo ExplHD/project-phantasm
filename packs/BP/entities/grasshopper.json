@@ -40,6 +40,14 @@
             "minecraft:movement": {
                 "value": 0.3
             },
+            "minecraft:damage_sensor": {
+                "triggers": [
+                    {
+                        "cause": "fall",
+                        "deals_damage": "no"
+                    }
+                ]
+            },
             "minecraft:navigation.walk": {
                 "can_path_over_water": true,
                 "avoid_water": true,
