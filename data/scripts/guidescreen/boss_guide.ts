@@ -1,10 +1,11 @@
 import { ActionFormData } from "@minecraft/server-ui";
 import type { Player } from "@minecraft/server";
 import { mainGuideScreen } from "./main_guide";
+import { guideTitle } from "./guidebook_title";
 
 export default function guideBosses(player: Player) {
 	const form = new ActionFormData()
-		.title("Bosses")
+		.title(guideTitle("Bosses"))
 		.label("This is the list of Bosses that exist in the add-on, you will face each of these bosses through your progression.")
 		.button("Soul of Nature")
 		.button("Punicea - A Crimson Eye")
@@ -20,7 +21,7 @@ export default function guideBosses(player: Player) {
 
 function soulOfNature(player: Player) {
 	const form = new ActionFormData()
-		.title("Sealed Soul of Nature")
+		.title(guideTitle("Sealed Soul of Nature"))
 		.label("Sealed Soul of Nature is a boss that possesses the power of nature, and the prism. this have several deadly attacks that can deplete your oxgen level during fighting.")
 		.label("This boss generally have 500 HP and 3 different attack patterns. when reached 70% HP, the boss will spawn more Nature and Prism Crystal assisting the bossfight to make the fight harder.")
 		.label("You can summon this boss by interacting Nature Soul Altar in Prismarine Arena located underwater..")
@@ -33,7 +34,7 @@ function soulOfNature(player: Player) {
 
 function puniceaCrimsonEye(player: Player) {
 	const form = new ActionFormData()
-		.title("Punicea - A Crimson Eye")
+		.title(guideTitle("Punicea - A Crimson Eye"))
 		.label("Punicea is a boss that wield the power of crimson corruption. this have 6 different attacks and very tough Health.")
 		.label("This boss generally have 3000 HP and 6 different attack patterns. Each attack patterns are well telegraphed, so the attack will deal more damages, and easier to dodge. Just be careful with your movement.")
 		.label("You can summon this boss by interacting Suspicious Crimson Eye in Crimson Overgrowth.")
@@ -46,7 +47,7 @@ function puniceaCrimsonEye(player: Player) {
 
 function copperMechanicalArray(player: Player) {
 	const form = new ActionFormData()
-		.title("Auric Automaton - Copper Mechanical Array")
+		.title(guideTitle("Auric Automaton - Copper Mechanical Array"))
 		.label("Auric Mechanical Array is a mechanical boss that wield the ultimate power of Auric. this boss have very complicated attack patterns, massive damage, combined with it's great mobility, this boss can obliterate anything easily. Ensure you have Ultimate Gear setup before you fight this abomination.")
 		.label("This boss generally have less hp than other end game bosses, 1750 HP and 7 different attack patterns based of how you fight. Each attack patterns are very dangerous to tank, so be more mobile than it. to survive, and kill the boss.")
 		.label("You can summon this boss by completing the ritual of Ancient Copper Core.")

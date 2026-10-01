@@ -16,7 +16,7 @@
             "placement_pass": "surface_pass"
         },
         "distribution": {
-            "iterations": 8,
+            "iterations": 12,
             "coordinate_eval_order": "xzy",
             "x": {
                 "distribution": "triangle",

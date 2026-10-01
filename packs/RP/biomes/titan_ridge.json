@@ -16,6 +16,9 @@
             },
             "minecraft:dry_foliage_color": {
                 "color": "#717c8f"
+            },
+            "minecraft:precipitation": {
+                "ash": 2
             }
         }
     }
