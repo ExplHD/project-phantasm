@@ -12,7 +12,7 @@ Phantasm 1.6.0 / 2.0.0 :
 = Lizardman anim smoothing (idle life_time *120 -> *3, walk/run distance *180-440 -> *38.17/*57.3, legs 65 -> 48) + controller pakai modified_move_speed + hysteresis - zeromaster178
 
 # Addition :
-+ Guidebook book-screen JSON UI (RP ui/server_form.json router + ui/forms/guidebook/ layout with tooled-leather cover, aged parchment, leather chapter-tab buttons, gold dividers; invisible title marker via guidescreen/guidebook_title.ts) - ExplerHD
++ Guidebook book-screen JSON UI, two-page field-guide spread (reading text left, Categories buttons right; RP ui/server_form.json router + ui/forms/guidebook/ layout with tooled-leather cover, aged parchment, leather chapter-tab buttons, gold dividers; invisible title marker via guidescreen/guidebook_title.ts) - ExplerHD
 + Grasshopper hostile mob ph:grasshopper (BP entity, RP entity, animation controller, render controller 3 variant texture, lang) - zeromaster178
 + Grasshopper ambient hop via jump_to_block (cooldown 4-8s) + kalem random_stroll - zeromaster178
 + Furnace + blast furnace recipe raw solarium -> solarium ingot - zeromaster178
