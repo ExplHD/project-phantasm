@@ -37,7 +37,7 @@ export function mainGuideScreen(player: Player) {
 		.label(
 			"Are you stuck? You can press this button to unstuck yourself, or use /unstuck command. Sometimes, minecraft can be really bugged with inputpermission so I add these button and command for that reason.",
 		)
-		.button("Unstuck (reset some effects and tags)")
+		.button("Unstuck")
 		.divider()
 		.button("Exit")
 		.show(player)

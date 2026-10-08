@@ -9,7 +9,7 @@ export default function guideBosses(player: Player) {
 		.label("This is the list of Bosses that exist in the add-on, you will face each of these bosses through your progression.")
 		.button("Soul of Nature")
 		.button("Punicea - A Crimson Eye")
-		.button("Auric Automaton - Copper Mechanical Array")
+		.button("Auric Automaton")
 		.button("Back")
 		.show(player).then(r => {
 			if (r.selection === 4 || r.canceled) mainGuideScreen(player);

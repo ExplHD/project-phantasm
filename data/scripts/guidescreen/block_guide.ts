@@ -8,7 +8,7 @@ export default function guideBlocks(player: Player) {
 		.title(guideTitle("Blocks"))
 		.label("This is the list of Blocks that exist in the add-on, each blocks showed here have a functionality.")
 		.button("Ancient Copper Core")
-		.button("Auric Battery Recharge Station")
+		.button("Auric Recharge Station")
 		.button("Nature Soul Altar")
 		.button("Suspicious Crimson Eye")
 		.button("Back")
