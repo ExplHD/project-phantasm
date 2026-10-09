@@ -1,6 +1,7 @@
 import { world, system, ItemStack } from '@minecraft/server'
-import { /* [UNUSED] applyDurabilityDamage */ addScore, getAccessoryItems } from './main';
-import * as Phantasm from './phantasmConstants'
+import { addScore } from '../core/scoreboard'
+import { getAccessoryItems } from '../core/player'
+import * as Phantasm from '../core/constants'
 
 const accessoryRegistry: Record<string, Record<string, (player: any, event: any, ...args: any[]) => void>> = {
     "ph:fire_bracelet": {

@@ -1,5 +1,5 @@
 import { world, system, Player, Entity, EquipmentSlot, EntityDamageCause } from "@minecraft/server";
-import { addScore, removeScore, setScore, getScore } from "../main";
+import { addScore, removeScore, setScore, getScore } from "../../core/scoreboard";
 
 interface AttackPattern {
 	delay: number;

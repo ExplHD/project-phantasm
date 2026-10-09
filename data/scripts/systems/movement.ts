@@ -1,5 +1,7 @@
 import { world, system, /* [UNUSED] ItemStack, BlockVolume, Entity, Direction */ Player, Block, EquipmentSlot } from '@minecraft/server'
-import * as Helper from "./main"
+import { setScore } from '../core/scoreboard'
+import { runUntilMoved } from '../core/player'
+import { applyDurabilityDamage } from '../core/items'
 
 // =========================================================================================================
 // FUNCTION HELPER
@@ -14,7 +16,7 @@ export function dashRuntime(player: Player, requireFalling: boolean = true): voi
     if ( !scoreboard_dash || (scoreboard_dash?.getScore(player) ?? 0) > 0 || player.getDynamicProperty("ph:dash_unlock") == 0 || player.getDynamicProperty("ph:dash_level") == undefined || equipmentTag?.includes("minecraft:is_sword") || equipmentTag?.includes("minecraft:is_tool")) return;
     if (player.getDynamicProperty("ph:dash_level") == 1) {
         player.applyKnockback({ x: player.getViewDirection().x * 3, z: player.getViewDirection().z * 3 }, 0.2)
-        Helper.setScore(player, 'dash_cd', 60);
+        setScore(player, 'dash_cd', 60);
         player.playSound("player.dash", {
             volume: 1
         });
@@ -27,7 +29,7 @@ export function dashRuntime(player: Player, requireFalling: boolean = true): voi
     }
     if (player.getDynamicProperty("ph:dash_level") == 2) {
         player.applyKnockback({ x: player.getViewDirection().x * 5, z: player.getViewDirection().z * 5 }, 0.3)
-        Helper.setScore(player, 'dash_cd', 60);
+        setScore(player, 'dash_cd', 60);
         player.playSound("mob.enderdragon.flap", {
             volume: 0.75
         });
@@ -116,7 +118,7 @@ export function vanillaBlockInteractFix(player: Player, item: any, block: Block)
 
             player.dimension.playSound(materialSound, block.center(), { volume: 1, pitch: 0.8 });
 
-            Helper.applyDurabilityDamage(player);
+            applyDurabilityDamage(player);
         }, 1)
     }
     else if (item.hasTag('minecraft:is_hoe')) {
@@ -127,7 +129,7 @@ export function vanillaBlockInteractFix(player: Player, item: any, block: Block)
 
             player.dimension.playSound('use.gravel', block.center(), { volume: 1, pitch: 0.8 });
 
-            Helper.applyDurabilityDamage(player);
+            applyDurabilityDamage(player);
         }, 1)
     }
     else if (item.hasTag('minecraft:is_shovel')) {
@@ -146,7 +148,7 @@ export function vanillaBlockInteractFix(player: Player, item: any, block: Block)
         system.run(() => {
             player.dimension.playSound('use.grass', block.center(), { volume: 1, pitch: 0.8 });
 
-            Helper.applyDurabilityDamage(player);
+            applyDurabilityDamage(player);
         })
     }
 }
@@ -172,7 +174,7 @@ export function parryRuntime(source: Player, itemStack: any): void {
             source.dimension.playSound("item.spear.use", source.location);
             source.addTag("parried");
             source.inputPermissions.setPermissionCategory(2, false);
-            Helper.applyDurabilityDamage(source, { damage: 1 });
+            applyDurabilityDamage(source, { damage: 1 });
             system.runTimeout(() => {
                 if (source?.hasTag("parried")) source.removeTag("parried");
                 source.inputPermissions.setPermissionCategory(2, true);
@@ -289,7 +291,7 @@ export function healthBarRuntime(player: Player, eventType: string, beforeItemSt
     }
 
     if (eventType == "dimensionChanged") {
-        Helper.runUntilMoved(player, 10, () => {
+        runUntilMoved(player, 10, () => {
             healthBarDisplay(player, health, totalArmor, maxHealth)
         })
     }

@@ -1,5 +1,5 @@
 import { /* [UNUSED] world */ system, BlockPermutation, Player, Block } from '@minecraft/server';
-import { getAccessoryItems } from './main';
+import { getAccessoryItems } from '../core/player';
 
 export const lightLevelMap: Record<string, number> = {
     "minecraft:beacon": 15,

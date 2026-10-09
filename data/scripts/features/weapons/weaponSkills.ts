@@ -1,5 +1,5 @@
-import { addScore, setScore } from '../main'
-import { CommandHandler, SkillHandler, applyCustomDamage } from '../classes/weapon_handler'
+import { addScore, setScore } from '../../core/scoreboard'
+import { CommandHandler, SkillHandler, applyCustomDamage } from './weaponHandler'
 import { MolangVariableMap, system, Player, Entity, EntityDamageCause } from '@minecraft/server';
 
 function getAxisDelta(a: { x: number; y: number; z: number }, b: { x: number; y: number; z: number }): { x: number; y: number; z: number } {

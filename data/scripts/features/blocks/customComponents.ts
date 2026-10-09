@@ -1,9 +1,11 @@
 import { /* [UNUSED] world */ system, CommandPermissionLevel, CustomCommandStatus, MolangVariableMap, ItemStack } from '@minecraft/server'
-import { setScore, getScore, addScore, removeScore, applyDurabilityDamage, unstuckPlayer } from './main'
-import { skillUnlock, propertiesCheck } from './forms/skillUnlock'
-import { openSettings } from './forms/settingsForm'
-import { mainGuideScreen } from './guidescreen/main_guide'
-import openDynamicPropertyMenu from './dynamicPropertyEdit'
+import { setScore, getScore, addScore, removeScore } from '../../core/scoreboard'
+import { unstuckPlayer } from '../../core/player'
+import { applyDurabilityDamage } from '../../core/items'
+import { skillUnlock, propertiesCheck } from '../../ui/forms/skillUnlock'
+import { openSettings } from '../../ui/forms/settingsForm'
+import { mainGuideScreen } from '../../ui/guide/main_guide'
+import openDynamicPropertyMenu from '../../ui/forms/dynamicProperties'
 
 // ======================================== Boss Spawn Placement ========================================
 // The Copper Mechanical Array is 1x3.6 and the Ancient Copper Core is a 5x5 ritual ring with

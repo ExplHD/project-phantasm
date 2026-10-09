@@ -10,7 +10,7 @@ import {
     setDashControl,
     getSkillSwitchControl,
     setSkillSwitchControl
-} from '../controls'
+} from '../../systems/controls'
 
 export function openSettings(player: Player): void {
     const dashControl = getDashControl(player);

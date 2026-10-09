@@ -1,7 +1,7 @@
 import { ActionFormData } from "@minecraft/server-ui";
 import type { Player } from "@minecraft/server";
 import { mainGuideScreen } from "./main_guide"
-import { guideTitle } from "./guidebook_title";
+import { guideTitle } from "./guidebookTitle";
 
 export default function guideWeapons(player: Player) {
 	const form = new ActionFormData()
