@@ -13,6 +13,7 @@ Phantasm 1.6.0 / 2.0.0 :
 = Copper Mechanical Array cast anims differentiated (sword = hovering V-arms sky gaze, axe = overhead two-hand chop synced to 1.5s summon, spear = sideways fencing lunge, double blade = T-pose cyclone spin) - ExplerHD
 = Copper Mechanical Array lightning laser windup shortened (3s -> 1.5s, anim 3.75s -> 2.0s) + 8-direction ground marker ring + charge sound + blade-tip/dash-warning telegraphs - ExplerHD
 = Copper Mechanical Array move/idle rework (walk cycle now driven by query.modified_distance_moved, fixing dead tcos0/gliding_speed_value variable; added body bob/lean/sway, gyro core, weapon lag; idle has breathing, weight shift, head scan, bigger weapon float; removed unused pre_animation) - ExplerHD
+= Guidescreen copy cleanup (fixed grammar, agreement, and typos across weapon/mechanic/boss/block/item/accessories/enemy guides; all stats and facts unchanged) - ExplerHD
 
 # Addition :
 + Guidebook book-screen JSON UI, two-page field-guide spread (reading text left, Categories buttons right; RP ui/server_form.json router + ui/forms/guidebook/ layout with tooled-leather cover, aged parchment, leather chapter-tab buttons, gold dividers; invisible title marker via guidescreen/guidebook_title.ts) - ExplerHD

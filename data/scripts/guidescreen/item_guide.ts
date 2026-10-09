@@ -6,7 +6,7 @@ import { guideTitle } from "./guidebook_title";
 export default function guideItems(player: Player) {
 	const form = new ActionFormData()
 		.title(guideTitle("Items"))
-		.label("This is the list of Usable Items, any items that doesn't show up here is an Items that only be used as a recipe")
+		.label("Usable items. Anything not listed here is recipe-only.")
 		.button("Auric Communicator", "textures/items/auric_communicator")
 		.button("Auric Stock Battery", "textures/items/auric_stock_battery")
 		.button("Combat Dummy", "textures/items/dummy")
@@ -28,10 +28,10 @@ export default function guideItems(player: Player) {
 function auricCommunicator(player: Player) {
 	const form = new ActionFormData()
 		.title(guideTitle("Auric Communicator"))
-		.label("Auric Communicator is an item that used to call an Orbital Strike, this item uses your Auric Charges to cast the strike.")
-		.label("This item has 2 modes that you can use, one is Stab Shot which can be used to cast a direct strike, the other is Nuke Shot which can be used to call a spread strike.")
-		.label("Interact to use it, sneaking with Interact will change the mode of the item.")
-		.label("This item can be obtained from Auric Automaton : Copper Mechanical Array.")
+		.label("The Auric Communicator calls an Orbital Strike using your Auric Charges.")
+		.label("It has 2 modes: Stab Shot for a direct strike, Nuke Shot for a spread strike.")
+		.label("Interact to fire. Sneak-interact to switch modes.")
+		.label("Drops from the Auric Automaton (Copper Mechanical Array).")
 		.button("Back")
 		.show(player).then(r => {
 			if (r.canceled || r.selection == 0) guideItems(player);
@@ -41,10 +41,10 @@ function auricCommunicator(player: Player) {
 function auricStockBattery(player: Player) {
 	const form = new ActionFormData()
 		.title(guideTitle("Auric Stock Battery"))
-		.label("Auric Stock Battery is an item that used to recharge your Auric Charges quickly by one click.")
-		.label("This item can be used up to 2 times recharging your Auric Charges up to 100 per use.")
-		.label("Interact to use it, if the charges ran out, put it at Auric Battery Recharge Station.")
-		.label("This item can be obtained from Crafting with Auric Stars / Ancient Copper Core with Copper Block, obtained from Trial Chamber, and from Auric Automaton : Copper Mechanical Array.")
+		.label("The Auric Stock Battery recharges your Auric Charges in one click.")
+		.label("2 uses. Each restores up to 100 Auric Charges.")
+		.label("Interact to use it. When empty, recharge it at an Auric Battery Recharge Station.")
+		.label("Craft it with Auric Stars or an Ancient Copper Core plus Copper Blocks. Those come from Trial Chambers. It also drops from the Auric Automaton.")
 		.button("Back")
 		.show(player).then(r => {
 			if (r.canceled || r.selection == 0) guideItems(player);
@@ -54,8 +54,8 @@ function auricStockBattery(player: Player) {
 function combatDummy(player: Player) {
 	const form = new ActionFormData()
 		.title(guideTitle("Combat Dummy"))
-		.label("Combat Dummy is an item that can be used to test your combat skills, and testing your maximum damage output.")
-		.label("Place it on the ground and try to hit it with your best weapon to test your damage output.")
+		.label("The Combat Dummy tests your combat skills and max damage output.")
+		.label("Place it down and hit it with your best weapon.")
 		.label("To pick it up, interact with it while sneaking.")
 		.label("This item can be crafted with 2 Planks, 2 Sticks, and 3 Smooth Stone Slabs.")
 		.button("Back")
@@ -67,9 +67,9 @@ function combatDummy(player: Player) {
 function flowChanneler(player: Player) {
 	const form = new ActionFormData()
 		.title(guideTitle("Flow Channeler"))
-		.label("Flow Channeler is an Active Support item that can be used to dash forward, and evading your enemies.")
-		.label("Interact with this item to dash forward, and you can enchant your items with Mending and Unbreaking.")
-		.label("This item can be obtained by killing Sealed Soul of Nature.")
+		.label("The Flow Channeler is Active Support. It dashes you forward, away from enemies.")
+		.label("Interact to dash. Enchantable with Mending and Unbreaking.")
+		.label("Drops from the Sealed Soul of Nature.")
 		.button("Back")
 		.show(player).then(r => {
 			if (r.canceled || r.selection == 0) guideItems(player);
@@ -79,10 +79,10 @@ function flowChanneler(player: Player) {
 function hellCharge(player: Player) {
 	const form = new ActionFormData()
 		.title(guideTitle("Hell Charge"))
-		.label("Hell Charge is an Active Support item that boosts your mobility by giving you small boost into your movement.")
-		.label("Interact with this item to boost your mobility, you can also Spam Interact with this item to make you flying or falling slowly. Use with best control set-up to maximize this item capabilities.")
-		.label("But remember, this item is very fragile, long spammed use and your item gone. To prevent this happening, you can enchant your items with Mending and Unbreaking.")
-		.label("This item can be crafted with Magma Cream, and 4 Blaze Powder.")
+		.label("Hell Charge is Active Support. It boosts your mobility.")
+		.label("Interact for a mobility boost. Spam interact to fly or fall slowly. Tune your controls to get the most out of it.")
+		.label("But it is fragile: long spam breaks it. Enchant with Mending and Unbreaking to make it last.")
+		.label("Craft it with Magma Cream and 4 Blaze Powder.")
 		.button("Back")
 		.show(player).then(r => {
 			if (r.canceled || r.selection == 0) guideItems(player);
@@ -92,10 +92,10 @@ function hellCharge(player: Player) {
 function suspiciousMushroom(player: Player) {
 	const form = new ActionFormData()
 		.title(guideTitle("Suspicious Mushroom"))
-		.label("Suspicious Mushroom is an Active Support item that boosts all of your stats minimally.")
-		.label("Eat this item to improve your stats without any side effects, Stats will be increased temporarily for 10 minutes.")
+		.label("The Suspicious Mushroom is Active Support. It slightly boosts all your stats.")
+		.label("Eat it for 10 minutes of boosted stats, no side effects.")
 		.label("But remember, this item is hard to get, use wisely.")
-		.label("This item can be obtained from Punicea : A Crimson Eye.")
+		.label("Drops from Punicea, the Crimson Eye.")
 		.button("Back")
 		.show(player).then(r => {
 			if (r.canceled || r.selection == 0) guideItems(player);

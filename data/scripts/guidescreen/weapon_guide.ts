@@ -6,7 +6,7 @@ import { guideTitle } from "./guidebook_title";
 export default function guideWeapons(player: Player) {
 	const form = new ActionFormData()
 		.title(guideTitle("Weapons"))
-		.body("There are many variations of the weapons, starting from Common ones, until Legendary one.")
+		.body("Weapons come in many variants, from Common up to Legendary.")
 		.button("§3Prismatic Tools", "textures/items/prismatic_sword")
 		.button("§5Charged Copper Axe", "textures/items/weapons/charged_copper_axe")
 		.button("§5Cruxshaper", "textures/items/weapons/cruxshaper")
@@ -42,10 +42,10 @@ export default function guideWeapons(player: Player) {
 function prismaticTools(player: Player) {
 	const form = new ActionFormData()
 		.title(guideTitle("Prismatic Tools"))
-		.label("Prismatic Tools Tier is an Tier beyond Netherite, much better than Netherite Tier, slightly faster than Netherite tier, having 2 times the durability of Netherite Tier as their main perks of this Tier.")
-		.label("The sword has their special unique attack that makes the weapons capable of doing area piercing attack, but it cannot crits.")
-		.label("and The spear has it's own special perks that you can Dismount your enemies by just using charge attack with sprint jumping.")
-		.label("Prismatic Tools can be crafted with Prismatic Ingot, and Netherite Tools.")
+		.label("Prismatic is a tier beyond Netherite: slightly faster, with twice the durability.")
+		.label("The sword's special attack pierces through an area, but it cannot crit.")
+		.label("The spear can dismount enemies with a sprint-jump charge attack.")
+		.label("Craft Prismatic Tools with Prismatic Ingots and Netherite Tools.")
 		.button("Back")
 		.show(player).then(r => {
 			if (r.canceled || r.selection == 0) guideWeapons(player);
@@ -55,9 +55,9 @@ function prismaticTools(player: Player) {
 function chargedCopperAxe(player: Player) {
 	const form = new ActionFormData()
 		.title(guideTitle("Charged Copper Axe"))
-		.label("This axe weapons is an Epic Weapon, designed for striking your opponents with Lightning Attacks that you collect the charge before combat.")
-		.label("The Charge passive is used when the charge is fully charged, when you hit enemies with full charge, you can cast a Lightning Attacks to their enemies.")
-		.label("and when the enemies died, you will cast additional Lightning Attack, and adding 4 Auric Charges for you.")
+		.label("This Epic axe hits opponents with Lightning attacks. Collect charges before combat.")
+		.label("At full charge, hitting an enemy casts Lightning at them.")
+		.label("Killing an enemy casts another Lightning strike and grants 4 Auric Charges.")
 		.button("Back")
 		.show(player).then(r => {
 			if (r.canceled || r.selection == 0) guideWeapons(player);
@@ -67,9 +67,9 @@ function chargedCopperAxe(player: Player) {
 function cruxshaper(player: Player) {
 	const form = new ActionFormData()
 		.title(guideTitle("Cruxshaper"))
-		.label("This mace weapon just function like mace, but it gets better with the skills.")
-		.label("Look up to the skies to use the skill, you will jump really high, and then finally performs a plunge attack that deals up to 50 damage.")
-		.label("You can get this weapon same as mace, but with additional of Blaze Rod to the recipe.")
+		.label("This mace works like a vanilla mace, plus skills.")
+		.label("Look at the sky to use the skill. You jump high, then plunge down for up to 50 damage.")
+		.label("Craft it like a mace, with a Blaze Rod added to the recipe.")
 		.button("Back")
 		.show(player).then(r => {
 			if (r.canceled || r.selection == 0) guideWeapons(player);
@@ -79,9 +79,9 @@ function cruxshaper(player: Player) {
 function natureStaff(player: Player) {
 	const form = new ActionFormData()
 		.title(guideTitle("Nature Staff"))
-		.label("This staff can use magic attacks that is same as Soul of Nature boss")
-		.label("You can interact to cast the first magic attack, while sneaking you can cast the second magic attack, with slightly longer cooldown")
-		.label("This weapon crafted with Prismatic Ingot, Stick, and Nautilus Shell")
+		.label("This staff casts the same magic attacks as the Soul of Nature boss.")
+		.label("Interact to cast the first attack. Sneak-interact for the second attack, which has a slightly longer cooldown.")
+		.label("Craft it with Prismatic Ingots, a Stick, and a Nautilus Shell.")
 		.button("Back")
 		.show(player).then(r => {
 			if (r.canceled || r.selection == 0) guideWeapons(player);
@@ -91,9 +91,9 @@ function natureStaff(player: Player) {
 function peacemakerOath(player: Player) {
 	const form = new ActionFormData()
 		.title(guideTitle("Peacemaker Oath"))
-		.label("a Pistol that uses Auric Charges as their main bullet, capable of doing high damage and high attack speed with this weapon.")
-		.label("This weapon does not have a unique skill or passive because this weapon is already overpowered, with the Auric Proton Accessory.")
-		.label("You can get this weapon at Trial Chamber, same as Auric Proton.")
+		.label("A pistol that fires Auric Charges. High damage and high attack speed.")
+		.label("It has no unique skill or passive because it is already strong, especially with the Auric Proton accessory.")
+		.label("Find it in Trial Chambers, same as the Auric Proton.")
 		.button("Back")
 		.show(player).then(r => {
 			if (r.canceled || r.selection == 0) guideWeapons(player);
@@ -103,9 +103,9 @@ function peacemakerOath(player: Player) {
 function seiketsu(player: Player) {
 	const form = new ActionFormData()
 		.title(guideTitle("Seiketsu"))
-		.label("a Katana that can performs an Attack Patterns like Legendary Tier, beating every epic weapons in the easier usage")
-		.label("Also with this weapon, you can perform a parry with longer window, different than regular sword")
-		.label("The katana crafted with Prismatic Sword, Blaze Rod, and Netherite Sword")
+		.label("A katana with Legendary-style attack patterns. Easier to use than any Epic weapon.")
+		.label("Its parry window is longer than a regular sword's.")
+		.label("Craft it with a Prismatic Sword, a Blaze Rod, and a Netherite Sword.")
 		.button("Back")
 		.show(player).then(r => {
 			if (r.canceled || r.selection == 0) guideWeapons(player);
@@ -115,9 +115,9 @@ function seiketsu(player: Player) {
 function spectricBow(player: Player) {
 	const form = new ActionFormData()
 		.title(guideTitle("Spectric Bow"))
-		.label("a Bow that beats every Epic weapons in terms of Damage, and Range, The projectile speed is very fast depends on Charging Stage and have ridiculous damage up to 70 damage")
-		.label("You can use this bow normally, but best used with Spectral Arrow, crafted with 4 Glowstone Dust and 1 Arrow")
-		.label("This bow crafted with Iron Ingot, Whole Glowstone, and String")
+		.label("A bow that beats every Epic weapon in damage and range. Arrow speed scales with charge stage, up to 70 damage.")
+		.label("Works with normal arrows, but best with Spectral Arrows, crafted from 4 Glowstone Dust and 1 Arrow.")
+		.label("Craft it with Iron Ingot, Whole Glowstone, and String.")
 		.button("Back")
 		.show(player).then(r => {
 			if (r.canceled || r.selection == 0) guideWeapons(player);
@@ -127,9 +127,9 @@ function spectricBow(player: Player) {
 function thunderGale(player: Player) {
 	const form = new ActionFormData()
 		.title(guideTitle("Thunder Gale"))
-		.label("This Spear weapons is the classic, but powerful one, being the Strongest Spear, dealing over 1.6x multiplier on Charge Attack, 14 Base Damage, and very fast Spear Cooldown")
-		.label("This weapon only provides you with speeds when equipping this weapon")
-		.label("This Spear crafted with Prismatic Spear, Nether Star, and Netherite Spear")
+		.label("A classic but powerful spear, and the strongest of its kind: 14 base damage, a 1.6x charge attack multiplier, and a very fast cooldown.")
+		.label("It also grants bonus speed while equipped.")
+		.label("Craft it with a Prismatic Spear, a Nether Star, and a Netherite Spear.")
 		.button("Back")
 		.show(player).then(r => {
 			if (r.canceled || r.selection == 0) guideWeapons(player);
@@ -139,11 +139,11 @@ function thunderGale(player: Player) {
 function animitta(player: Player) {
 	const form = new ActionFormData()
 		.title(guideTitle("Animitta"))
-		.label("This is the first legendary weapons you will obtain alongside the Prism Weaver, This weapon capable of doing close, medium, and long range attacks with slightly lower damage than other Legendary Weapons. This weapon have 3 skills :")
-		.label("Animirra :\nCreates 4 Stars summon that will attacks other entities, this skill alone is powerful, but you never realized it.")
-		.label("Solaris Slash :\nDoes an attack that creates 3 Solaris Slash, spreading in each direction.")
-		.label("Natura Vulkan :\nSummons 8 Special Stars summons, that will explode at enemies with small distance explosion, but very powerful, alongside of casting a Meteor Rain.")
-		.label("This weapon obtained from killing Soul of Nature with 50% chance alongside with Prism Weaver, a 50/50 between those two weapons")
+		.label("One of the first Legendary weapons you can get, alongside the Prism Weaver. It fights at close, medium, and long range, with slightly lower damage than other Legendary weapons. It has 3 skills:")
+		.label("Animirra :\nSummons 4 stars that attack nearby entities.")
+		.label("Solaris Slash :\nFires 3 Solaris Slashes spreading outward.")
+		.label("Natura Vulkan :\nSummons 8 special stars that explode on enemies with small but powerful blasts, alongside a Meteor Rain.")
+		.label("Drops from the Soul of Nature at 50% chance, alternating with the Prism Weaver (50/50).")
 		.button("Back")
 		.show(player).then(r => {
 			if (r.canceled || r.selection == 0) guideWeapons(player);
@@ -153,11 +153,11 @@ function animitta(player: Player) {
 function prismWeaver(player: Player) {
 	const form = new ActionFormData()
 		.title(guideTitle("Prism Weaver"))
-		.label("This is the first legendary weapons you will obtain alongside the Animitta, This weapon capable of doing long range attacks with low damage than other Legendary Weapons. This weapon have 3 skills :")
-		.label("Bubble Barrage :\nCasts a bursts of bubble projectiles in one attacks.")
-		.label("Prism Wave Wall :\nCasts a Prism Wall that deals massive damage when someone touches it.")
-		.label("Vortex Prism :\nPulls the target in large radius to you, and then repel them with massive damage.")
-		.label("This weapon obtained from killing Soul of Nature with 50% chance alongside with Animitta, a 50/50 between those two weapons")
+		.label("One of the first Legendary weapons you can get, alongside the Animitta. It fights at long range with lower damage than other Legendary weapons. It has 3 skills:")
+		.label("Bubble Barrage :\nFires a burst of bubble projectiles in one attack.")
+		.label("Prism Wave Wall :\nCasts a Prism Wall that deals massive damage on touch.")
+		.label("Vortex Prism :\nPulls targets in a large radius toward you, then repels them with massive damage.")
+		.label("Drops from the Soul of Nature at 50% chance, alternating with the Animitta (50/50).")
 		.button("Back")
 		.show(player).then(r => {
 			if (r.canceled || r.selection == 0) guideWeapons(player);
@@ -167,11 +167,11 @@ function prismWeaver(player: Player) {
 function theBleedingSpire(player: Player) {
 	const form = new ActionFormData()
 		.title(guideTitle("The Bleeding Spire"))
-		.label("This Legendary Spear does a polearm like attack with close distance, this weapon meant to be a support so that will not too powerful to destroy your target. This weapon have 3 skills :")
-		.label("Carnage :\nDash forward with this weapons, any mob collided with you will deal some damage.")
-		.label("Entanglement :\nLeash your target with Crimson Roots, making them stunned (literal stun) for 5 seconds, and giving you over 12 Health Points")
-		.label("Crimson Ray :\nDoes the same thing as Entanglement, but, you will cast a lot of Crimson Ray, shot in scattered directions.")
-		.label("This weapon obtained from killing Punicea")
+		.label("This Legendary spear fights polearm-style at close range. It is a support weapon, so it holds back on damage. It has 3 skills:")
+		.label("Carnage :\nDash forward. Mobs you collide with take damage.")
+		.label("Entanglement :\nLeash your target with Crimson Roots, stunning it for 5 seconds and restoring 12 health.")
+		.label("Crimson Ray :\nLike Entanglement, but fires many Crimson Rays in scattered directions.")
+		.label("Drops from Punicea.")
 		.button("Back")
 		.show(player).then(r => {
 			if (r.canceled || r.selection == 0) guideWeapons(player);
@@ -181,12 +181,12 @@ function theBleedingSpire(player: Player) {
 function superchargedCopperAxe(player: Player) {
 	const form = new ActionFormData()
 		.title(guideTitle("Supercharged Copper Axe"))
-		.label("This Legendary Axe, forged through the High-Grade Copper and Auric Material, is very powerful compared to other weapons, this weapon has very slow attack speed but has lightning bolt attacks when completing the attack pattern. This weapon have 4 skills :")
-		.label("Charge :\nGrants 5 Charges for your 2 skills, and Boost yourself temporarily, giving you a lot of extra damage when you attacking a mob.")
-		.label("Powered Leap :\nCreates an explosion that deals high damage for others than you to make you leap forward to your target, also giving you 1 Charge for your other skills.")
-		.label("Discharge :\nDischarge your collected charge, and cast a Auric Laser that moves in their direction, hitting a target will gives them a lot of damage.")
-		.label("Ultimate Discharge :\nDoes the same thing with Discharge, but it's more powerful, and combined with medium-range lightning attacks that covers both close and medium range.")
-		.label("This weapon obtained from killing Auric Automaton with 50% chance alongside with Auric Photonizer, a 50/50 between those two weapons")
+		.label("This Legendary axe, forged from high-grade Copper and Auric material, hits very hard but swings very slowly, with lightning bolts on a completed attack pattern. It has 4 skills:")
+		.label("Charge :\nGrants 5 Charges for your other skills and briefly boosts your damage.")
+		.label("Powered Leap :\nCreates an explosion that damages everything except you and leaps you toward your target. Grants 1 Charge.")
+		.label("Discharge :\nSpends your charges to fire an Auric Laser forward. Direct hits deal heavy damage.")
+		.label("Ultimate Discharge :\nA stronger Discharge, combined with medium-range lightning covering close and medium range.")
+		.label("Drops from the Auric Automaton at 50% chance, alternating with the Auric Photonizer (50/50).")
 		.button("Back")
 		.show(player).then(r => {
 			if (r.canceled || r.selection == 0) guideWeapons(player);
@@ -196,12 +196,12 @@ function superchargedCopperAxe(player: Player) {
 function auricPhotonizer(player: Player) {
 	const form = new ActionFormData()
 		.title(guideTitle("Auric Photonizer"))
-		.label("This Legendary Sword, forged through the High-Grade Copper and Auric Material, is powerful compared to other weapons, this weapon has very fast attack speed. This weapon have 4 skills :")
-		.label("Stab :\nDash and Stab forward with this weapons, any mob collided with you will deal a lot damage.")
-		.label("Powered Leap :\nLeaps backward to dodge your opponents, creates an explosion after short delay that deals a lot damage")
-		.label("Blade Barrage :\nSummon 5 Auric Double Blade, moving towards you, anyone other than you will deals a lot of damage")
-		.label("Ethereal Blade :\nSummon 3 sequence of a lot of Ethereal Sword stabbing in random direction dealing a lot of damage, you can still move while the skill is activated")
-		.label("This weapon obtained from killing Auric Automaton with 50% chance alongside with Supercharged Copper Axe, a 50/50 between those two weapons")
+		.label("This Legendary sword, forged from high-grade Copper and Auric material, swings very fast. It has 4 skills:")
+		.label("Stab :\nDash-stab forward. Mobs you collide with take heavy damage.")
+		.label("Powered Leap :\nLeap backward to dodge, leaving an explosion after a short delay that deals heavy damage.")
+		.label("Blade Barrage :\nSummons 5 Auric Double Blades that fly toward you, heavily damaging anything else in the way.")
+		.label("Ethereal Blade :\nSummons 3 waves of Ethereal Swords stabbing in random directions for heavy damage. You can keep moving while it fires.")
+		.label("Drops from the Auric Automaton at 50% chance, alternating with the Supercharged Copper Axe (50/50).")
 		.button("Back")
 		.show(player).then(r => {
 			if (r.canceled || r.selection == 0) guideWeapons(player);
