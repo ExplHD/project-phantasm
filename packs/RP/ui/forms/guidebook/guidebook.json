@@ -46,10 +46,10 @@
 				"book_pages": {
 					"type": "image",
 					"texture": "textures/ui/forms/guidebook/book_page",
-					"size": [496, 343],
+					"size": [496, 344],
 					"anchor_from": "top_left",
 					"anchor_to": "top_left",
-					"offset": [13, 13]
+					"offset": [17, 17]
 				}
 			},
 			{
@@ -58,7 +58,7 @@
 					"size": [228, "default"],
 					"anchor_from": "top_left",
 					"anchor_to": "top_left",
-					"offset": [24, 22],
+					"offset": [28, 26],
 					"text": "#title_text",
 					"text_alignment": "left",
 					"color": [0.42, 0.26, 0.09],
@@ -72,14 +72,14 @@
 					"size": [228, 6],
 					"anchor_from": "top_left",
 					"anchor_to": "top_left",
-					"offset": [24, 54]
+					"offset": [28, 58]
 				}
 			},
 			{
 				"book_left_scroll@common.scrolling_panel": {
 					"anchor_from": "top_left",
 					"anchor_to": "top_left",
-					"offset": [24, 64],
+					"offset": [28, 68],
 					"$show_background": false,
 					"size": [228, 264],
 					"$scrolling_content": "ph_guidebook.book_text_content",
@@ -96,7 +96,7 @@
 					"size": [228, 6],
 					"anchor_from": "top_left",
 					"anchor_to": "top_left",
-					"offset": [24, 332]
+					"offset": [28, 336]
 				}
 			},
 			{
@@ -105,7 +105,7 @@
 					"size": [240, "default"],
 					"anchor_from": "top_left",
 					"anchor_to": "top_left",
-					"offset": [260, 22],
+					"offset": [264, 27],
 					"text": "Categories",
 					"text_alignment": "center",
 					"color": [0.25, 0.25, 0.25],
@@ -116,17 +116,17 @@
 				"book_right_rule_top": {
 					"type": "image",
 					"texture": "textures/ui/forms/guidebook/divider",
-					"size": [240, 6],
+					"size": [244, 11],
 					"anchor_from": "top_left",
 					"anchor_to": "top_left",
-					"offset": [260, 54]
+					"offset": [260, 56]
 				}
 			},
 			{
 				"book_right_scroll@common.scrolling_panel": {
 					"anchor_from": "top_left",
 					"anchor_to": "top_left",
-					"offset": [260, 64],
+					"offset": [264, 72],
 					"$show_background": false,
 					"size": [240, 264],
 					"$scrolling_content": "ph_guidebook.book_button_content",
@@ -140,7 +140,7 @@
 				"book_right_rule_bottom": {
 					"type": "image",
 					"texture": "textures/ui/forms/guidebook/divider",
-					"size": [240, 6],
+					"size": [244, 15],
 					"anchor_from": "top_left",
 					"anchor_to": "top_left",
 					"offset": [260, 332]
