@@ -9,7 +9,7 @@ export function skillUnlock(player: Player) {
 
     const form = new ActionFormData()
         .title("Skill Unlocking")
-        .body("Unlock your new potential by spending your 30 Experience level to one of the skill right here")
+        .body("Spend 30 experience levels to unlock one of these skills")
         .button(`Passive Dash\n§2Level : ${dashLevelStatus}`)
         .button(`Extra Health\n§2Level : ${healthLevelStatus}`)
         .button(`Wind Plunge\n${plungeUnlockStatus}`)
@@ -26,7 +26,7 @@ function dashUnlock(player: Player) {
     let dashLevel = player.getDynamicProperty("ph:dash_level") ?? 0;
 	const form = new MessageFormData()
 		.title("Confirm Selection")
-        .body(`Are you sure you want to unlock the passive dash? to use it press jump twice\n\nCurrent Level : ${exp}\nRequired Level : 30`)
+        .body(`Are you sure you want to unlock Passive Dash? Press Jump twice to use it.\n\nCurrent Level : ${exp}\nRequired Level : 30`)
         .button1("Confirm")
         .button2("Cancel")
         .show(player).then(r => {
@@ -51,7 +51,7 @@ function healthUpgrade(player: Player) {
     const exp = player.level;
     const form = new MessageFormData()
         .title("Confirm Selection")
-        .body(`Are you sure you want to upgrade your max health? adds 16 HP at level 1, +12 HP at other level\n\nCurrent Level : ${exp}\nRequired Level : 30`)
+        .body(`Are you sure you want to upgrade your max health? +16 HP at level 1, +12 HP at later levels.\n\nCurrent Level : ${exp}\nRequired Level : 30`)
         .button1("Confirm")
         .button2("Cancel")
         .show(player).then(r => {
@@ -88,7 +88,7 @@ function plungeUnlock(player: Player) {
     let plungeUnlock = player.getDynamicProperty("ph:plunge_unlock") ?? false;
     const form = new MessageFormData()
         .title("Confirm Selection")
-        .body(`Are you sure you want to unlock the wind plunge passive? to use it press sneak while falling more than 10 blocks.\n\nCurrent Level : ${exp}\nRequired Level : 30`)
+        .body(`Are you sure you want to unlock Wind Plunge? Press Sneak while falling more than 10 blocks to use it.\n\nCurrent Level : ${exp}\nRequired Level : 30`)
         .button1("Confirm")
         .button2("Cancel")
         .show(player).then(r => {
@@ -116,7 +116,7 @@ export function propertiesCheck(player: Player) {
 
     const form = new ActionFormData()
         .title("Skill Unlocking")
-        .body("Unlock your new potential by spending your 30 Experience level to one of the skill right here")
+        .body("Spend 30 experience levels to unlock one of these skills")
         .button(`Passive Dash\n§2Level : ${dashLevelStatus}`)
         .button(`Extra Health\n§2Level : ${healthLevelStatus}`)
         .button(`Wind Plunge\n${plungeUnlockStatus}`)

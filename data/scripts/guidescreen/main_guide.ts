@@ -35,7 +35,7 @@ export function mainGuideScreen(player: Player) {
 		.button("Contact the Developer!")
 		.divider()
 		.label(
-			"Are you stuck? You can press this button to unstuck yourself, or use /unstuck command. Sometimes, minecraft can be really bugged with inputpermission so I add these button and command for that reason.",
+			"Stuck? Press this button or use /unstuck. Minecraft's input permission bugs out sometimes, so I added both for that reason.",
 		)
 		.button("Unstuck")
 		.divider()

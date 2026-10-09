@@ -6,7 +6,7 @@ import { guideTitle } from "./guidebook_title";
 export default function guideBosses(player: Player) {
 	const form = new ActionFormData()
 		.title(guideTitle("Bosses"))
-		.label("This is the list of Bosses that exist in the add-on, you will face each of these bosses through your progression.")
+		.label("Every boss in the add-on, in progression order.")
 		.button("Soul of Nature")
 		.button("Punicea - A Crimson Eye")
 		.button("Auric Automaton")
@@ -22,10 +22,10 @@ export default function guideBosses(player: Player) {
 function soulOfNature(player: Player) {
 	const form = new ActionFormData()
 		.title(guideTitle("Sealed Soul of Nature"))
-		.label("Sealed Soul of Nature is a boss that possesses the power of nature, and the prism. this have several deadly attacks that can deplete your oxgen level during fighting.")
-		.label("This boss generally have 500 HP and 3 different attack patterns. when reached 70% HP, the boss will spawn more Nature and Prism Crystal assisting the bossfight to make the fight harder.")
-		.label("You can summon this boss by interacting Nature Soul Altar in Prismarine Arena located underwater..")
-		.label("Defeating this boss ensure that Phantasm journey have just started and you will get a Treasure bag...")
+		.label("Sealed Soul of Nature wields nature and prism power. Its attacks can drain your oxygen mid-fight.")
+		.label("It has 500 HP and 3 attack patterns. At 70% HP it spawns extra Nature and Prism Crystals, making the fight harder.")
+		.label("Summon it by interacting with the Nature Soul Altar in the underwater Prismarine Arena.")
+		.label("Defeating it marks the true start of your Phantasm journey. You get a treasure bag...")
 		.button("Back")
 		.show(player).then(r => {
 			if (r.canceled || r.selection == 0) guideBosses(player);
@@ -35,10 +35,10 @@ function soulOfNature(player: Player) {
 function puniceaCrimsonEye(player: Player) {
 	const form = new ActionFormData()
 		.title(guideTitle("Punicea - A Crimson Eye"))
-		.label("Punicea is a boss that wield the power of crimson corruption. this have 6 different attacks and very tough Health.")
-		.label("This boss generally have 3000 HP and 6 different attack patterns. Each attack patterns are well telegraphed, so the attack will deal more damages, and easier to dodge. Just be careful with your movement.")
-		.label("You can summon this boss by interacting Suspicious Crimson Eye in Crimson Overgrowth.")
-		.label("Defeating this boss ensure that you learned how to dodge very well, and you will get a Treasure bag...")
+		.label("Punicea wields crimson corruption. It has 6 attacks and very high health.")
+		.label("It has 3000 HP and 6 attack patterns. Each is well telegraphed but hits hard, so keep moving.")
+		.label("Summon it by interacting with the Suspicious Crimson Eye in the Crimson Overgrowth.")
+		.label("Defeating it proves you can dodge. You get a treasure bag...")
 		.button("Back")
 		.show(player).then(r => {
 			if (r.canceled || r.selection == 0) guideBosses(player);
@@ -48,10 +48,10 @@ function puniceaCrimsonEye(player: Player) {
 function copperMechanicalArray(player: Player) {
 	const form = new ActionFormData()
 		.title(guideTitle("Auric Automaton - Copper Mechanical Array"))
-		.label("Auric Mechanical Array is a mechanical boss that wield the ultimate power of Auric. this boss have very complicated attack patterns, massive damage, combined with it's great mobility, this boss can obliterate anything easily. Ensure you have Ultimate Gear setup before you fight this abomination.")
-		.label("This boss generally have less hp than other end game bosses, 1750 HP and 7 different attack patterns based of how you fight. Each attack patterns are very dangerous to tank, so be more mobile than it. to survive, and kill the boss.")
-		.label("You can summon this boss by completing the ritual of Ancient Copper Core.")
-		.label("Defeating this boss will drop a Treasure bag, completing the journey of Phantasm, for now... Stay tuned for the next Phantasm Update!")
+		.label("The Auric Mechanical Array wields ultimate Auric power. Complicated patterns, massive damage, and high mobility. Bring your best gear.")
+		.label("It has 1750 HP and 7 attack patterns that adapt to how you fight. Do not try to tank them. Stay mobile to survive and kill it.")
+		.label("Summon it by completing the Ancient Copper Core ritual.")
+		.label("It drops a treasure bag. That completes the Phantasm journey, for now. Stay tuned for the next update!")
 		.button("Back")
 		.show(player).then(r => {
 			if (r.canceled || r.selection == 0) guideBosses(player);

@@ -153,7 +153,7 @@ system.beforeEvents.startup.subscribe((initEvent: any) => {
             }
             if (upgrade_to != undefined) source.setDynamicProperty(passive_ability, upgrade_to);
             if (upgrade_step > 0) source.setDynamicProperty(passive_ability, property + upgrade_step);
-            source.sendMessage(`§aUpgrade successful, feels the difference of the abilities`);
+            source.sendMessage(`§aUpgrade successful, feel the difference`);
             source.dimension.playSound(upgrade_sound, source.location);
             source.dimension.spawnParticle(upgrade_particle, source.location);
             source.runCommand(`clear @s ${inventory.getItem(source.selectedSlotIndex).typeId} -1 1`);
@@ -558,7 +558,7 @@ system.beforeEvents.startup.subscribe((initEvent: any) => {
 
             if (northBlockState == 1 && eastBlockState == 1 && southBlockState == 1 && westBlockState == 1) {
                 // Triggers the event here.
-                player.sendMessage("Successfully activating the core. Waiting for his approach");
+                player.sendMessage("Core activated. Waiting for his approach");
                 block.dimension.setBlockType(block.north(2), "ph:core_battery");
                 block.dimension.setBlockType(block.south(2), "ph:prismarine_battery");
                 block.dimension.spawnParticle("ph:auric_beam", block.center());

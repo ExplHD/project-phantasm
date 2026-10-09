@@ -99,7 +99,7 @@ export function onPlayerSpawn(player: Player, initialSpawn: boolean): void {
     }
     const playerInput = player.inputInfo.lastInputModeUsed;
     if (playerInput == "Touch") {
-        player.sendMessage("§eIt is recommended for you to use the Joystick + Crosshair with Action Button Enabled, for making the using weapon experience easier");
+        player.sendMessage("§eTouch controls? Joystick + Crosshair with the Action Button enabled makes weapons easier to use");
     }
     const properties: string[] = [
         "ph:dash_level",

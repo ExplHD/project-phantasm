@@ -8,13 +8,13 @@ export default function guideAccessories(player: Player) {
 		.title(guideTitle("Accessories"))
 		.label("Every accessory explains its own effect in its item description, so hover over the item to read what it does!")
 		.divider()
-		.label("Accessories are an Item Type that can be used as a combat support, or anything to enhance your experience. Accessories can be found anywhere, from doing mining, looting structures, until fighting a boss")
+		.label("Accessories are items that support you in combat and beyond. Find them anywhere: mining, looting structures, even boss fights.")
 		.divider()
-		.label("There are two types of accessories :")
-		.label("Active Accessories :\nActive accessories are an accessory that have both passive, and interactability, this type of accessories are recommended to use it at the hotbar with plus sign.")
-		.label("Passive Accessories :\nPassive accessories are an accessory that have only passive effect, this type of accessories are recommended to use it at offhand slot, but you can still use it at the hotbar with plus sign.")
+		.label("Two types:")
+		.label("Active accessories :\nThey have both a passive effect and an interact use. Keep them in a hotbar slot with a plus sign.")
+		.label("Passive accessories :\nPassive effect only. Best in the offhand slot, but a plus-sign hotbar slot works too.")
 		.divider()
-		.label("To use accessory, put an accessories item type into Offhand Slot, or Hotbar with plus sign. The passive effect will automatically be applied as soon you equip it.")
+		.label("Put an accessory in the offhand slot or a plus-sign hotbar slot. Its passive applies as soon as you equip it.")
 		.button("Back")
 		.show(player).then(r => {
 			if (r.selection === 0 || r.canceled) mainGuideScreen(player);
