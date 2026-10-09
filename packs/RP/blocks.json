@@ -60,5 +60,17 @@
 	},
 	"ph:crystall_cluster": {
 		"sound": "amethyst_cluster"
+	},
+	"ph:polished_astralite": {
+		"sound": "stone"
+	},
+	"ph:smooth_astralite": {
+		"sound": "stone"
+	},
+	"ph:chiseled_astralite": {
+		"sound": "stone"
+	},
+	"ph:luminous_crystall": {
+		"sound": "stone"
 	}
 }

@@ -81,6 +81,18 @@
 		},
 		"ph_crystall_cluster": {
 		    "textures": "textures/blocks/crystall_cluster"
+		},
+		"ph_polished_astralite": {
+			"textures": "textures/blocks/polished_astralite"
+		},
+		"ph_smooth_astralite": {
+			"textures": "textures/blocks/smooth_astralite"
+		},
+		"ph_chiseled_astralite": {
+			"textures": "textures/blocks/chiseled_astralite"
+		},
+		"ph_luminous_crystall": {
+			"textures": "textures/blocks/luminous_crystall"
 		}
 	}
 }

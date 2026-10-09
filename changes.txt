@@ -18,3 +18,4 @@ Phantasm 1.6.0 / 2.0.0 :
 + Furnace + blast furnace recipe raw solarium -> solarium ingot - zeromaster178
 + Crafting table recipe astralium + solarium ingot -> astralith alloy - zeromaster178
 + Lizardman hostile mob ph:lizardman (BP entity, RP entity, render controller, lang; model/anim/controller sudah ada) - zeromaster178
++ Astralite stone family ph:polished_astralite, ph:smooth_astralite, ph:chiseled_astralite, ph:luminous_crystall (stone stats 7.5s/30, all pickaxe, stone sound/group; luminous light 15 seterang sea lantern)
