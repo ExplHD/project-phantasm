@@ -39,6 +39,8 @@ export const addLore = new Map<string, string[]>([
     ["ph:rust_coin", ["§7Double the Fortune, Double the Problem!", "§r§9Accessory Item (Offhand, Hotbar Slot with +)", "§9Phantasm"]]
 ])
 
+// [UNUSED] LEGENDARY_TIER — exported but never referenced. Weapons currently detect
+// legendary status by hardcoded typeId lists instead of this list.
 export const LEGENDARY_TIER = [
 	"ph:solaris_verdant",
 	"ph:prism_weaver",

@@ -1,8 +1,65 @@
-import { world, system, CommandPermissionLevel, CustomCommandStatus, MolangVariableMap, ItemStack } from '@minecraft/server'
+import { /* [UNUSED] world */ system, CommandPermissionLevel, CustomCommandStatus, MolangVariableMap, ItemStack } from '@minecraft/server'
 import { setScore, getScore, addScore, removeScore, applyDurabilityDamage, unstuckPlayer } from './main'
 import { skillUnlock, propertiesCheck } from './forms/skillUnlock'
+import { openSettings } from './forms/settingsForm'
 import { mainGuideScreen } from './guidescreen/main_guide'
 import openDynamicPropertyMenu from './dynamicPropertyEdit'
+
+// ======================================== Boss Spawn Placement ========================================
+// The Copper Mechanical Array is 1x3.6 and the Ancient Copper Core is a 5x5 ritual ring with
+// batteries two blocks out on every side. Spawning the boss over the core wedged it inside the
+// ring geometry, so the summon drops it on open ground a few blocks away instead.
+
+const BOSS_SPAWN_MIN_DISTANCE = 4;
+const BOSS_SPAWN_MAX_DISTANCE = 12;
+// Head clearance needed for a 3.6 block tall boss, so it never spawns into a low ceiling.
+const BOSS_SPAWN_HEAD_ROOM = 4;
+// How far below the player to look for a floor before giving up on an angle.
+const BOSS_SPAWN_SEARCH_DEPTH = 12;
+
+function isGroundBlock(block: any): boolean {
+    return !!block && !block.isAir && !block.isLiquid;
+}
+
+/**
+ * Finds open ground BOSS_SPAWN_MIN_DISTANCE..BOSS_SPAWN_MAX_DISTANCE blocks from the core,
+ * at roughly the player's height, with enough head clearance for the boss to stand up.
+ * Tries a spread of angles so the boss never lands in the same spot twice.
+ */
+function findBossSpawnPoint(dimension: any, origin: any, player: any): any {
+    const angles = 12;
+
+    for (let i = 0; i < angles; i++) {
+        // Offset by attempt index so repeated summons spread out instead of stacking.
+        const angle = ((i / angles) * Math.PI * 2) + Math.random() * 0.5;
+        const distance = BOSS_SPAWN_MIN_DISTANCE + Math.random() * (BOSS_SPAWN_MAX_DISTANCE - BOSS_SPAWN_MIN_DISTANCE);
+        const x = Math.floor(origin.x + Math.cos(angle) * distance);
+        const z = Math.floor(origin.z + Math.sin(angle) * distance);
+        const startY = Math.floor(player.location.y);
+
+        // Walk down from the player's level to find the first solid floor.
+        for (let drop = 0; drop <= BOSS_SPAWN_SEARCH_DEPTH; drop++) {
+            const y = startY - drop;
+            const floor = dimension.getBlock({ x, y: y - 1, z });
+            if (!isGroundBlock(floor)) continue;
+
+            let headRoom = true;
+            for (let up = 0; up < BOSS_SPAWN_HEAD_ROOM; up++) {
+                const space = dimension.getBlock({ x, y: y + up, z });
+                if (!space || !space.isAir) {
+                    headRoom = false;
+                    break;
+                }
+            }
+            if (!headRoom) break;
+
+            return { x: x + 0.5, y, z: z + 0.5 };
+        }
+    }
+
+    // Nothing valid nearby; fall back to the old center spawn rather than dropping nothing.
+    return { x: origin.x, y: origin.y + 1.1, z: origin.z };
+}
 
 system.beforeEvents.startup.subscribe((initEvent: any) => {
     initEvent.itemComponentRegistry.registerCustomComponent("ph:charge_passive", {
@@ -568,9 +625,12 @@ system.beforeEvents.startup.subscribe((initEvent: any) => {
                 block.dimension.spawnParticle("ph:auric_beam_small", block.south(2).center());
                 block.dimension.spawnParticle("ph:auric_beam_small", block.west(2).center());
                 block.dimension.playSound("custom_sfx.boss_summoned", block.center());
+                const bossSpawnPoint = findBossSpawnPoint(block.dimension, block.center(), player);
                 system.runTimeout(() => {
-                    block.dimension.spawnEntity("ph:copper_mechanical_array", block.above(1.1));
-                    block.dimension.playSound("mob.zombie.woodbreak", block.center());
+                    block.dimension.spawnEntity("ph:copper_mechanical_array", bossSpawnPoint);
+                    block.dimension.playSound("mob.zombie.woodbreak", bossSpawnPoint);
+                    block.dimension.spawnParticle("ph:auric_beam_small", bossSpawnPoint);
+                    block.dimension.spawnParticle("ph:auric_light_flash", bossSpawnPoint);
                 }, 100)
             }
 
@@ -805,6 +865,20 @@ system.beforeEvents.startup.subscribe((initEvent: any) => {
 	});
 
 	initEvent.customCommandRegistry.registerCommand({
+		name: "ph:setting",
+		description: "Opens the settings ui to configure your controls",
+		cheatsRequired: false,
+		permissionLevel: CommandPermissionLevel.Any
+	}, (origin: any) => {
+		const player = origin.sourceEntity;
+		if (player?.typeId !== "minecraft:player") return { status: CustomCommandStatus.Failure };
+		system.run(() => {
+			openSettings(player);
+		})
+		return { status: CustomCommandStatus.Success };
+	});
+
+	initEvent.customCommandRegistry.registerCommand({
 		name: "ph:unstuck",
 		description: "Unstuck yourself when you cannot move.",
 		cheatsRequired: true,
@@ -822,6 +896,9 @@ function openForm({ sourceEntity: player }: any) {
     return { status: CustomCommandStatus.Success };
 }
 
+// [UNUSED] openProperties — never passed to a registerCommand call, so this handler is
+// unreachable. /dynamicproperties uses openDynamicPropertyMenu instead. This is the only
+// caller of propertiesCheck in forms/skillUnlock.ts.
 function openProperties({ sourceEntity: player }: any) {
     system.run(() => {
         propertiesCheck(player);

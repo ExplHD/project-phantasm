@@ -1,10 +1,10 @@
-import { world, Player } from "@minecraft/server";
+import { /* [UNUSED] world */ Player } from "@minecraft/server";
 import { CustomForm, ObservableNumber, ObservableBoolean, ObservableString } from "@minecraft/server-ui";
 
 /**
  * Place the dynamic properties here mf
  */
-const DYNAMIC_PROPERTY_IDS: string[] = ["ph:dash_level", "ph:health_level", "ph:plunge_unlock", "ph:guidebook_acquired"];
+const DYNAMIC_PROPERTY_IDS: string[] = ["ph:dash_level", "ph:health_level", "ph:plunge_unlock", "ph:guidebook_acquired", "ph:dash_control", "ph:skill_switch_control"];
 
 function getPropertyType(value: boolean | number | string | undefined): string {
 	if (typeof value === "boolean") return "boolean";

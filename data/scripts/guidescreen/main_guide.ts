@@ -1,6 +1,6 @@
 import { ActionFormData } from "@minecraft/server-ui";
 import type { Player } from "@minecraft/server";
-import { world, system } from "@minecraft/server";
+// [UNUSED] import { world, system } from "@minecraft/server"; — nothing in this file uses them.
 import { unstuckPlayer } from "../main";
 
 import guideWeapons from "./weapon_guide";

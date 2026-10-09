@@ -56,7 +56,7 @@ function passiveDash(player: Player) {
 		.header("Passive Dash")
 		.divider()
 		.label("This skill lets you dash forward with no dash item. Useful for mobility and some combat styles.")
-		.label("Press Jump while falling to dash.")
+		.label("Press Jump while falling to dash. Use /setting if you want a different control (double-tap Jump, Sprint + Jump, or Jump + Sneak).")
 		.divider()
 		.button("Back")
 		.show(player).then(r => {
@@ -112,6 +112,7 @@ function legendaryItems(player: Player) {
 		.divider()
 		.label("Legendary weapons and items can be complicated. Here is how to use them:")
 		.label("Attack: left-click (or tap Attack).\nSkill: Interact / right-click.\nSwitch skill: Sneak.")
+		.label("Use /setting to change how you switch skill: Sneak, Sneak + Attack, or Double Sneak.")
 		.divider()
 		.button("Back")
 		.show(player).then(r => {

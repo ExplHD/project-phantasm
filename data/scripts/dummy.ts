@@ -1,4 +1,4 @@
-import { world, system, Entity, EntityHurtAfterEvent } from "@minecraft/server";
+import { /* [UNUSED] world */ system, Entity, EntityHurtAfterEvent } from "@minecraft/server";
 
 const COMBAT_TIMEOUT = 5000;      // Reset setelah 5 detik tanpa damage
 const DPS_WINDOW = 1000;          // Damage 1 detik terakhir

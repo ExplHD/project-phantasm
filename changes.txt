@@ -20,6 +20,7 @@ Phantasm 1.6.0 / 2.0.0 :
 + Grasshopper hostile mob ph:grasshopper (BP entity, RP entity, animation controller, render controller 3 variant texture, lang) - zeromaster178
 + Grasshopper ambient hop via jump_to_block (cooldown 4-8s) + kalem random_stroll - zeromaster178
 + Furnace + blast furnace recipe raw solarium -> solarium ingot - zeromaster178
++ /setting command + settings UI, each player binds their own controls for Passive Dash (Double-tap Jump / Sprint + Jump / Jump + Sneak) and Legendary weapon skill switch (Sneak / Sneak + Attack / Double Sneak), saved in ph:dash_control and ph:skill_switch_control - ExplerHD
 + Crafting table recipe astralium + solarium ingot -> astralith alloy - zeromaster178
 + Lizardman hostile mob ph:lizardman (BP entity, RP entity, render controller, lang; model/anim/controller sudah ada) - zeromaster178
 + Astralite stone family ph:polished_astralite, ph:smooth_astralite, ph:chiseled_astralite, ph:luminous_crystall (stone stats 7.5s/30, all pickaxe, stone sound/group; luminous light 15 seterang sea lantern)

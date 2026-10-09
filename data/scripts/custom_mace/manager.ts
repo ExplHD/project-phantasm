@@ -6,11 +6,14 @@ export const ExcludeEntities: string[] = [
     "minecraft:armor_stand", "minecraft:iron_golem"
 ];
 
+// [UNUSED] AllowedMaceEnchants — exported but never referenced anywhere. Enchantment
+// restriction was never wired up; isRestrictedMace below was its intended consumer.
 export const AllowedMaceEnchants: string[] = [
     "density", "wind_burst", "breach",
     "smite", "bane_of_arthropods", "fire_aspect",
     "unbreaking", "mending", "curse_of_vanishing"
 ];
+// [UNUSED] isRestrictedMace — exported but never called. Nothing enforces these enchants.
 export function isRestrictedMace(item: ItemStack | undefined): boolean {
     if (!item) return false;
     // Only prevent certain enchantments if the item has the tag.
