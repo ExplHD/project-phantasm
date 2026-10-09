@@ -1,5 +1,6 @@
 import { WeaponHandler, SkillSwitcher, CommandHandler, applyCustomDamage } from './classes/weapon_handler'
-import { weaponSkills } from './data/weapon_skills'
+/* [UNUSED] import { weaponSkills } from './data/weapon_skills' — weapon skills are wired
+   directly in events.ts (itemUse), not here. */
 import { addScore, getScore, removeScore } from './main'
 import * as Phantasm from './phantasmConstants'
 

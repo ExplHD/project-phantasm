@@ -1,4 +1,4 @@
-import { world, system, EquipmentSlot, Player, Entity, ItemStack, EntityDamageCause, EntityComponentTypes } from "@minecraft/server";
+import { world, system, EquipmentSlot, Player, Entity, ItemStack, EntityDamageCause, /* [UNUSED] EntityComponentTypes */ } from "@minecraft/server";
 import * as Manager from "./manager";
 
 // Your custom mace identifier
@@ -40,6 +40,12 @@ const recentSwingHit: Set<string> = new Set();
 const playerFallData: Map<string, number> = new Map();
 
 // Executes the slam
+// [UNUSED] executeMaceSlam — never called from anywhere in this file or the project.
+// NOTE: this is the entry point for the whole mace slam chain. handleStandardSlam and
+// handleWindBurst below are only reachable through it, so the entire slam damage/impulse
+// logic is currently unreachable. The fall-detection interval at the bottom of this file
+// still tracks playerFallData, but nothing consumes it. The mace itself may be handled
+// by vanilla/physics or another module — verify in-game before removing any of this.
 function executeMaceSlam(attacker: Player, victim: Entity, fallDistance: number, item: ItemStack, wbLevel: number = 0, firstHit?: boolean): void {
     if (!attacker.isValid || !victim.isValid) return;
 
@@ -96,6 +102,7 @@ function executeMaceSlam(attacker: Player, victim: Entity, fallDistance: number,
     })
 }
 
+// [UNUSED — only reachable via executeMaceSlam, which is itself never called]
 function handleStandardSlam(attacker: Player, victim: Entity, vLoc: { x: number; y: number; z: number }): void {
     const nearby = attacker.dimension.getEntities({
         location: vLoc,
@@ -121,6 +128,7 @@ function handleStandardSlam(attacker: Player, victim: Entity, vLoc: { x: number;
     }
 }
 
+// [UNUSED — only reachable via executeMaceSlam, which is itself never called]
 function handleWindBurst(attacker: Player, victim: Entity, vLoc: { x: number; y: number; z: number }, level: number): void {
     const vImpulse: number = WindBurstLevelImpulse[level] || 0.5;
 

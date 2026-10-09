@@ -1,4 +1,4 @@
-import { world, system, BlockPermutation, Player, Block } from '@minecraft/server';
+import { /* [UNUSED] world */ system, BlockPermutation, Player, Block } from '@minecraft/server';
 import { getAccessoryItems } from './main';
 
 export const lightLevelMap: Record<string, number> = {

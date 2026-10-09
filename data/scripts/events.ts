@@ -1,5 +1,5 @@
 import { world, system, ItemStack, MolangVariableMap, EquipmentSlot, EntityDamageCause, Player } from '@minecraft/server'
-import { setScore, getScore, addScore, removeScore, applyDurabilityDamage, unstuckPlayer, runUntilMoved, getAccessoryItems } from './main'
+import { setScore, getScore, addScore, /* [UNUSED] removeScore, unstuckPlayer, runUntilMoved */ applyDurabilityDamage, getAccessoryItems } from './main'
 import { weaponSkills } from './data/weapon_skills'
 import * as Phantasm from './phantasmConstants'
 import { handleAccessory } from './accessoriesRuntime'
@@ -7,8 +7,9 @@ import { loadScoreboards, onPlayerSpawn } from './loader'
 import { onDamageIndicator } from './damage_indicator'
 import { onDummyHurt } from './dummy'
 import { clearPlayerLighting, onDynamicLighting } from './dynamicLighting'
-import { dashRuntime, windPlungeRuntime, vanillaBlockInteractFix, parryRuntime, startBetterMending, javaSaturationRegen, healthBarRuntime, specifiedFamilityAndSpeed } from './vanilla_manipulation'
-import { weapons, switcherSkills } from './weapons'
+import { windPlungeRuntime, vanillaBlockInteractFix, parryRuntime, startBetterMending, javaSaturationRegen, healthBarRuntime, specifiedFamilityAndSpeed } from './vanilla_manipulation'
+import { onControlButtonInput, onControlSwingInput, clearControlState } from './controls'
+import { weapons } from './weapons'
 
 // ======================================== World Before Events ========================================
 
@@ -256,6 +257,8 @@ world.afterEvents.playerSpawn.subscribe(({ player, initialSpawn }) => {
 })
 
 world.afterEvents.playerSwingStart.subscribe(({ player, heldItemStack, swingSource }) => {
+    onControlSwingInput(player, swingSource);
+
     for (const weapon of weapons) {
         if (heldItemStack?.typeId === weapon.itemId) {
 			if (swingSource != "Mine" && swingSource != "Attack") return;
@@ -265,24 +268,14 @@ world.afterEvents.playerSwingStart.subscribe(({ player, heldItemStack, swingSour
 })
 
 world.afterEvents.playerButtonInput.subscribe(({ player: source, button, newButtonState }) => {
-    const equippedItem = source?.getComponent('equippable')?.getEquipment(EquipmentSlot.Mainhand);
+    if (newButtonState != "Pressed") return;
 
-    if (button == "Jump" && newButtonState == "Pressed") {
-        dashRuntime(source);
-    }
-
-    if (button == "Sneak" && newButtonState == "Pressed") {
+    if (button == "Sneak") {
         windPlungeRuntime(source);
     }
 
-    if (!equippedItem) return;
-
-    for (const ss of switcherSkills) {
-        if (equippedItem.typeId === ss.itemId && button === "Sneak" && newButtonState == "Pressed") {
-            if (!source.isSneaking) return;
-            ss.switchSkill(source);
-        }
-    }
+    // Jump and Sneak also drive the player-bound control schemes from /setting.
+    onControlButtonInput(source, button);
 })
 
 world.afterEvents.itemUse.subscribe(({ source, itemStack }) => {
@@ -415,6 +408,7 @@ world.afterEvents.entitySpawn.subscribe(({ entity, cause }) => {
 
 world.beforeEvents.playerLeave.subscribe(({ player }) => {
     clearPlayerLighting(player);
+    clearControlState(player);
 });
 
 system.runInterval(() => {

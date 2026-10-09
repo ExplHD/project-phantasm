@@ -1,4 +1,4 @@
-import { world, system, ItemStack, BlockVolume, Player, Block, Entity, Direction, EquipmentSlot } from '@minecraft/server'
+import { world, system, /* [UNUSED] ItemStack, BlockVolume, Entity, Direction */ Player, Block, EquipmentSlot } from '@minecraft/server'
 import * as Helper from "./main"
 
 // =========================================================================================================
@@ -6,10 +6,12 @@ import * as Helper from "./main"
 // =========================================================================================================
 
 // Passive Dash (triggered by playerButtonInput)
-export function dashRuntime(player: Player): void {
+// `requireFalling` is only relaxed by the Jump + Sneak control scheme, where the combo starts
+// with an upward jump, so the player is airborne but not falling yet when Sneak lands.
+export function dashRuntime(player: Player, requireFalling: boolean = true): void {
     const scoreboard_dash = world.scoreboard.getObjective("dash_cd");
     const equipmentTag = player?.getComponent("minecraft:equippable")?.getEquipment(EquipmentSlot.Mainhand)?.getTags()
-    if (!player.isFalling || !scoreboard_dash || (scoreboard_dash?.getScore(player) ?? 0) > 0 || player.getDynamicProperty("ph:dash_unlock") == 0 || player.getDynamicProperty("ph:dash_level") == undefined || equipmentTag?.includes("minecraft:is_sword") || equipmentTag?.includes("minecraft:is_tool")) return;
+    if ( !scoreboard_dash || (scoreboard_dash?.getScore(player) ?? 0) > 0 || player.getDynamicProperty("ph:dash_unlock") == 0 || player.getDynamicProperty("ph:dash_level") == undefined || equipmentTag?.includes("minecraft:is_sword") || equipmentTag?.includes("minecraft:is_tool")) return;
     if (player.getDynamicProperty("ph:dash_level") == 1) {
         player.applyKnockback({ x: player.getViewDirection().x * 3, z: player.getViewDirection().z * 3 }, 0.2)
         Helper.setScore(player, 'dash_cd', 60);

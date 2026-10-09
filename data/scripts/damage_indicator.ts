@@ -1,4 +1,4 @@
-import { world, system, MolangVariableMap, EntityHurtAfterEvent, Player } from '@minecraft/server'
+import { /* [UNUSED] world, system */ MolangVariableMap, EntityHurtAfterEvent, Player } from '@minecraft/server'
 
 const VarSets: Record<string, { icon: Record<string, number>; color: { red: number; green: number; blue: number } }> = {
     physical: {

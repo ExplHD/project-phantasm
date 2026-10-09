@@ -1,5 +1,5 @@
 import { world, system, ItemStack, Player } from '@minecraft/server'
-import { addScore, detectMove, runUntilMoved, setScore, unstuckPlayer } from './main'
+import { addScore, /* [UNUSED] detectMove */ runUntilMoved, setScore, unstuckPlayer } from './main'
 
 const objectives: string[] = [
     // System Scoreboard
@@ -105,7 +105,9 @@ export function onPlayerSpawn(player: Player, initialSpawn: boolean): void {
         "ph:dash_level",
         "ph:health_level",
 		"ph:plunge_unlock",
-        "ph:guidebook_acquired"
+        "ph:guidebook_acquired",
+        "ph:dash_control",
+        "ph:skill_switch_control"
     ]
     for (const property of properties) {
         if (player.getDynamicProperty(property) === undefined) {
@@ -114,6 +116,8 @@ export function onPlayerSpawn(player: Player, initialSpawn: boolean): void {
                 player.setDynamicProperty("ph:health_level", 0);
 				player.setDynamicProperty("ph:plunge_unlock", false);
 				player.setDynamicProperty("ph:guidebook_acquired", true);
+				player.setDynamicProperty("ph:dash_control", 0);
+				player.setDynamicProperty("ph:skill_switch_control", 0);
             }, 20)
         }
     }

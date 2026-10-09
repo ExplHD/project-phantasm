@@ -1,4 +1,4 @@
-import { world, system } from '@minecraft/server'
+import { /* [UNUSED] world */ system } from '@minecraft/server'
 import type { Player } from '@minecraft/server'
 import { ActionFormData, MessageFormData } from '@minecraft/server-ui'
 
@@ -26,7 +26,7 @@ function dashUnlock(player: Player) {
     let dashLevel = player.getDynamicProperty("ph:dash_level") ?? 0;
 	const form = new MessageFormData()
 		.title("Confirm Selection")
-        .body(`Are you sure you want to unlock Passive Dash? Press Jump twice to use it.\n\nCurrent Level : ${exp}\nRequired Level : 30`)
+        .body(`Are you sure you want to unlock Passive Dash? Press Jump twice to use it.\n\nCurrent Level : ${exp}\nRequired Level : 30\n\nYou can change this control later with /setting.`)
         .button1("Confirm")
         .button2("Cancel")
         .show(player).then(r => {
@@ -109,6 +109,8 @@ function plungeUnlock(player: Player) {
         })
 }
 
+// [UNUSED] propertiesCheck — only called by openProperties in custom_components.ts, which
+// is itself never registered as a command. Kept in case you want to re-enable it.
 export function propertiesCheck(player: Player) {
     let dashLevelStatus = player.getDynamicProperty("ph:dash_level");
     let healthLevelStatus = player.getDynamicProperty("ph:health_level");

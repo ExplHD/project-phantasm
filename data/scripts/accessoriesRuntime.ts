@@ -1,5 +1,5 @@
 import { world, system, ItemStack } from '@minecraft/server'
-import { applyDurabilityDamage, addScore, getAccessoryItems } from './main';
+import { /* [UNUSED] applyDurabilityDamage */ addScore, getAccessoryItems } from './main';
 import * as Phantasm from './phantasmConstants'
 
 const accessoryRegistry: Record<string, Record<string, (player: any, event: any, ...args: any[]) => void>> = {
