@@ -1,6 +1,6 @@
 import { EquipmentSlot, Player } from '@minecraft/server'
-import { dashRuntime } from './vanilla_manipulation'
-import { switcherSkills } from './weapons'
+import { dashRuntime } from './movement'
+import { switcherSkills } from '../features/weapons/weapons'
 
 // ======================================== Control Schemes ========================================
 // Every scheme a player can bind to a Phantasm mechanic is listed here and can be

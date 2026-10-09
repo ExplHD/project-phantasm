@@ -1,7 +1,7 @@
 import { ActionFormData } from "@minecraft/server-ui";
 import type { Player } from "@minecraft/server";
 // [UNUSED] import { world, system } from "@minecraft/server"; — nothing in this file uses them.
-import { unstuckPlayer } from "../main";
+import { unstuckPlayer } from "../../core/player";
 
 import guideWeapons from "./weapon_guide";
 import mechanicsList from "./mechanic_guide";
@@ -10,7 +10,7 @@ import guideBlocks from "./block_guide";
 import guideBosses from "./boss_guide";
 import guideAccessories from "./accessories_guide";
 import guideEnemies from "./enemies_guide";
-import { guideTitle } from "./guidebook_title";
+import { guideTitle } from "./guidebookTitle";
 
 export function mainGuideScreen(player: Player) {
 	const form = new ActionFormData()

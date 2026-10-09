@@ -1,5 +1,6 @@
 import { world, system, ItemStack, Player } from '@minecraft/server'
-import { addScore, /* [UNUSED] detectMove */ runUntilMoved, setScore, unstuckPlayer } from './main'
+import { addScore, setScore } from '../core/scoreboard'
+import { runUntilMoved, unstuckPlayer } from '../core/player'
 
 const objectives: string[] = [
     // System Scoreboard
