@@ -15,6 +15,8 @@ interface DummyStats {
     realDps: number;
     displayDps: number;
     interval: number | undefined;
+    /** Last string pushed to nameTag, so idle ticks don't re-send an identical tag. */
+    shownTag: string;
 }
 
 const DummyStatsMap = new Map<string, DummyStats>();
@@ -37,7 +39,8 @@ function getStats(dummy: Entity): DummyStats {
         realDps: 0,
         displayDps: 0,
 
-        interval: undefined
+        interval: undefined,
+        shownTag: ""
     };
 
     DummyStatsMap.set(dummy.id, stats);
@@ -78,7 +81,9 @@ function beginCombat(dummy: Entity, stats: DummyStats): void {
         const averageDps =
             stats.totalDamage / combatTime;
 
-        dummy.nameTag =
+        // The smoothed DPS keeps converging for a while after the last hit, so most ticks in the
+        // 5 second window produce the exact same numbers. Only push the tag when it changed.
+        const nameTag =
 `§e-= Combat Dummy =-
 
 §fDPS §7: §a${Math.round(stats.displayDps)}
@@ -87,6 +92,11 @@ function beginCombat(dummy: Entity, stats: DummyStats): void {
 §fHighest Hit §7: §6${Math.round(stats.highestHit)}
 §fTotal Damage §7: §c${Math.round(stats.totalDamage)}
 §fHits §7: §b${stats.hits}`;
+
+        if (stats.shownTag !== nameTag) {
+            dummy.nameTag = nameTag;
+            stats.shownTag = nameTag;
+        }
 
         // Combat timer expires
         if (

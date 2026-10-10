@@ -2,7 +2,6 @@ import { WeaponHandler, SkillSwitcher, CommandHandler, applyCustomDamage } from 
 /* [UNUSED] import { weaponSkills } from './weaponSkills' — weapon skills are wired
    directly in events/index.ts (itemUse), not here. */
 import { addScore, getScore, removeScore } from '../../core/scoreboard'
-import * as Phantasm from '../../core/constants'
 
 /* --------------------------------------------------------------------------------------------------------------------------------------------------------
             Weapons Runtime

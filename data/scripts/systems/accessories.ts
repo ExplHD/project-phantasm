@@ -3,6 +3,8 @@ import { addScore } from '../core/scoreboard'
 import { getAccessoryItems } from '../core/player'
 import * as Phantasm from '../core/constants'
 
+const ARMOUR_SLOTS = ["Head", "Chest", "Legs", "Feet", "Offhand"];
+
 const accessoryRegistry: Record<string, Record<string, (player: any, event: any, ...args: any[]) => void>> = {
     "ph:fire_bracelet": {
         onHitEntity(player: any, event: any, hitTarget: any) {
@@ -81,7 +83,6 @@ const accessoryRegistry: Record<string, Record<string, (player: any, event: any,
         onLoop(player: any, event: any) {
             system.run(() => {
                 const inventory = player?.getComponent("minecraft:inventory")?.container;
-                const slots = ["Head", "Chest", "Legs", "Feet", "Offhand"];
 
                 for (let i = 0; i < inventory.size; i++) {
                     const item = inventory.getItem(i);
@@ -94,7 +95,7 @@ const accessoryRegistry: Record<string, Record<string, (player: any, event: any,
                     inventory.setItem(i, item);
                 }
 
-                for (const slot of slots) {
+                for (const slot of ARMOUR_SLOTS) {
                     const equipmentSlot = player?.getComponent("minecraft:equippable")?.getEquipmentSlot(slot);
                     const item = equipmentSlot.getItem();
                     if (!item) continue;
@@ -118,8 +119,16 @@ const accessoryRegistry: Record<string, Record<string, (player: any, event: any,
     }
 };
 
-export function handleAccessory(player: any, trigger: string, event: any, hitTarget?: any) {
-    for (const item of getAccessoryItems(player)) {
+/**
+ * Runs every registered accessory hook for a trigger. Fires on every hurt, hit and the
+ * per-player loop, so a non-player (most hurt events are mobs) bails out before any
+ * equipment lookup. Callers that already scanned the accessory slots pass the result in
+ * instead of paying for a second scan.
+ */
+export function handleAccessory(player: any, trigger: string, event: any, hitTarget?: any, items?: any[]) {
+    if (player?.typeId !== "minecraft:player") return;
+
+    for (const item of items ?? getAccessoryItems(player)) {
         const handler =
             accessoryRegistry[item.typeId]?.[trigger];
 

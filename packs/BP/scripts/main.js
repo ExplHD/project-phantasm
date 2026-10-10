@@ -1,15 +1,122 @@
-// data/scripts/main.ts
-import {
-  world as world14,
-  system as system14,
-  EquipmentSlot as EquipmentSlot6
-} from "@minecraft/server";
+// data/scripts/events/index.ts
+import { world as world6, system as system9, ItemStack as ItemStack3, MolangVariableMap as MolangVariableMap3, EquipmentSlot as EquipmentSlot5, EntityDamageCause as EntityDamageCause3 } from "@minecraft/server";
 
-// data/scripts/events.ts
-import { world as world8, system as system9, ItemStack as ItemStack4, MolangVariableMap as MolangVariableMap3, EquipmentSlot as EquipmentSlot3, EntityDamageCause as EntityDamageCause3 } from "@minecraft/server";
+// data/scripts/core/scoreboard.ts
+import { world } from "@minecraft/server";
+function addScore(target, objective, score) {
+  try {
+    world.scoreboard.getObjective(objective).addScore(target, score);
+  } catch (e) {
+    target.runCommand(`scoreboard players add "${target.name}" ${objective} ${score}`);
+  }
+}
+function removeScore(target, objective, score) {
+  try {
+    world.scoreboard.getObjective(objective).addScore(target, -score);
+  } catch (e) {
+    target.runCommand(`scoreboard players remove "${target.name}" ${objective} ${score}`);
+  }
+}
+function setScore(target, objective, score) {
+  try {
+    world.scoreboard.getObjective(objective).setScore(target, score);
+  } catch (e) {
+    target.runCommand(`scoreboard players set "${target.name}" ${objective} ${score}`);
+  }
+}
+function getScore(target, objective) {
+  try {
+    return world.scoreboard.getObjective(objective).getScore(target) ?? 0;
+  } catch (error) {
+    return 0;
+  }
+}
 
-// data/scripts/classes/weapon_handler.ts
-import { world, system, EquipmentSlot, EntityDamageCause } from "@minecraft/server";
+// data/scripts/core/items.ts
+function applyDurabilityDamage(source, options = {}) {
+  const {
+    damage = 1,
+    slot = source?.selectedSlotIndex,
+    ignoreUnbreaking = false,
+    breakSound = true
+  } = options;
+  const inventory = source?.getComponent("inventory")?.container;
+  if (!inventory) return;
+  const item = inventory.getItem(slot);
+  if (!item) return;
+  const durability = item.getComponent("durability");
+  if (!durability) return;
+  if (source.getGameMode && source.getGameMode() === "Creative") return;
+  if (!ignoreUnbreaking) {
+    const unbreaking = item?.getComponent("enchantable")?.getEnchantment("unbreaking")?.level ?? 0;
+    const chance = unbreaking * 21;
+    const roll = Math.floor(Math.random() * 101);
+    if (roll <= chance) return;
+  }
+  const newDamage = durability.damage + damage;
+  if (newDamage >= durability.maxDurability) {
+    inventory.setItem(slot, void 0);
+    if (breakSound && source.playSound) {
+      source.playSound("random.break");
+    }
+    return;
+  }
+  durability.damage = newDamage;
+  inventory.setItem(slot, item);
+}
+
+// data/scripts/core/player.ts
+import { system, EquipmentSlot } from "@minecraft/server";
+function runUntilMoved(entity, tickInterval = 1, callback) {
+  const startLocation = {
+    x: Math.floor(entity.location.x),
+    y: Math.floor(entity.location.y),
+    z: Math.floor(entity.location.z)
+  };
+  const interval = system.runInterval(() => {
+    if (!entity?.isValid) {
+      system.clearRun(interval);
+      return;
+    }
+    const currentLocation = {
+      x: Math.floor(entity.location.x),
+      y: Math.floor(entity.location.y),
+      z: Math.floor(entity.location.z)
+    };
+    callback(currentLocation, startLocation);
+    if (currentLocation.x !== startLocation.x || currentLocation.y !== startLocation.y || currentLocation.z !== startLocation.z) {
+      system.clearRun(interval);
+    }
+  }, tickInterval);
+  return interval;
+}
+var ACCESSORY_SLOTS = [6, 7, 8];
+var NO_ACCESSORIES = [];
+function getAccessoryItems(player) {
+  if (player?.typeId !== "minecraft:player") return NO_ACCESSORIES;
+  const equippable = player.getComponent("minecraft:equippable");
+  const inventory = player.getComponent("minecraft:inventory")?.container;
+  const items = [];
+  const offhand = equippable?.getEquipment(EquipmentSlot.Offhand);
+  if (offhand) items.push(offhand);
+  for (const slot of ACCESSORY_SLOTS) {
+    const item = inventory?.getItem(slot);
+    if (item) items.push(item);
+  }
+  return items;
+}
+function unstuckPlayer(player) {
+  system.run(() => {
+    player.runCommand("inputpermission set @s movement enabled");
+    player.runCommand("inputpermission set @s jump enabled");
+    player.runCommand("inputpermission set @s camera enabled");
+    player.removeTag("parried");
+    player.runCommand("camera @s clear");
+  });
+}
+
+// data/scripts/features/weapons/weaponHandler.ts
+import { world as world2, system as system2, EquipmentSlot as EquipmentSlot2, EntityDamageCause } from "@minecraft/server";
 var WeaponHandler = class {
   itemId;
   objective;
@@ -30,28 +137,28 @@ var WeaponHandler = class {
   // -------- Scoreboard utils ----------
   static addScore(target, objective, score) {
     try {
-      world.scoreboard.getObjective(objective).addScore(target, score);
+      world2.scoreboard.getObjective(objective).addScore(target, score);
     } catch (e) {
       target.runCommand(`scoreboard players add "${target.name}" ${objective} ${score}`);
     }
   }
   static removeScore(target, objective, score) {
     try {
-      world.scoreboard.getObjective(objective).addScore(target, -score);
+      world2.scoreboard.getObjective(objective).addScore(target, -score);
     } catch (e) {
       target.runCommand(`scoreboard players remove "${target.name}" ${objective} ${score}`);
     }
   }
   static setScore(target, objective, score) {
     try {
-      world.scoreboard.getObjective(objective).setScore(target, score);
+      world2.scoreboard.getObjective(objective).setScore(target, score);
     } catch (e) {
       target.runCommand(`scoreboard players set "${target.name}" ${objective} ${score}`);
     }
   }
   static getScore(target, objective) {
     try {
-      return world.scoreboard.getObjective(objective).getScore(target) || 0;
+      return world2.scoreboard.getObjective(objective).getScore(target) || 0;
     } catch (error) {
       return 0;
     }
@@ -173,7 +280,7 @@ var CommandHandler = class {
     let totalDelay = 0;
     for (const cmd of this.commands) {
       totalDelay += cmd.delay;
-      system.runTimeout(() => {
+      system2.runTimeout(() => {
         cmd.action(source);
       }, totalDelay);
     }
@@ -185,7 +292,7 @@ function triggerAttack(source, delay, damage, radius, animation, sound) {
   if (!radius) return console.error("Specify Radius Value");
   if (!animation) return;
   source.playAnimation(animation);
-  system.runTimeout(() => {
+  system2.runTimeout(() => {
     applyCustomDamage(source, damage, radius);
     if (!sound) return;
     source.dimension.playSound(sound, source.location);
@@ -196,7 +303,7 @@ function applyCustomDamage(source, damage, radius) {
   const strengthFormula = 1 + strengthLevel * 0.45;
   const weaknessLevel = (source.getEffect("weakness")?.amplifier ?? -1) + 1;
   const weaknessFormula = Math.max(0, 1 - weaknessLevel * 0.24);
-  const item = source?.getComponent("equippable")?.getEquipment(EquipmentSlot.Mainhand);
+  const item = source?.getComponent("equippable")?.getEquipment(EquipmentSlot2.Mainhand);
   const sharpnessLevel = item?.getComponent("enchantable")?.getEnchantment("sharpness")?.level ?? 0;
   const sharpnessDamage = sharpnessLevel * 1.25;
   const calculatedDamage = (damage + sharpnessDamage) * strengthFormula * weaknessFormula;
@@ -230,14 +337,12 @@ function applyCustomDamage(source, damage, radius) {
   });
 }
 
-// data/scripts/data/weapon_skills.ts
-import { MolangVariableMap, system as system2, EntityDamageCause as EntityDamageCause2 } from "@minecraft/server";
-function getAxisDelta(a, b) {
-  return {
-    x: b.x - a.x,
-    y: b.y - a.y,
-    z: b.z - a.z
-  };
+// data/scripts/features/weapons/weaponSkills.ts
+import { MolangVariableMap, system as system3, EntityDamageCause as EntityDamageCause2 } from "@minecraft/server";
+function setAxisDelta(map, a, b) {
+  map.setFloat("variable.x", b.x - a.x);
+  map.setFloat("variable.y", b.y - a.y);
+  map.setFloat("variable.z", b.z - a.z);
 }
 var solarisverdantSkill = new SkillHandler("ph:solaris_verdant", "solaris_verdant");
 solarisverdantSkill.addSkill(1, {
@@ -849,16 +954,14 @@ theBleedingSpireSkill.addSkill(2, {
         });
         entity.runCommand("inputpermission set @s jump disabled");
         entity.runCommand('tellraw @s {"rawtext":[{"text":"You have been stunned for 5 seconds."}]}');
-        system2.runTimeout(() => {
+        system3.runTimeout(() => {
           entity.runCommand('tellraw @s {"rawtext":[{"text":"Stunned effect is gone!"}]}');
           entity.runCommand("inputpermission set @s jump enabled");
         }, 100);
       }
       const entityLoc = entity.location;
-      let pConfig = new MolangVariableMap();
-      pConfig.setFloat("variable.x", getAxisDelta(playerLoc, entityLoc).x);
-      pConfig.setFloat("variable.y", getAxisDelta(playerLoc, entityLoc).y);
-      pConfig.setFloat("variable.z", getAxisDelta(playerLoc, entityLoc).z);
+      const pConfig = new MolangVariableMap();
+      setAxisDelta(pConfig, playerLoc, entityLoc);
       source.dimension.spawnParticle("ph:entanglement_lead_particle", source.location, pConfig);
     }
   }
@@ -903,66 +1006,27 @@ theBleedingSpireSkill.addSkill(3, {
         });
         entity.runCommand("inputpermission set @s jump disabled");
         entity.runCommand('tellraw @s {"rawtext":[{"text":"You have been stunned for 5 seconds."}]}');
-        system2.runTimeout(() => {
+        system3.runTimeout(() => {
           entity.runCommand('tellraw @s {"rawtext":[{"text":"Stunned effect is gone!"}]}');
           entity.runCommand("inputpermission set @s jump enabled");
         }, 100);
       }
       const entityLoc = entity.location;
-      let pConfig = new MolangVariableMap();
-      pConfig.setFloat("variable.x", getAxisDelta(playerLoc, entityLoc).x);
-      pConfig.setFloat("variable.y", getAxisDelta(playerLoc, entityLoc).y);
-      pConfig.setFloat("variable.z", getAxisDelta(playerLoc, entityLoc).z);
+      const pConfig = new MolangVariableMap();
+      setAxisDelta(pConfig, playerLoc, entityLoc);
       source.dimension.spawnParticle("ph:entanglement_lead_particle", source.location, pConfig);
     }
-    system2.runTimeout(() => {
+    system3.runTimeout(() => {
       source.runCommand("inputpermission set @s movement enabled");
     }, 20);
   }
 });
 var weaponSkills = [solarisverdantSkill, superchargedCopperAxeSkill, prismWeaverSkill, auricPhotonizerSkill, theBleedingSpireSkill];
 
-// data/scripts/phantasmConstants.ts
-var addLore = /* @__PURE__ */ new Map([
-  ["ph:solaris_verdant", ["\xA7r\xA77Interact to :", " \xA7r\xA7cUse Skill", "\xA7r\xA77Sneak to :", " \xA7r\xA7cChange Skills", "\xA79Phantasm"]],
-  ["ph:supercharged_copper_axe", ["\xA7r\xA77Interact to :", " \xA7r\xA7cUse Skill", "\xA7r\xA77Sneak to :", " \xA7r\xA7cChange Skills", "\xA79Phantasm"]],
-  ["ph:prism_weaver", ["\xA7r\xA77Interact to :", " \xA7r\xA7cUse Skill", "\xA7r\xA77Sneak to :", " \xA7r\xA7cChange Skills", "\xA79Phantasm"]],
-  ["ph:auric_photonizer", ["\xA7r\xA77Interact to :", " \xA7r\xA7cUse Skill", "\xA7r\xA77Sneak to :", " \xA7r\xA7cChange Skills", "\xA79Phantasm"]],
-  ["ph:charged_copper_axe", ["\xA7r\xA79Has Charge Passive", "\xA7r\xA7cKilling with this grants Auric Charges", "\xA7r\xA7aInteract to perform Lightning Slash", "\xA79Phantasm"]],
-  ["ph:spectric_bow", ["\xA7r\xA77Support Spectral Arrow", "\xA7r\xA7aUse Spectral Arrow for Maximum Potential", "\xA79Phantasm"]],
-  ["ph:time_polarizer", ["\xA7r\xA77Speeds you up or Slow anything around if sneaking when interacted", "\xA7r\xA77Grants Permanent Speed boost when put into accessory slot", "\xA7r\xA79Accessory Item (Offhand, Hotbar Slot with +)", "\xA79Phantasm"]],
-  ["ph:flow_channeler", ["\xA77Dash smoothly by interacting this item", "\xA79Enchantable", "\xA79Phantasm"]],
-  ["ph:hell_charge", ["\xA77Spam interact to boost you", "\xA79Enchantable", "\xA79Phantasm"]],
-  ["ph:ocean_tide_helmet", ["\xA7r\xA79+4 Armor Toughness", "\xA79Phantasm"]],
-  ["ph:ocean_tide_chestplate", ["\xA7r\xA79+4 Armor Toughness", "\xA79Phantasm"]],
-  ["ph:ocean_tide_leggings", ["\xA7r\xA79+4 Armor Toughness", "\xA79Phantasm"]],
-  ["ph:ocean_tide_boots", ["\xA7r\xA79+4 Armor Toughness", "\xA79Phantasm"]],
-  ["ph:naturalist_helmet", ["\xA7r\xA79+4 Armor Toughness", "\xA79Phantasm"]],
-  ["ph:naturalist_chestplate", ["\xA7r\xA79+4 Armor Toughness", "\xA79Phantasm"]],
-  ["ph:naturalist_leggings", ["\xA7r\xA79+4 Armor Toughness", "\xA79Phantasm"]],
-  ["ph:naturalist_boots", ["\xA7r\xA79+4 Armor Toughness", "\xA79Phantasm"]],
-  ["ph:impulse_booster", ["\xA77Dash absurdly fast by interacting this item", "Bypass 70% of the knockback resistance", "\xA79Enchantable", "\xA79Phantasm"]],
-  ["ph:auric_star", ["\xA7aUpgrade your passive dash ability to second phase", "\xA79Upgrade to : Passive Dash Ability", "\xA79Phantasm"]],
-  ["ph:cruxshaper", ["\xA7r\xA7aInteract to perform Plunge Attack", "\xA7r\xA79Mace Variant", "\xA79Phantasm"]],
-  ["ph:nature_staff", ["\xA7r\xA79A Quarter-Close ranged weapons", " \xA7r\xA79Interact to shoot slow lasers", "\xA7r\xA7aSneaking will cast alternate attacks with longer cooldown.", "\xA79Phantasm"]],
-  ["ph:weeping_repair", ["\xA7r\xA77Repairs everything in your inventory, to maximum durability INSTANTLY", "\xA7r\xA77Repairs all items slowly when put into accessory slot", "\xA7r\xA79Accessory Item (Offhand, Hotbar Slot with +)", "\xA7r\xA79Experience Cost : 30 Experience Level", "\xA7r\xA7cCooldown : 10 Minutes", "\xA79Phantasm"]],
-  ["ph:suspicious_mushroom", ["\xA7r\xA77Minor improvement to all stats for 10 minutes", "\xA79Phantasm"]],
-  ["ph:the_crimson_watcher", ["\xA7r\xA7725% Chance to summon laser when hitting entity / hurt by entity", "\xA7r\xA79Accessory Item (Offhand, Hotbar Slot with +)", "\xA79Phantasm"]],
-  ["ph:fire_bracelet", ["\xA7r\xA77An Alternative to Fire Aspect Enchantment, gives you short Fire Res too", "\xA7r\xA79Accessory Item (Offhand, Hotbar Slot with +)", "\xA79Phantasm"]],
-  ["minecraft:wooden_sword", ["\xA7r\xA79+300ms Parry", "\xA7r\xA7aInteract to parry, damages 30 durability on success"]],
-  ["minecraft:stone_sword", ["\xA7r\xA79+300ms Parry", "\xA7r\xA7aInteract to parry, damages 30 durability on success"]],
-  ["minecraft:copper_sword", ["\xA7r\xA79+300ms Parry", "\xA7r\xA7aInteract to parry, damages 30 durability on success"]],
-  ["minecraft:iron_sword", ["\xA7r\xA79+300ms Parry", "\xA7r\xA7aInteract to parry, damages 30 durability on success"]],
-  ["minecraft:golden_sword", ["\xA7r\xA79+300ms Parry", "\xA7r\xA7aInteract to parry, damages 30 durability on success"]],
-  ["minecraft:diamond_sword", ["\xA7r\xA79+300ms Parry", "\xA7r\xA7aInteract to parry, damages 30 durability on success"]],
-  ["minecraft:netherite_sword", ["\xA7r\xA79+300ms Parry", "\xA7r\xA7aInteract to parry, damages 30 durability on success"]],
-  ["ph:prismatic_sword", ["\xA7r\xA79+300ms Parry", "\xA7r\xA79+1 Reach", "\xA7r\xA7cPiercing Attack", "\xA7r\xA7aInteract to parry, damages 30 durability on success", "\xA79Phantasm"]],
-  ["ph:seiketsu", ["\xA7r\xA79+700ms Parry", "\xA7r\xA7cArea Attack", "\xA7r\xA7aInteract to parry, damages 1 durability on success", "\xA79Phantasm"]],
-  ["ph:auric_proton", ["\xA77Grants Auric Charge when hitting entity, being hurt, or periodically", "\xA7r\xA79Accessory Item (Offhand, Hotbar Slot with +)", "\xA79Phantasm"]],
-  ["ph:condensed_sea_nature", ["\xA77Brings the gills, and the Nature Regeneration", "\xA7r\xA79Accessory Item (Offhand, Hotbar Slot with +)", "\xA79Phantasm"]],
-  ["ph:dummy_spawn_egg", ["\xA7r\xA77Use this to test your damage!", "\xA7r\xA77Interact with this dummy to remove them", "\xA79Phantasm"]],
-  ["ph:rust_coin", ["\xA77Double the Fortune, Double the Problem!", "\xA7r\xA79Accessory Item (Offhand, Hotbar Slot with +)", "\xA79Phantasm"]]
-]);
+// data/scripts/systems/accessories.ts
+import { world as world3, system as system4, ItemStack } from "@minecraft/server";
+
+// data/scripts/core/constants.ts
 var ORE_DROPS = /* @__PURE__ */ new Map([
   ["minecraft:coal_ore", "minecraft:coal"],
   ["minecraft:deepslate_coal_ore", "minecraft:coal"],
@@ -985,8 +1049,8 @@ var ORE_DROPS = /* @__PURE__ */ new Map([
   ["minecraft:ancient_debris", "minecraft:ancient_debris"]
 ]);
 
-// data/scripts/accessoriesRuntime.ts
-import { world as world2, system as system3, ItemStack } from "@minecraft/server";
+// data/scripts/systems/accessories.ts
+var ARMOUR_SLOTS = ["Head", "Chest", "Legs", "Feet", "Offhand"];
 var accessoryRegistry = {
   "ph:fire_bracelet": {
     onHitEntity(player, event, hitTarget) {
@@ -999,7 +1063,7 @@ var accessoryRegistry = {
       const drop = ORE_DROPS.get(block.type.id);
       if (!drop) return;
       if (player.getGameMode() === "Creative") return;
-      system3.run(() => {
+      system4.run(() => {
         const itemDropped = player.dimension.getEntities({
           location: player.location,
           maxDistance: 5,
@@ -1015,7 +1079,7 @@ var accessoryRegistry = {
   },
   "ph:the_crimson_watcher": {
     onHurt(player, event) {
-      system3.run(() => {
+      system4.run(() => {
         const randomChance = Math.floor(Math.random() * 101);
         const { x, y, z } = player.location;
         if (randomChance < 26) {
@@ -1033,7 +1097,7 @@ var accessoryRegistry = {
   },
   "ph:auric_proton": {
     onHurt(player, event) {
-      system3.run(() => {
+      system4.run(() => {
         addScore(player, "auric_charge", 1);
         player.runCommand('titleraw @s actionbar {"rawtext":[{"text":"\xA7gAuric Charge : "},{"score":{"name":"*","objective":"auric_charge"}},{"text":"/700"}]}');
       });
@@ -1043,7 +1107,7 @@ var accessoryRegistry = {
       player.runCommand('titleraw @s actionbar {"rawtext":[{"text":"\xA7gAuric Charge : "},{"score":{"name":"*","objective":"auric_charge"}},{"text":"/700"}]}');
     },
     onLoop(player, event) {
-      system3.run(() => {
+      system4.run(() => {
         addScore(player, "auric_charge", 1);
         player.runCommand('titleraw @s actionbar {"rawtext":[{"text":"\xA7gAuric Charge : "},{"score":{"name":"*","objective":"auric_charge"}},{"text":"/700"}]}');
       });
@@ -1051,7 +1115,7 @@ var accessoryRegistry = {
   },
   "ph:time_polarizer": {
     onLoop(player, event) {
-      system3.run(() => {
+      system4.run(() => {
         player.addEffect("speed", 100, {
           amplifier: 1,
           showParticles: false
@@ -1061,9 +1125,8 @@ var accessoryRegistry = {
   },
   "ph:weeping_repair": {
     onLoop(player, event) {
-      system3.run(() => {
+      system4.run(() => {
         const inventory = player?.getComponent("minecraft:inventory")?.container;
-        const slots = ["Head", "Chest", "Legs", "Feet", "Offhand"];
         for (let i = 0; i < inventory.size; i++) {
           const item = inventory.getItem(i);
           if (!item) continue;
@@ -1073,7 +1136,7 @@ var accessoryRegistry = {
           durability.damage -= 1;
           inventory.setItem(i, item);
         }
-        for (const slot of slots) {
+        for (const slot of ARMOUR_SLOTS) {
           const equipmentSlot = player?.getComponent("minecraft:equippable")?.getEquipmentSlot(slot);
           const item = equipmentSlot.getItem();
           if (!item) continue;
@@ -1095,20 +1158,21 @@ var accessoryRegistry = {
     }
   }
 };
-function handleAccessory(player, trigger, event, hitTarget) {
-  for (const item of getAccessoryItems(player)) {
+function handleAccessory(player, trigger, event, hitTarget, items) {
+  if (player?.typeId !== "minecraft:player") return;
+  for (const item of items ?? getAccessoryItems(player)) {
     const handler = accessoryRegistry[item.typeId]?.[trigger];
     handler?.(player, event, hitTarget, item);
   }
 }
-system3.runInterval(() => {
-  for (const player of world2.getPlayers()) {
+system4.runInterval(() => {
+  for (const player of world3.getPlayers()) {
     handleAccessory(player, "onLoop", void 0);
   }
 }, 100);
 
-// data/scripts/loader.ts
-import { world as world3, system as system4, ItemStack as ItemStack2 } from "@minecraft/server";
+// data/scripts/events/loader.ts
+import { world as world4, system as system5, ItemStack as ItemStack2 } from "@minecraft/server";
 var objectives = [
   // System Scoreboard
   "delayatk",
@@ -1156,8 +1220,8 @@ var objectives = [
 ];
 function loadScoreboards() {
   for (const objective of objectives) {
-    if (!world3.scoreboard.getObjective(objective)) {
-      world3.scoreboard.addObjective(objective);
+    if (!world4.scoreboard.getObjective(objective)) {
+      world4.scoreboard.addObjective(objective);
     }
   }
 }
@@ -1200,21 +1264,25 @@ function onPlayerSpawn(player, initialSpawn) {
   }
   const playerInput = player.inputInfo.lastInputModeUsed;
   if (playerInput == "Touch") {
-    player.sendMessage("\xA7eIt is recommended for you to use the Joystick + Crosshair with Action Button Enabled, for making the using weapon experience easier");
+    player.sendMessage("\xA7eTouch controls? Joystick + Crosshair with the Action Button enabled makes weapons easier to use");
   }
   const properties = [
     "ph:dash_level",
     "ph:health_level",
     "ph:plunge_unlock",
-    "ph:guidebook_acquired"
+    "ph:guidebook_acquired",
+    "ph:dash_control",
+    "ph:skill_switch_control"
   ];
   for (const property of properties) {
     if (player.getDynamicProperty(property) === void 0) {
-      system4.runTimeout(() => {
+      system5.runTimeout(() => {
         player.setDynamicProperty("ph:dash_level", 0);
         player.setDynamicProperty("ph:health_level", 0);
         player.setDynamicProperty("ph:plunge_unlock", false);
         player.setDynamicProperty("ph:guidebook_acquired", true);
+        player.setDynamicProperty("ph:dash_control", 0);
+        player.setDynamicProperty("ph:skill_switch_control", 0);
       }, 20);
     }
   }
@@ -1223,7 +1291,7 @@ function onPlayerSpawn(player, initialSpawn) {
   }
 }
 
-// data/scripts/damage_indicator.ts
+// data/scripts/systems/damageIndicator.ts
 import { MolangVariableMap as MolangVariableMap2 } from "@minecraft/server";
 var VarSets = {
   physical: {
@@ -1350,7 +1418,7 @@ function onDamageIndicator({ hurtEntity, damageSource, damage }) {
   }
 }
 
-// data/scripts/dummy.ts
+// data/scripts/systems/combatDummy.ts
 import { system as system6 } from "@minecraft/server";
 var COMBAT_TIMEOUT = 5e3;
 var DPS_WINDOW = 1e3;
@@ -1369,7 +1437,8 @@ function getStats(dummy) {
     lastHit: 0,
     realDps: 0,
     displayDps: 0,
-    interval: void 0
+    interval: void 0,
+    shownTag: ""
   };
   DummyStatsMap.set(dummy.id, stats);
   return stats;
@@ -1392,7 +1461,7 @@ function beginCombat(dummy, stats) {
     stats.displayDps += (stats.realDps - stats.displayDps) * SMOOTH_SPEED;
     const combatTime = Math.max((now - stats.combatStart) / 1e3, 0.1);
     const averageDps = stats.totalDamage / combatTime;
-    dummy.nameTag = `\xA7e-= Combat Dummy =-
+    const nameTag = `\xA7e-= Combat Dummy =-
 
 \xA7fDPS \xA77: \xA7a${Math.round(stats.displayDps)}
 \xA7fAverage DPS \xA77: \xA7a${Math.round(averageDps)}
@@ -1400,6 +1469,10 @@ function beginCombat(dummy, stats) {
 \xA7fHighest Hit \xA77: \xA76${Math.round(stats.highestHit)}
 \xA7fTotal Damage \xA77: \xA7c${Math.round(stats.totalDamage)}
 \xA7fHits \xA77: \xA7b${stats.hits}`;
+    if (stats.shownTag !== nameTag) {
+      dummy.nameTag = nameTag;
+      stats.shownTag = nameTag;
+    }
     if (now - stats.lastHit >= COMBAT_TIMEOUT && stats.displayDps < 1) {
       dummy.nameTag = "";
       system6.clearRun(stats.interval);
@@ -1431,7 +1504,7 @@ function onDummyHurt(event) {
   addDamage(dummy, event.damage);
 }
 
-// data/scripts/dynamicLighting.ts
+// data/scripts/systems/lighting.ts
 import { system as system7, BlockPermutation } from "@minecraft/server";
 var lightLevelMap = {
   "minecraft:beacon": 15,
@@ -1476,6 +1549,17 @@ function removeLightBlocks(player) {
     }
   }
 }
+function clearPlacedLight(state) {
+  const block = state.lastLightBlock;
+  state.lastLightBlock = void 0;
+  if (!block) return;
+  try {
+    if (block.isValid && block.typeId.startsWith("minecraft:light_block")) {
+      block.setType("minecraft:air");
+    }
+  } catch (e) {
+  }
+}
 function safeRemoveTag(player, tag) {
   if (!player?.isValid) return;
   try {
@@ -1491,7 +1575,10 @@ function clearPlayerLighting(player) {
     return;
   }
   const state = key !== void 0 ? lightingStates.get(key) : void 0;
-  if (state && state.interval !== -1) {
+  if (!state) {
+    return;
+  }
+  if (state.interval !== -1) {
     try {
       system7.clearRun(state.interval);
     } catch (e) {
@@ -1499,9 +1586,8 @@ function clearPlayerLighting(player) {
   }
   if (key !== void 0) lightingStates.delete(key);
   if (!player?.isValid) return;
-  for (let i = 0; i <= 15; i++) {
-    safeRemoveTag(player, `light_${i}`);
-  }
+  safeRemoveTag(player, state.tag);
+  clearPlacedLight(state);
   removeLightBlocks(player);
 }
 function onDynamicLighting(player) {
@@ -1514,24 +1600,24 @@ function onDynamicLighting(player) {
   }
   const existing = lightingStates.get(player.id);
   if (existing && existing.maxLight === maxLight) return;
-  if (existing && existing.interval !== -1) {
-    system7.clearRun(existing.interval);
-  }
-  if (existing || maxLight !== -1) {
-    for (let i = 0; i <= 15; i++) {
-      player.removeTag(`light_${i}`);
+  if (existing) {
+    if (existing.interval !== -1) {
+      system7.clearRun(existing.interval);
     }
-    removeLightBlocks(player);
+    player.removeTag(existing.tag);
+    clearPlacedLight(existing);
   }
   if (maxLight === -1) {
     lightingStates.delete(player.id);
     return;
   }
-  player.addTag(`light_${maxLight}`);
+  const tag = `light_${maxLight}`;
+  player.addTag(tag);
   const state = {
     interval: -1,
     lastLightBlock: void 0,
-    maxLight
+    maxLight,
+    tag
   };
   lightingStates.set(player.id, state);
   const updateLight = () => {
@@ -1541,9 +1627,7 @@ function onDynamicLighting(player) {
       const block = player.dimension.getBlock(finalLocation);
       if (!block) return;
       if (!block.isAir && !block.isLiquid) return;
-      if (state.lastLightBlock?.typeId.startsWith("minecraft:light_block")) {
-        state.lastLightBlock.setType("minecraft:air");
-      }
+      clearPlacedLight(state);
       block.setPermutation(
         BlockPermutation.resolve("minecraft:light_block", {
           block_light_level: state.maxLight
@@ -1557,14 +1641,19 @@ function onDynamicLighting(player) {
   state.interval = system7.runInterval(updateLight, 4);
 }
 
-// data/scripts/vanilla_manipulation.ts
-import { world as world7, system as system8, EquipmentSlot as EquipmentSlot2 } from "@minecraft/server";
-function dashRuntime(player) {
-  const scoreboard_dash = world7.scoreboard.getObjective("dash_cd");
-  const equipmentTag = player?.getComponent("minecraft:equippable")?.getEquipment(EquipmentSlot2.Mainhand)?.getTags();
-  if (!player.isFalling || !scoreboard_dash || (scoreboard_dash?.getScore(player) ?? 0) > 0 || player.getDynamicProperty("ph:dash_unlock") == 0 || player.getDynamicProperty("ph:dash_level") == void 0 || equipmentTag?.includes("minecraft:is_sword") || equipmentTag?.includes("minecraft:is_tool")) return;
-  if (player.getDynamicProperty("ph:dash_level") == 1) {
-    player.applyKnockback({ x: player.getViewDirection().x * 3, z: player.getViewDirection().z * 3 }, 0.2);
+// data/scripts/systems/movement.ts
+import { world as world5, system as system8, EquipmentSlot as EquipmentSlot3 } from "@minecraft/server";
+function dashRuntime(player, requireFalling = true) {
+  const scoreboard_dash = world5.scoreboard.getObjective("dash_cd");
+  if (!scoreboard_dash || (scoreboard_dash.getScore(player) ?? 0) > 0) return;
+  if (player.getDynamicProperty("ph:dash_unlock") == 0) return;
+  const dashLevel = player.getDynamicProperty("ph:dash_level");
+  if (dashLevel == void 0 || dashLevel != 1 && dashLevel != 2) return;
+  const equipmentTag = player?.getComponent("minecraft:equippable")?.getEquipment(EquipmentSlot3.Mainhand)?.getTags();
+  if (equipmentTag?.includes("minecraft:is_sword") || equipmentTag?.includes("minecraft:is_tool")) return;
+  const view = player.getViewDirection();
+  if (dashLevel == 1) {
+    player.applyKnockback({ x: view.x * 3, z: view.z * 3 }, 0.2);
     setScore(player, "dash_cd", 60);
     player.playSound("player.dash", {
       volume: 1
@@ -1575,19 +1664,18 @@ function dashRuntime(player) {
         stopExpression: "query.is_on_ground || query.is_gliding || query.is_in_water"
       });
     }
+    return;
   }
-  if (player.getDynamicProperty("ph:dash_level") == 2) {
-    player.applyKnockback({ x: player.getViewDirection().x * 5, z: player.getViewDirection().z * 5 }, 0.3);
-    setScore(player, "dash_cd", 60);
-    player.playSound("mob.enderdragon.flap", {
-      volume: 0.75
+  player.applyKnockback({ x: view.x * 5, z: view.z * 5 }, 0.3);
+  setScore(player, "dash_cd", 60);
+  player.playSound("mob.enderdragon.flap", {
+    volume: 0.75
+  });
+  player.dimension.spawnParticle("ph:copper_mech_explosion", player.location);
+  if (!player.isGliding) {
+    player.playAnimation("animation.player_extend.dash", {
+      stopExpression: "query.is_on_ground || query.is_gliding || query.is_in_water"
     });
-    player.dimension.spawnParticle("ph:copper_mech_explosion", player.location);
-    if (!player.isGliding) {
-      player.playAnimation("animation.player_extend.dash", {
-        stopExpression: "query.is_on_ground || query.is_gliding || query.is_in_water"
-      });
-    }
   }
 }
 function windPlungeRuntime(player) {
@@ -1649,7 +1737,7 @@ function vanillaBlockInteractFix(player, item, block) {
       else if (typeId.includes("bamboo")) materialSound = "step.bamboo_wood";
       if (!materialSound) return;
       player.dimension.playSound(materialSound, block.center(), { volume: 1, pitch: 0.8 });
-      applyDurabilityDamage2(player);
+      applyDurabilityDamage(player);
     }, 1);
   } else if (item.hasTag("minecraft:is_hoe")) {
     system8.runTimeout(() => {
@@ -1657,7 +1745,7 @@ function vanillaBlockInteractFix(player, item, block) {
       const hasBlockAbove = block.above()?.typeId !== "minecraft:air";
       if (!isTillable || hasBlockAbove) return;
       player.dimension.playSound("use.gravel", block.center(), { volume: 1, pitch: 0.8 });
-      applyDurabilityDamage2(player);
+      applyDurabilityDamage(player);
     }, 1);
   } else if (item.hasTag("minecraft:is_shovel")) {
     const dirtPathable = [
@@ -1672,36 +1760,33 @@ function vanillaBlockInteractFix(player, item, block) {
     if (!isCoarsable || hasBlockAbove) return;
     system8.run(() => {
       player.dimension.playSound("use.grass", block.center(), { volume: 1, pitch: 0.8 });
-      applyDurabilityDamage2(player);
+      applyDurabilityDamage(player);
     });
   }
 }
+var PARRY_ITEMS = /* @__PURE__ */ new Set([
+  "minecraft:wooden_sword",
+  "minecraft:stone_sword",
+  "minecraft:copper_sword",
+  "minecraft:iron_sword",
+  "minecraft:golden_sword",
+  "minecraft:diamond_sword",
+  "minecraft:netherite_sword",
+  "ph:prismatic_sword"
+]);
 function parryRuntime(source, itemStack) {
-  const itemList = [
-    "minecraft:wooden_sword",
-    "minecraft:stone_sword",
-    "minecraft:copper_sword",
-    "minecraft:iron_sword",
-    "minecraft:golden_sword",
-    "minecraft:diamond_sword",
-    "minecraft:netherite_sword",
-    "ph:prismatic_sword"
-  ];
-  for (const item of itemList) {
-    if (itemStack?.typeId == item && !source.hasTag("parried")) {
-      const durability = itemStack?.getComponent("minecraft:durability");
-      source.playAnimation("animation.player_extend.parry");
-      source.dimension.spawnParticle("ph:parry_prepare", source.location);
-      source.dimension.playSound("item.spear.use", source.location);
-      source.addTag("parried");
-      source.inputPermissions.setPermissionCategory(2, false);
-      applyDurabilityDamage2(source, { damage: 1 });
-      system8.runTimeout(() => {
-        if (source?.hasTag("parried")) source.removeTag("parried");
-        source.inputPermissions.setPermissionCategory(2, true);
-      }, 6);
-    }
-  }
+  if (!itemStack?.typeId || !PARRY_ITEMS.has(itemStack.typeId)) return;
+  if (source.hasTag("parried")) return;
+  source.playAnimation("animation.player_extend.parry");
+  source.dimension.spawnParticle("ph:parry_prepare", source.location);
+  source.dimension.playSound("item.spear.use", source.location);
+  source.addTag("parried");
+  source.inputPermissions.setPermissionCategory(2, false);
+  applyDurabilityDamage(source, { damage: 1 });
+  system8.runTimeout(() => {
+    if (source?.hasTag("parried")) source.removeTag("parried");
+    source.inputPermissions.setPermissionCategory(2, true);
+  }, 6);
 }
 var runBetterMending = Number();
 function startBetterMending(source, itemStack) {
@@ -1713,7 +1798,7 @@ function startBetterMending(source, itemStack) {
   const runBetterMending2 = system8.runInterval(() => {
     try {
       const equippable = source.getComponent("minecraft:equippable");
-      const currentItem = equippable?.getEquipment(EquipmentSlot2.Mainhand);
+      const currentItem = equippable?.getEquipment(EquipmentSlot3.Mainhand);
       const durability = currentItem?.getComponent("minecraft:durability");
       const experience = source.getTotalXp();
       if (!currentItem || !durability || durability.damage <= 0 || experience <= 0) {
@@ -1722,7 +1807,7 @@ function startBetterMending(source, itemStack) {
       }
       const repairAmount = Math.min(durability.damage, 1);
       durability.damage -= repairAmount;
-      equippable?.setEquipment(EquipmentSlot2.Mainhand, currentItem);
+      equippable?.setEquipment(EquipmentSlot3.Mainhand, currentItem);
       source.addExperience(-2);
       if (source.xpEarnedAtCurrentLevel <= 2) {
         source.addExperience(source.totalXpNeededForNextLevel - 1);
@@ -1740,17 +1825,22 @@ function startBetterMending(source, itemStack) {
 }
 function javaSaturationRegen(player) {
   const health = player.getComponent("minecraft:health");
-  const hunger = player.getComponent("minecraft:player.hunger");
-  const saturation = player.getComponent("minecraft:player.saturation");
-  const maxHealth = player?.getComponent("minecraft:health")?.effectiveMax;
-  const playerHealthLevel = Number(player?.getDynamicProperty("ph:health_level"));
+  if (!health) return;
+  const playerHealthLevel = Number(player.getDynamicProperty("ph:health_level"));
   if (playerHealthLevel >= 1 && playerHealthLevel <= 3) {
     const maxAllowedHealth = 24 + playerHealthLevel * 12;
-    if (maxHealth && maxHealth < maxAllowedHealth) {
-      player.runCommand(`effect @s health_boost infinite ${3 * playerHealthLevel} true`);
+    const maxHealth = health.effectiveMax;
+    if (maxHealth < maxAllowedHealth) {
+      const wantedAmplifier = 3 * playerHealthLevel;
+      const active = player.getEffect("health_boost");
+      if (!active || active.amplifier !== wantedAmplifier) {
+        player.runCommand(`effect @s health_boost infinite ${wantedAmplifier} true`);
+      }
     }
   }
-  if (!health || !hunger || !saturation) return;
+  const hunger = player.getComponent("minecraft:player.hunger");
+  const saturation = player.getComponent("minecraft:player.saturation");
+  if (!hunger || !saturation) return;
   if (hunger.currentValue === 20 && saturation.currentValue > 0 && health.currentValue < health.effectiveMax) {
     const healAmount = 1;
     const satCost = 1;
@@ -1812,7 +1902,10 @@ var specifiedFamilityAndSpeed = [
   }
 ];
 
-// data/scripts/weapons.ts
+// data/scripts/systems/controls.ts
+import { EquipmentSlot as EquipmentSlot4 } from "@minecraft/server";
+
+// data/scripts/features/weapons/weapons.ts
 var solarisVerdant = new WeaponHandler("ph:solaris_verdant", "solaris_verdant_atk", [10, 9, 10], [
   { delay: 5, damage: 21, radius: 3.9, animation: "animation.solaris_verdant.attack_1", sound: "weapon_slash.slash_medium" },
   { delay: 7, damage: 21, radius: 3.9, animation: "animation.solaris_verdant.attack_2", sound: "weapon_slash.slash_medium" },
@@ -1828,10 +1921,10 @@ var solarisVerdant = new WeaponHandler("ph:solaris_verdant", "solaris_verdant_at
         action: (src) => {
           src.runCommand("summon ph:solaris_slash ^^3^5.5 ~ 0");
           if (getScore(src, "solaris_verdant_s3") > 2) {
-            removeScore2(src, "solaris_verdant_s3", 3);
+            removeScore(src, "solaris_verdant_s3", 3);
           }
           if (getScore(src, "solaris_verdant_s1") > 0) {
-            removeScore2(src, "solaris_verdant_s1", 1);
+            removeScore(src, "solaris_verdant_s1", 1);
           }
         }
       }
@@ -2036,44 +2129,172 @@ var seiketsu = new WeaponHandler("ph:seiketsu", "seiketsu_atk", [9, 9, 9], [
 var weapons = [solarisVerdant, superchargedCopperAxe, prismWeaver, auricPhotonizer, theBleedingSpire, seiketsu];
 var switcherSkills = [solarisVerdantSS, superchargedCopperAxeSS, prismWeaverSS, auricPhotonizerSS, theBleedingSpireSS];
 
-// data/scripts/events.ts
-world8.beforeEvents.entityHurt.subscribe((acc) => {
+// data/scripts/systems/controls.ts
+var DASH_CONTROL = {
+  DOUBLE_TAP_JUMP: 0,
+  SPRINT_JUMP: 1,
+  JUMP_SNEAK: 2
+};
+var SKILL_SWITCH_CONTROL = {
+  SNEAK: 0,
+  SNEAK_ATTACK: 1,
+  DOUBLE_SNEAK: 2
+};
+var DASH_CONTROL_NAMES = [
+  "Double-tap Jump",
+  "Sprint + Jump",
+  "Jump + Sneak"
+];
+var SKILL_SWITCH_CONTROL_NAMES = [
+  "Sneak",
+  "Sneak + Attack",
+  "Double Sneak"
+];
+var DASH_CONTROL_HINTS = [
+  "\xA7aDouble-tap Jump \xA77- Press Jump twice quickly while falling.",
+  "\xA7aSprint + Jump \xA77- Press Jump while sprinting and falling.",
+  "\xA7aJump + Sneak \xA77- Press Jump, then Sneak while in midair."
+];
+var SKILL_SWITCH_CONTROL_HINTS = [
+  "\xA7aSneak \xA77- Press Sneak while holding a Legendary weapon.",
+  "\xA7aSneak + Attack \xA77- Press Sneak, then Attack while holding a Legendary weapon.",
+  "\xA7aDouble Sneak \xA77- Press Sneak twice quickly while holding a Legendary weapon."
+];
+var DOUBLE_TAP_WINDOW = 300;
+var COMBO_WINDOW = 500;
+var states = /* @__PURE__ */ new Map();
+var switcherByItemId = new Map(
+  switcherSkills.map((switcher) => [switcher.itemId, switcher])
+);
+function elapsed(now, then) {
+  const gap = now - then;
+  return gap < 0 ? Infinity : gap;
+}
+function getState(player) {
+  let state = states.get(player.id);
+  if (!state) {
+    state = {
+      dash: readControl(player, "ph:dash_control", DASH_CONTROL_NAMES.length),
+      skill: readControl(player, "ph:skill_switch_control", SKILL_SWITCH_CONTROL_NAMES.length),
+      jumpAt: -Infinity,
+      sneakAt: -Infinity
+    };
+    states.set(player.id, state);
+  }
+  return state;
+}
+function readControl(player, property, length) {
+  const stored = Number(player.getDynamicProperty(property));
+  return stored >= 0 && stored < length ? stored : 0;
+}
+function getDashControl(player) {
+  return getState(player).dash;
+}
+function setDashControl(player, control) {
+  player.setDynamicProperty("ph:dash_control", control);
+  getState(player).dash = control;
+}
+function getSkillSwitchControl(player) {
+  return getState(player).skill;
+}
+function setSkillSwitchControl(player, control) {
+  player.setDynamicProperty("ph:skill_switch_control", control);
+  getState(player).skill = control;
+}
+function clearControlState(player) {
+  states.delete(player.id);
+}
+function switchSkill(player, requireSneaking = true) {
+  if (requireSneaking && !player.isSneaking) return false;
+  const switcher = switcherByItemId.get(
+    player.getComponent("equippable")?.getEquipment(EquipmentSlot4.Mainhand)?.typeId ?? ""
+  );
+  if (!switcher) return false;
+  switcher.switchSkill(player);
+  return true;
+}
+function onControlButtonInput(player, button) {
+  if (button != "Jump" && button != "Sneak") return;
+  const now = Date.now();
+  const state = getState(player);
+  if (button == "Jump") {
+    const doubleTapped2 = elapsed(now, state.jumpAt) <= DOUBLE_TAP_WINDOW;
+    state.jumpAt = now;
+    if (state.dash == DASH_CONTROL.SPRINT_JUMP) {
+      if (player.isSprinting) dashRuntime(player);
+    } else if (state.dash == DASH_CONTROL.DOUBLE_TAP_JUMP && doubleTapped2) {
+      dashRuntime(player);
+    }
+    return;
+  }
+  const doubleTapped = elapsed(now, state.sneakAt) <= DOUBLE_TAP_WINDOW;
+  state.sneakAt = now;
+  if (state.dash == DASH_CONTROL.JUMP_SNEAK && elapsed(now, state.jumpAt) <= COMBO_WINDOW) {
+    state.jumpAt = -Infinity;
+    dashRuntime(player, false);
+    return;
+  }
+  if (state.skill == SKILL_SWITCH_CONTROL.SNEAK) {
+    switchSkill(player);
+    return;
+  }
+  if (state.skill == SKILL_SWITCH_CONTROL.DOUBLE_SNEAK && doubleTapped) {
+    state.sneakAt = -Infinity;
+    switchSkill(player, false);
+  }
+}
+function onControlSwingInput(player, swingSource) {
+  if (swingSource != "Mine" && swingSource != "Attack") return;
+  const state = getState(player);
+  if (state.skill != SKILL_SWITCH_CONTROL.SNEAK_ATTACK) return;
+  if (elapsed(Date.now(), state.sneakAt) > COMBO_WINDOW) return;
+  state.sneakAt = -Infinity;
+  switchSkill(player, false);
+}
+
+// data/scripts/events/index.ts
+world6.beforeEvents.entityHurt.subscribe((acc) => {
   const hurtEntity = acc.hurtEntity;
+  if (hurtEntity?.typeId !== "minecraft:player") return;
   const damagingEntity = acc.damageSource.damagingEntity;
-  handleAccessory(hurtEntity, "onHurt", acc);
-  if (hurtEntity.typeId === "minecraft:player" && hurtEntity?.hasTag("parried")) {
+  const player = hurtEntity;
+  const accessories2 = getAccessoryItems(player);
+  handleAccessory(player, "onHurt", acc, void 0, accessories2);
+  if (hurtEntity.hasTag("parried")) {
     acc.cancel = true;
     system9.run(() => {
-      const mainItem = hurtEntity?.getComponent("equippable")?.getEquipment(EquipmentSlot3.Mainhand);
+      const mainItem = hurtEntity?.getComponent("equippable")?.getEquipment(EquipmentSlot5.Mainhand);
+      const head = hurtEntity.getHeadLocation();
+      const view = hurtEntity.getViewDirection();
       hurtEntity.runCommand(`particle ph:parry_success ^^^0.5`);
       hurtEntity.dimension.spawnParticle(
         "ph:parry_invert_flash",
         {
-          x: hurtEntity.getHeadLocation().x + hurtEntity.getViewDirection().x * 1,
-          y: hurtEntity.getHeadLocation().y + hurtEntity.getViewDirection().y * 1,
-          z: hurtEntity.getHeadLocation().z + hurtEntity.getViewDirection().z * 1
+          x: head.x + view.x,
+          y: head.y + view.y,
+          z: head.z + view.z
         }
       );
       hurtEntity.runCommand("camerashake add @s 1 0.1 positional");
       hurtEntity.dimension.playSound("weapon_slash.slash_clash", hurtEntity.location);
       hurtEntity.removeTag("parried");
       if (mainItem?.typeId === "ph:seiketsu") {
-        applyDurabilityDamage2(hurtEntity, { damage: 1 });
+        applyDurabilityDamage(hurtEntity, { damage: 1 });
         return;
       }
-      applyDurabilityDamage2(hurtEntity, { damage: 30 });
+      applyDurabilityDamage(hurtEntity, { damage: 30 });
     });
   }
-  if (getAccessoryItems(hurtEntity).some((item) => item.typeId === "ph:the_crimson_watcher") || hurtEntity?.getComponent("equippable")?.getEquipment(EquipmentSlot3.Mainhand)?.typeId === "ph:the_bleeding_spire") {
+  if (accessories2.some((item) => item.typeId === "ph:the_crimson_watcher") || hurtEntity?.getComponent("equippable")?.getEquipment(EquipmentSlot5.Mainhand)?.typeId === "ph:the_bleeding_spire") {
     if (damagingEntity?.typeId === "ph:crimson_laser") acc.cancel = true;
   }
 });
-world8.beforeEvents.playerBreakBlock.subscribe((acc) => {
+world6.beforeEvents.playerBreakBlock.subscribe((acc) => {
   const block = acc.block;
   const player = acc.player;
   handleAccessory(player, "onBreakBlock", acc, block);
 });
-world8.beforeEvents.entityHurt.subscribe((data) => {
+world6.beforeEvents.entityHurt.subscribe((data) => {
   const player = data.hurtEntity;
   const cause = data?.damageSource?.cause;
   if (cause === "fall" || cause === "magic" || cause == "none" || cause == "selfDestruct") return;
@@ -2104,54 +2325,30 @@ world8.beforeEvents.entityHurt.subscribe((data) => {
   const finalDamage = data.damage * (1 - reductionFraction);
   data.damage -= finalDamage;
 });
-world8.beforeEvents.playerBreakBlock.subscribe((e) => {
+world6.beforeEvents.playerBreakBlock.subscribe((e) => {
+  if (!e.block.typeId.includes("ore")) return;
+  if (Math.floor(Math.random() * 100) !== 1) return;
+  if (e.player.getGameMode() === "Creative") return;
+  system9.run(() => {
+    e.dimension.spawnItem(new ItemStack3("ph:rust_coin", 1), e.block.location);
+  });
+});
+world6.beforeEvents.playerBreakBlock.subscribe((e) => {
+  if (e.block.typeId !== "minecraft:prismarine") return;
   const player = e.player;
   const itemStack = e.itemStack;
   const block = e.block;
   const dimension = e.dimension;
-  let blockAndItems = [
-    {
-      block: "minecraft:prismarine",
-      item: new ItemStack4("minecraft:prismarine_shard", Math.floor(Math.random() * (7 - 4) + 4)),
-      item_tag: "minecraft:is_pickaxe",
-      tool: void 0
-    }
-  ];
-  if (block.typeId.includes("ore")) {
-    const randomChance = Math.floor(Math.random() * 100);
-    if (player.getGameMode() === "Creative") return;
-    if (randomChance != 1) return;
-    system9.run(() => {
-      dimension.spawnItem(new ItemStack4("ph:rust_coin", 1), block.location);
-    });
-  }
-  for (const splittedData of blockAndItems) {
-    if (block.typeId === splittedData.block) {
-      const tags = itemStack?.getTags();
-      const enchantment = itemStack?.getComponent("enchantable")?.getEnchantment("silk_touch");
-      const gameMode = player.getGameMode();
-      if (gameMode == "Creative") return;
-      if (enchantment) return;
-      if (!enchantment && tags != void 0 && splittedData.item_tag && tags.includes(splittedData.item_tag)) {
-        e.cancel = true;
-        system9.run(() => {
-          dimension.setBlockType(block.location, "minecraft:air");
-          dimension.spawnItem(splittedData.item, block.location);
-        });
-      } else {
-        if (!splittedData.tool) {
-          return;
-        }
-        if (itemStack?.typeId == splittedData.tool) {
-          system9.run(() => {
-            dimension.spawnItem(splittedData.item, block.location);
-          });
-        }
-      }
-    }
-  }
+  if (player.getGameMode() === "Creative") return;
+  if (itemStack?.getComponent("enchantable")?.getEnchantment("silk_touch")) return;
+  if (!itemStack?.getTags().includes("minecraft:is_pickaxe")) return;
+  e.cancel = true;
+  system9.run(() => {
+    dimension.setBlockType(block.location, "minecraft:air");
+    dimension.spawnItem(new ItemStack3("minecraft:prismarine_shard", Math.floor(Math.random() * 3 + 4)), block.location);
+  });
 });
-world8.beforeEvents.playerInteractWithBlock.subscribe((event) => {
+world6.beforeEvents.playerInteractWithBlock.subscribe((event) => {
   const { player, itemStack: item, block } = event;
   vanillaBlockInteractFix(player, item, block);
 });
@@ -2160,6 +2357,15 @@ var crystallDrops = {
   "ph:large_crystall_bud": "ph:large_crystall_bud_item",
   "ph:crystall_cluster": "ph:crystall_cluster_item"
 };
+var crystallDropIds = new Set(Object.keys(crystallDrops));
+var faceOffsets = [
+  { x: 0, y: 1, z: 0 },
+  { x: 0, y: -1, z: 0 },
+  { x: 0, y: 0, z: 1 },
+  { x: 0, y: 0, z: -1 },
+  { x: 1, y: 0, z: 0 },
+  { x: -1, y: 0, z: 0 }
+];
 function getCrystallSupport(block) {
   let face;
   try {
@@ -2188,8 +2394,8 @@ function getCrystallSupport(block) {
 function popCrystallIfFloating(block, drop = true) {
   if (!block?.isValid) return false;
   const typeId = block.typeId;
+  if (!crystallDropIds.has(typeId)) return false;
   const dropId = crystallDrops[typeId];
-  if (!dropId) return false;
   const support = getCrystallSupport(block);
   if (!support) return false;
   if (!support.isAir && !support.isLiquid) return false;
@@ -2198,7 +2404,7 @@ function popCrystallIfFloating(block, drop = true) {
   block.dimension.setBlockType(loc, "minecraft:air");
   if (drop) {
     try {
-      block.dimension.spawnItem(new ItemStack4(dropId, 1), center);
+      block.dimension.spawnItem(new ItemStack3(dropId, 1), center);
     } catch (err) {
       console.warn(`[ph] crystall drop failed for ${typeId}: ${err}`);
     }
@@ -2209,7 +2415,7 @@ function popCrystallIfFloating(block, drop = true) {
   }
   return true;
 }
-world8.afterEvents.playerBreakBlock.subscribe((e) => {
+world6.afterEvents.playerBreakBlock.subscribe((e) => {
   const loc = e.block.location;
   const dimension = e.dimension;
   let drop = true;
@@ -2218,15 +2424,7 @@ world8.afterEvents.playerBreakBlock.subscribe((e) => {
   } catch {
   }
   system9.run(() => {
-    const offsets = [
-      { x: 0, y: 1, z: 0 },
-      { x: 0, y: -1, z: 0 },
-      { x: 0, y: 0, z: 1 },
-      { x: 0, y: 0, z: -1 },
-      { x: 1, y: 0, z: 0 },
-      { x: -1, y: 0, z: 0 }
-    ];
-    for (const off of offsets) {
+    for (const off of faceOffsets) {
       try {
         const neighbor = dimension.getBlock({ x: loc.x + off.x, y: loc.y + off.y, z: loc.z + off.z });
         if (neighbor) popCrystallIfFloating(neighbor, drop);
@@ -2235,24 +2433,56 @@ world8.afterEvents.playerBreakBlock.subscribe((e) => {
     }
   });
 });
-world8.afterEvents.entityHitEntity.subscribe((acc) => {
+world6.afterEvents.entityHitEntity.subscribe((acc) => {
   const damagingEntity = acc.damagingEntity;
   const hitEntity = acc.hitEntity;
   handleAccessory(damagingEntity, "onHitEntity", acc, hitEntity);
 });
-world8.afterEvents.entityHurt.subscribe(onDamageIndicator);
-world8.afterEvents.entityHurt.subscribe(onDummyHurt);
-world8.afterEvents.playerInventoryItemChange.subscribe(({ player }) => {
+world6.afterEvents.entityHurt.subscribe(onDamageIndicator);
+world6.afterEvents.entityHurt.subscribe(onDummyHurt);
+world6.afterEvents.playerInventoryItemChange.subscribe(({ player, itemStack, beforeItemStack }) => {
   onDynamicLighting(player);
+  const container = player.getComponent("inventory")?.container;
+  if (container) {
+    const filled = [];
+    for (let i = 0; i < container.size; i++) {
+      const item = container.getItem(i);
+      if (!item) continue;
+      filled.push({ slot: i, item });
+    }
+    for (let a = 0; a < filled.length; a++) {
+      const slotA = filled[a];
+      const itemA = slotA.item;
+      if (itemA.amount >= itemA.maxAmount) continue;
+      for (let b = a + 1; b < filled.length; b++) {
+        const slotB = filled[b];
+        const itemB = slotB.item;
+        if (!itemA.isStackableWith(itemB)) continue;
+        const spaceLeft = itemA.maxAmount - itemA.amount;
+        if (spaceLeft <= 0) break;
+        const moveAmount = Math.min(spaceLeft, itemB.amount);
+        itemA.amount += moveAmount;
+        container.setItem(slotA.slot, itemA);
+        if (moveAmount >= itemB.amount) {
+          container.setItem(slotB.slot, void 0);
+        } else {
+          itemB.amount -= moveAmount;
+          container.setItem(slotB.slot, itemB);
+        }
+      }
+    }
+  }
+  healthBarRuntime(player, "inventoryItemChanged", beforeItemStack, itemStack);
 });
-world8.afterEvents.worldLoad.subscribe(() => {
+world6.afterEvents.worldLoad.subscribe(() => {
   loadScoreboards();
 });
-world8.afterEvents.playerSpawn.subscribe(({ player, initialSpawn }) => {
+world6.afterEvents.playerSpawn.subscribe(({ player, initialSpawn }) => {
   onPlayerSpawn(player, initialSpawn);
   onDynamicLighting(player);
 });
-world8.afterEvents.playerSwingStart.subscribe(({ player, heldItemStack, swingSource }) => {
+world6.afterEvents.playerSwingStart.subscribe(({ player, heldItemStack, swingSource }) => {
+  onControlSwingInput(player, swingSource);
   for (const weapon of weapons) {
     if (heldItemStack?.typeId === weapon.itemId) {
       if (swingSource != "Mine" && swingSource != "Attack") return;
@@ -2260,23 +2490,14 @@ world8.afterEvents.playerSwingStart.subscribe(({ player, heldItemStack, swingSou
     }
   }
 });
-world8.afterEvents.playerButtonInput.subscribe(({ player: source, button, newButtonState }) => {
-  const equippedItem = source?.getComponent("equippable")?.getEquipment(EquipmentSlot3.Mainhand);
-  if (button == "Jump" && newButtonState == "Pressed") {
-    dashRuntime(source);
-  }
-  if (button == "Sneak" && newButtonState == "Pressed") {
+world6.afterEvents.playerButtonInput.subscribe(({ player: source, button, newButtonState }) => {
+  if (newButtonState != "Pressed") return;
+  if (button == "Sneak") {
     windPlungeRuntime(source);
   }
-  if (!equippedItem) return;
-  for (const ss of switcherSkills) {
-    if (equippedItem.typeId === ss.itemId && button === "Sneak" && newButtonState == "Pressed") {
-      if (!source.isSneaking) return;
-      ss.switchSkill(source);
-    }
-  }
+  onControlButtonInput(source, button);
 });
-world8.afterEvents.itemUse.subscribe(({ source, itemStack }) => {
+world6.afterEvents.itemUse.subscribe(({ source, itemStack }) => {
   if (!itemStack) return;
   parryRuntime(source, itemStack);
   startBetterMending(source, itemStack);
@@ -2286,7 +2507,7 @@ world8.afterEvents.itemUse.subscribe(({ source, itemStack }) => {
     }
   }
 });
-world8.afterEvents.entityDie.subscribe(({ damageSource, deadEntity }) => {
+world6.afterEvents.entityDie.subscribe(({ damageSource, deadEntity }) => {
   const killer = damageSource?.damagingEntity;
   if (deadEntity?.typeId === "minecraft:player") {
     try {
@@ -2295,100 +2516,66 @@ world8.afterEvents.entityDie.subscribe(({ damageSource, deadEntity }) => {
     }
   }
   if (!killer?.isValid) return;
-  const mainhand = killer?.getComponent("equippable")?.getEquipment(EquipmentSlot3.Mainhand);
+  const mainhand = killer?.getComponent("equippable")?.getEquipment(EquipmentSlot5.Mainhand);
   if (killer?.typeId === "minecraft:player" && mainhand?.typeId === "ph:charged_copper_axe") {
     addScore(killer, "auric_charge", 4);
     deadEntity.dimension.spawnEntity("minecraft:lightning_bolt", deadEntity.location);
   }
 });
-world8.afterEvents.playerInventoryItemChange.subscribe(({ player }) => {
-  const container = player.getComponent("inventory")?.container;
-  if (!container) return;
-  for (let i = 0; i < container.size; i++) {
-    const item = container.getItem(i);
-    if (!item) continue;
-    const expectedLore = addLore.get(item.typeId) ?? (item.typeId.startsWith("ph:") ? ["\xA79Phantasm"] : void 0);
-    if (!expectedLore) continue;
-    const currentLore = item.getLore() ?? [];
-    const isSame = currentLore.length === expectedLore.length && currentLore.every((line, index) => line === expectedLore[index]);
-    if (isSame) continue;
-    item.setLore(expectedLore);
-    container.setItem(i, item);
-  }
-  for (let i = 0; i < container.size; i++) {
-    const itemA = container.getItem(i);
-    if (!itemA || itemA.amount >= itemA.maxAmount) continue;
-    for (let j = i + 1; j < container.size; j++) {
-      const itemB = container.getItem(j);
-      if (!itemB) continue;
-      if (!itemA.isStackableWith(itemB)) continue;
-      const spaceLeft = itemA.maxAmount - itemA.amount;
-      if (spaceLeft <= 0) break;
-      const moveAmount = Math.min(spaceLeft, itemB.amount);
-      itemA.amount += moveAmount;
-      container.setItem(i, itemA);
-      if (moveAmount >= itemB.amount) {
-        container.setItem(j, void 0);
-      } else {
-        itemB.amount -= moveAmount;
-        container.setItem(j, itemB);
-      }
-    }
-  }
-});
-world8.afterEvents.entityHealthChanged.subscribe(({ entity }) => {
+world6.afterEvents.entityHealthChanged.subscribe(({ entity }) => {
   if (!entity.isValid) return;
   healthBarRuntime(entity, "healthChanged");
 });
-world8.afterEvents.playerInventoryItemChange.subscribe(({ player, itemStack, beforeItemStack }) => {
-  healthBarRuntime(player, "inventoryItemChanged", beforeItemStack, itemStack);
-});
-world8.afterEvents.playerDimensionChange.subscribe(({ player }) => {
+world6.afterEvents.playerDimensionChange.subscribe(({ player }) => {
   healthBarRuntime(player, "dimensionChanged");
 });
-world8.afterEvents.playerGameModeChange.subscribe(({ player, toGameMode }) => {
+world6.afterEvents.playerGameModeChange.subscribe(({ player, toGameMode }) => {
   healthBarRuntime(player, "gamemodeChanged");
 });
-world8.afterEvents.entitySpawn.subscribe(({ entity, cause }) => {
+var animatedTpSpeeds = new Map(
+  specifiedFamilityAndSpeed.map((data) => [data.type_family, data.speed])
+);
+world6.afterEvents.entitySpawn.subscribe(({ entity, cause }) => {
   if (cause != "Spawned") return;
   if (!entity.isValid) return;
-  let RUN_INTERVAL_ANIMATED_TP;
   const family = entity?.getComponent("minecraft:type_family")?.getTypeFamilies();
   if (!family) return;
-  const matchedFamily = specifiedFamilityAndSpeed.find(
-    (data) => family.includes(data.type_family)
-  );
-  if (entity?.isValid && matchedFamily) {
-    if (RUN_INTERVAL_ANIMATED_TP === void 0) {
-      const headLoc = entity?.getViewDirection();
-      const dx = headLoc.x;
-      const dy = headLoc.y;
-      const dz = headLoc.z;
-      RUN_INTERVAL_ANIMATED_TP = system9.runInterval(() => {
-        if (!entity?.isValid) {
-          system9.clearRun(RUN_INTERVAL_ANIMATED_TP);
-          return;
-        }
-        const SPEED = matchedFamily.speed;
-        entity?.teleport({
-          x: entity.location.x + dx * SPEED,
-          y: entity.location.y + dy * SPEED,
-          z: entity.location.z + dz * SPEED
-        });
-      }, 1);
+  let speed;
+  for (const typeFamily of family) {
+    const matched = animatedTpSpeeds.get(typeFamily);
+    if (matched !== void 0) {
+      speed = matched;
+      break;
     }
   }
+  if (speed === void 0) return;
+  const dir = entity.getViewDirection();
+  const dx = dir.x;
+  const dy = dir.y;
+  const dz = dir.z;
+  const interval = system9.runInterval(() => {
+    if (!entity?.isValid) {
+      system9.clearRun(interval);
+      return;
+    }
+    entity?.teleport({
+      x: entity.location.x + dx * speed,
+      y: entity.location.y + dy * speed,
+      z: entity.location.z + dz * speed
+    });
+  }, 1);
 });
-world8.beforeEvents.playerLeave.subscribe(({ player }) => {
+world6.beforeEvents.playerLeave.subscribe(({ player }) => {
   clearPlayerLighting(player);
+  clearControlState(player);
 });
 system9.runInterval(() => {
-  for (const player of world8.getPlayers()) {
+  for (const player of world6.getPlayers()) {
     javaSaturationRegen(player);
   }
 }, 6);
 system9.runInterval(() => {
-  for (const player of world8.getPlayers()) {
+  for (const player of world6.getPlayers()) {
     try {
       const base = player.location;
       const dimension = player.dimension;
@@ -2406,7 +2593,7 @@ system9.runInterval(() => {
             } catch {
               continue;
             }
-            if (block && block.typeId in crystallDrops) {
+            if (block && crystallDropIds.has(block.typeId)) {
               popCrystallIfFloating(block, true);
             }
           }
@@ -2701,17 +2888,17 @@ function bossLaserBeam(boss, charge, duration, range, damagePerTick, width) {
   }
 }
 
-// data/scripts/custom_components.ts
-import { system as system12, CommandPermissionLevel, CustomCommandStatus, MolangVariableMap as MolangVariableMap4, ItemStack as ItemStack5 } from "@minecraft/server";
+// data/scripts/features/blocks/customComponents.ts
+import { system as system12, CommandPermissionLevel, CustomCommandStatus, MolangVariableMap as MolangVariableMap4, ItemStack as ItemStack4 } from "@minecraft/server";
 
-// data/scripts/forms/skillUnlock.ts
+// data/scripts/ui/forms/skillUnlock.ts
 import { system as system10 } from "@minecraft/server";
 import { ActionFormData, MessageFormData } from "@minecraft/server-ui";
 function skillUnlock(player) {
   let dashLevelStatus = player.getDynamicProperty("ph:dash_level") ?? 0;
   let healthLevelStatus = player.getDynamicProperty("ph:health_level") ?? 0;
   let plungeUnlockStatus = player.getDynamicProperty("ph:plunge_unlock") == true ? "\xA72UNLOCKED" : "\xA74LOCKED";
-  const form = new ActionFormData().title("Skill Unlocking").body("Unlock your new potential by spending your 30 Experience level to one of the skill right here").button(`Passive Dash
+  const form = new ActionFormData().title("Skill Unlocking").body("Spend 30 experience levels to unlock one of these skills").button(`Passive Dash
 \xA72Level : ${dashLevelStatus}`).button(`Extra Health
 \xA72Level : ${healthLevelStatus}`).button(`Wind Plunge
 ${plungeUnlockStatus}`).show(player).then((r) => {
@@ -2724,10 +2911,12 @@ ${plungeUnlockStatus}`).show(player).then((r) => {
 function dashUnlock(player) {
   const exp = player.level;
   let dashLevel = player.getDynamicProperty("ph:dash_level") ?? 0;
-  const form = new MessageFormData().title("Confirm Selection").body(`Are you sure you want to unlock the passive dash? to use it press jump twice
+  const form = new MessageFormData().title("Confirm Selection").body(`Are you sure you want to unlock Passive Dash? Press Jump twice to use it.
 
 Current Level : ${exp}
-Required Level : 30`).button1("Confirm").button2("Cancel").show(player).then((r) => {
+Required Level : 30
+
+You can change this control later with /setting.`).button1("Confirm").button2("Cancel").show(player).then((r) => {
     if (r.selection == 0) {
       if (exp >= 30 && dashLevel == 0) {
         player.setDynamicProperty("ph:dash_level", 1);
@@ -2747,7 +2936,7 @@ Required Level : 30`).button1("Confirm").button2("Cancel").show(player).then((r)
 }
 function healthUpgrade(player) {
   const exp = player.level;
-  const form = new MessageFormData().title("Confirm Selection").body(`Are you sure you want to upgrade your max health? adds 16 HP at level 1, +12 HP at other level
+  const form = new MessageFormData().title("Confirm Selection").body(`Are you sure you want to upgrade your max health? +16 HP at level 1, +12 HP at later levels.
 
 Current Level : ${exp}
 Required Level : 30`).button1("Confirm").button2("Cancel").show(player).then((r) => {
@@ -2781,7 +2970,7 @@ Required Level : 30`).button1("Confirm").button2("Cancel").show(player).then((r)
 function plungeUnlock(player) {
   const exp = player.level;
   let plungeUnlock2 = player.getDynamicProperty("ph:plunge_unlock") ?? false;
-  const form = new MessageFormData().title("Confirm Selection").body(`Are you sure you want to unlock the wind plunge passive? to use it press sneak while falling more than 10 blocks.
+  const form = new MessageFormData().title("Confirm Selection").body(`Are you sure you want to unlock Wind Plunge? Press Sneak while falling more than 10 blocks to use it.
 
 Current Level : ${exp}
 Required Level : 30`).button1("Confirm").button2("Cancel").show(player).then((r) => {
@@ -2802,14 +2991,76 @@ Required Level : 30`).button1("Confirm").button2("Cancel").show(player).then((r)
   });
 }
 
-// data/scripts/guidescreen/main_guide.ts
-import { ActionFormData as ActionFormData9 } from "@minecraft/server-ui";
-import "@minecraft/server";
-
-// data/scripts/guidescreen/weapon_guide.ts
+// data/scripts/ui/forms/settingsForm.ts
+import { system as system11 } from "@minecraft/server";
 import { ActionFormData as ActionFormData2 } from "@minecraft/server-ui";
+function openSettings(player) {
+  const dashControl = getDashControl(player);
+  const skillSwitchControl = getSkillSwitchControl(player);
+  const form = new ActionFormData2().title("Phantasm Settings").body("Pick the controls you want for Phantasm mechanics. Every setting is saved to you only.").button(`Passive Dash
+\xA77Currently: \xA7f${DASH_CONTROL_NAMES[dashControl]}`).button(`Legendary Weapon Skills
+\xA77Currently: \xA7f${SKILL_SWITCH_CONTROL_NAMES[skillSwitchControl]}`).button("Reset To Defaults").button("Close").show(player).then((r) => {
+    if (r.cancelationReason == "UserBusy") system11.run(() => openSettings(player));
+    if (r.selection == 0) dashControlMenu(player);
+    if (r.selection == 1) skillSwitchControlMenu(player);
+    if (r.selection == 2) resetSettings(player);
+  });
+}
+function dashControlMenu(player) {
+  const current = getDashControl(player);
+  const form = new ActionFormData2().title("Passive Dash Control").body(DASH_CONTROL_HINTS.join("\n\n"));
+  DASH_CONTROL_NAMES.forEach((name, index) => {
+    form.button(index == current ? `\xA7a${name}
+\xA77Currently selected` : name);
+  });
+  form.button("\xA7cBack").show(player).then((r) => {
+    if (r.canceled) return openSettings(player);
+    if (r.selection == DASH_CONTROL_NAMES.length) return openSettings(player);
+    setDashControl(player, r.selection);
+    player.playSound("random.levelup");
+    player.sendMessage(`\xA7aPassive Dash control set to \xA7f${DASH_CONTROL_NAMES[r.selection]}`);
+    openSettings(player);
+  });
+}
+function skillSwitchControlMenu(player) {
+  const current = getSkillSwitchControl(player);
+  const form = new ActionFormData2().title("Skill Switch Control").body(SKILL_SWITCH_CONTROL_HINTS.join("\n\n"));
+  SKILL_SWITCH_CONTROL_NAMES.forEach((name, index) => {
+    form.button(index == current ? `\xA7a${name}
+\xA77Currently selected` : name);
+  });
+  form.button("\xA7cBack").show(player).then((r) => {
+    if (r.canceled) return openSettings(player);
+    if (r.selection == SKILL_SWITCH_CONTROL_NAMES.length) return openSettings(player);
+    setSkillSwitchControl(player, r.selection);
+    player.playSound("random.levelup");
+    player.sendMessage(`\xA7aSkill switch control set to \xA7f${SKILL_SWITCH_CONTROL_NAMES[r.selection]}`);
+    openSettings(player);
+  });
+}
+function resetSettings(player) {
+  setDashControl(player, 0);
+  setSkillSwitchControl(player, 0);
+  player.playSound("random.levelup");
+  player.sendMessage("\xA7aSettings reset to defaults: \xA7fDouble-tap Jump\xA77 and \xA7fSneak");
+  openSettings(player);
+}
+
+// data/scripts/ui/guide/main_guide.ts
+import { ActionFormData as ActionFormData10 } from "@minecraft/server-ui";
+
+// data/scripts/ui/guide/weapon_guide.ts
+import { ActionFormData as ActionFormData3 } from "@minecraft/server-ui";
+
+// data/scripts/ui/guide/guidebookTitle.ts
+var GUIDEBOOK_TITLE_MARK = "\xA7r\xA70\xA77";
+function guideTitle(title) {
+  return `${title}${GUIDEBOOK_TITLE_MARK}`;
+}
+
+// data/scripts/ui/guide/weapon_guide.ts
 function guideWeapons(player) {
-  const form = new ActionFormData2().title("Weapons").body("There are many variations of the weapons, starting from Common ones, until Legendary one.").button("\xA73Prismatic Tools", "textures/items/prismatic_sword").button("\xA75Charged Copper Axe", "textures/items/weapons/charged_copper_axe").button("\xA75Cruxshaper", "textures/items/weapons/cruxshaper").button("\xA75Nature Staff", "textures/items/weapons/nature_staff").button("\xA75Peacemaker Oath", "textures/items/weapons/peacemaker_oath").button("\xA75Seiketsu", "textures/items/weapons/seiketsu").button("\xA75Spectric Bow", "textures/items/weapons/spectric_bow").button("\xA75Thunder Gale", "textures/items/weapons/thunder_gale").button("\xA7pAnimitta", "textures/items/weapons/solaris_verdant").button("\xA7pAuric Photonizer", "textures/items/weapons/auric_photonizer").button("\xA7pPrism Weaver", "textures/items/weapons/prism_weaver").button("\xA7pSupercharged Copper Axe", "textures/items/weapons/supercharged_copper_axe").button("\xA7pThe Bleeding Spire", "textures/items/weapons/the_bleeding_spire").button("Back").show(player).then((r) => {
+  const form = new ActionFormData3().title(guideTitle("Weapons")).body("Weapons come in many variants, from Common up to Legendary.").button("\xA73Prismatic Tools", "textures/items/prismatic_sword").button("\xA75Charged Copper Axe", "textures/items/weapons/charged_copper_axe").button("\xA75Cruxshaper", "textures/items/weapons/cruxshaper").button("\xA75Nature Staff", "textures/items/weapons/nature_staff").button("\xA75Peacemaker Oath", "textures/items/weapons/peacemaker_oath").button("\xA75Seiketsu", "textures/items/weapons/seiketsu").button("\xA75Spectric Bow", "textures/items/weapons/spectric_bow").button("\xA75Thunder Gale", "textures/items/weapons/thunder_gale").button("\xA7pAnimitta", "textures/items/weapons/solaris_verdant").button("\xA7pAuric Photonizer", "textures/items/weapons/auric_photonizer").button("\xA7pPrism Weaver", "textures/items/weapons/prism_weaver").button("\xA7pSupercharged Copper Axe", "textures/items/weapons/supercharged_copper_axe").button("\xA7pThe Bleeding Spire", "textures/items/weapons/the_bleeding_spire").button("Back").show(player).then((r) => {
     if (r.canceled || r.selection == 13) mainGuideScreen(player);
     if (r.selection == 0) prismaticTools(player);
     if (r.selection == 1) chargedCopperAxe(player);
@@ -2827,75 +3078,75 @@ function guideWeapons(player) {
   });
 }
 function prismaticTools(player) {
-  const form = new ActionFormData2().title("Prismatic Tools").label("Prismatic Tools Tier is an Tier beyond Netherite, much better than Netherite Tier, slightly faster than Netherite tier, having 2 times the durability of Netherite Tier as their main perks of this Tier.").label("The sword has their special unique attack that makes the weapons capable of doing area piercing attack, but it cannot crits.").label("and The spear has it's own special perks that you can Dismount your enemies by just using charge attack with sprint jumping.").label("Prismatic Tools can be crafted with Prismatic Ingot, and Netherite Tools.").button("Back").show(player).then((r) => {
+  const form = new ActionFormData3().title(guideTitle("Prismatic Tools")).label("Prismatic is a tier beyond Netherite: slightly faster, with twice the durability.").label("The sword's special attack pierces through an area, but it cannot crit.").label("The spear can dismount enemies with a sprint-jump charge attack.").label("Craft Prismatic Tools with Prismatic Ingots and Netherite Tools.").button("Back").show(player).then((r) => {
     if (r.canceled || r.selection == 0) guideWeapons(player);
   });
 }
 function chargedCopperAxe(player) {
-  const form = new ActionFormData2().title("Charged Copper Axe").label("This axe weapons is an Epic Weapon, designed for striking your opponents with Lightning Attacks that you collect the charge before combat.").label("The Charge passive is used when the charge is fully charged, when you hit enemies with full charge, you can cast a Lightning Attacks to their enemies.").label("and when the enemies died, you will cast additional Lightning Attack, and adding 4 Auric Charges for you.").button("Back").show(player).then((r) => {
+  const form = new ActionFormData3().title(guideTitle("Charged Copper Axe")).label("This Epic axe hits opponents with Lightning attacks. Collect charges before combat.").label("At full charge, hitting an enemy casts Lightning at them.").label("Killing an enemy casts another Lightning strike and grants 4 Auric Charges.").button("Back").show(player).then((r) => {
     if (r.canceled || r.selection == 0) guideWeapons(player);
   });
 }
 function cruxshaper(player) {
-  const form = new ActionFormData2().title("Cruxshaper").label("This mace weapon just function like mace, but it gets better with the skills.").label("Look up to the skies to use the skill, you will jump really high, and then finally performs a plunge attack that deals up to 50 damage.").label("You can get this weapon same as mace, but with additional of Blaze Rod to the recipe.").button("Back").show(player).then((r) => {
+  const form = new ActionFormData3().title(guideTitle("Cruxshaper")).label("This mace works like a vanilla mace, plus skills.").label("Look at the sky to use the skill. You jump high, then plunge down for up to 50 damage.").label("Craft it like a mace, with a Blaze Rod added to the recipe.").button("Back").show(player).then((r) => {
     if (r.canceled || r.selection == 0) guideWeapons(player);
   });
 }
 function natureStaff(player) {
-  const form = new ActionFormData2().title("Nature Staff").label("This staff can use magic attacks that is same as Soul of Nature boss").label("You can interact to cast the first magic attack, while sneaking you can cast the second magic attack, with slightly longer cooldown").label("This weapon crafted with Prismatic Ingot, Stick, and Nautilus Shell").button("Back").show(player).then((r) => {
+  const form = new ActionFormData3().title(guideTitle("Nature Staff")).label("This staff casts the same magic attacks as the Soul of Nature boss.").label("Interact to cast the first attack. Sneak-interact for the second attack, which has a slightly longer cooldown.").label("Craft it with Prismatic Ingots, a Stick, and a Nautilus Shell.").button("Back").show(player).then((r) => {
     if (r.canceled || r.selection == 0) guideWeapons(player);
   });
 }
 function peacemakerOath(player) {
-  const form = new ActionFormData2().title("Peacemaker Oath").label("a Pistol that uses Auric Charges as their main bullet, capable of doing high damage and high attack speed with this weapon.").label("This weapon does not have a unique skill or passive because this weapon is already overpowered, with the Auric Proton Accessory.").label("You can get this weapon at Trial Chamber, same as Auric Proton.").button("Back").show(player).then((r) => {
+  const form = new ActionFormData3().title(guideTitle("Peacemaker Oath")).label("A pistol that fires Auric Charges. High damage and high attack speed.").label("It has no unique skill or passive because it is already strong, especially with the Auric Proton accessory.").label("Find it in Trial Chambers, same as the Auric Proton.").button("Back").show(player).then((r) => {
     if (r.canceled || r.selection == 0) guideWeapons(player);
   });
 }
 function seiketsu2(player) {
-  const form = new ActionFormData2().title("Seiketsu").label("a Katana that can performs an Attack Patterns like Legendary Tier, beating every epic weapons in the easier usage").label("Also with this weapon, you can perform a parry with longer window, different than regular sword").label("The katana crafted with Prismatic Sword, Blaze Rod, and Netherite Sword").button("Back").show(player).then((r) => {
+  const form = new ActionFormData3().title(guideTitle("Seiketsu")).label("A katana with Legendary-style attack patterns. Easier to use than any Epic weapon.").label("Its parry window is longer than a regular sword's.").label("Craft it with a Prismatic Sword, a Blaze Rod, and a Netherite Sword.").button("Back").show(player).then((r) => {
     if (r.canceled || r.selection == 0) guideWeapons(player);
   });
 }
 function spectricBow(player) {
-  const form = new ActionFormData2().title("Spectric Bow").label("a Bow that beats every Epic weapons in terms of Damage, and Range, The projectile speed is very fast depends on Charging Stage and have ridiculous damage up to 70 damage").label("You can use this bow normally, but best used with Spectral Arrow, crafted with 4 Glowstone Dust and 1 Arrow").label("This bow crafted with Iron Ingot, Whole Glowstone, and String").button("Back").show(player).then((r) => {
+  const form = new ActionFormData3().title(guideTitle("Spectric Bow")).label("A bow that beats every Epic weapon in damage and range. Arrow speed scales with charge stage, up to 70 damage.").label("Works with normal arrows, but best with Spectral Arrows, crafted from 4 Glowstone Dust and 1 Arrow.").label("Craft it with Iron Ingot, Whole Glowstone, and String.").button("Back").show(player).then((r) => {
     if (r.canceled || r.selection == 0) guideWeapons(player);
   });
 }
 function thunderGale(player) {
-  const form = new ActionFormData2().title("Thunder Gale").label("This Spear weapons is the classic, but powerful one, being the Strongest Spear, dealing over 1.6x multiplier on Charge Attack, 14 Base Damage, and very fast Spear Cooldown").label("This weapon only provides you with speeds when equipping this weapon").label("This Spear crafted with Prismatic Spear, Nether Star, and Netherite Spear").button("Back").show(player).then((r) => {
+  const form = new ActionFormData3().title(guideTitle("Thunder Gale")).label("A classic but powerful spear, and the strongest of its kind: 14 base damage, a 1.6x charge attack multiplier, and a very fast cooldown.").label("It also grants bonus speed while equipped.").label("Craft it with a Prismatic Spear, a Nether Star, and a Netherite Spear.").button("Back").show(player).then((r) => {
     if (r.canceled || r.selection == 0) guideWeapons(player);
   });
 }
 function animitta(player) {
-  const form = new ActionFormData2().title("Animitta").label("This is the first legendary weapons you will obtain alongside the Prism Weaver, This weapon capable of doing close, medium, and long range attacks with slightly lower damage than other Legendary Weapons. This weapon have 3 skills :").label("Animirra :\nCreates 4 Stars summon that will attacks other entities, this skill alone is powerful, but you never realized it.").label("Solaris Slash :\nDoes an attack that creates 3 Solaris Slash, spreading in each direction.").label("Natura Vulkan :\nSummons 8 Special Stars summons, that will explode at enemies with small distance explosion, but very powerful, alongside of casting a Meteor Rain.").label("This weapon obtained from killing Soul of Nature with 50% chance alongside with Prism Weaver, a 50/50 between those two weapons").button("Back").show(player).then((r) => {
+  const form = new ActionFormData3().title(guideTitle("Animitta")).label("One of the first Legendary weapons you can get, alongside the Prism Weaver. It fights at close, medium, and long range, with slightly lower damage than other Legendary weapons. It has 3 skills:").label("Animirra :\nSummons 4 stars that attack nearby entities.").label("Solaris Slash :\nFires 3 Solaris Slashes spreading outward.").label("Natura Vulkan :\nSummons 8 special stars that explode on enemies with small but powerful blasts, alongside a Meteor Rain.").label("Drops from the Soul of Nature at 50% chance, alternating with the Prism Weaver (50/50).").button("Back").show(player).then((r) => {
     if (r.canceled || r.selection == 0) guideWeapons(player);
   });
 }
 function prismWeaver2(player) {
-  const form = new ActionFormData2().title("Prism Weaver").label("This is the first legendary weapons you will obtain alongside the Animitta, This weapon capable of doing long range attacks with low damage than other Legendary Weapons. This weapon have 3 skills :").label("Bubble Barrage :\nCasts a bursts of bubble projectiles in one attacks.").label("Prism Wave Wall :\nCasts a Prism Wall that deals massive damage when someone touches it.").label("Vortex Prism :\nPulls the target in large radius to you, and then repel them with massive damage.").label("This weapon obtained from killing Soul of Nature with 50% chance alongside with Animitta, a 50/50 between those two weapons").button("Back").show(player).then((r) => {
+  const form = new ActionFormData3().title(guideTitle("Prism Weaver")).label("One of the first Legendary weapons you can get, alongside the Animitta. It fights at long range with lower damage than other Legendary weapons. It has 3 skills:").label("Bubble Barrage :\nFires a burst of bubble projectiles in one attack.").label("Prism Wave Wall :\nCasts a Prism Wall that deals massive damage on touch.").label("Vortex Prism :\nPulls targets in a large radius toward you, then repels them with massive damage.").label("Drops from the Soul of Nature at 50% chance, alternating with the Animitta (50/50).").button("Back").show(player).then((r) => {
     if (r.canceled || r.selection == 0) guideWeapons(player);
   });
 }
 function theBleedingSpire2(player) {
-  const form = new ActionFormData2().title("The Bleeding Spire").label("This Legendary Spear does a polearm like attack with close distance, this weapon meant to be a support so that will not too powerful to destroy your target. This weapon have 3 skills :").label("Carnage :\nDash forward with this weapons, any mob collided with you will deal some damage.").label("Entanglement :\nLeash your target with Crimson Roots, making them stunned (literal stun) for 5 seconds, and giving you over 12 Health Points").label("Crimson Ray :\nDoes the same thing as Entanglement, but, you will cast a lot of Crimson Ray, shot in scattered directions.").label("This weapon obtained from killing Punicea").button("Back").show(player).then((r) => {
+  const form = new ActionFormData3().title(guideTitle("The Bleeding Spire")).label("This Legendary spear fights polearm-style at close range. It is a support weapon, so it holds back on damage. It has 3 skills:").label("Carnage :\nDash forward. Mobs you collide with take damage.").label("Entanglement :\nLeash your target with Crimson Roots, stunning it for 5 seconds and restoring 12 health.").label("Crimson Ray :\nLike Entanglement, but fires many Crimson Rays in scattered directions.").label("Drops from Punicea.").button("Back").show(player).then((r) => {
     if (r.canceled || r.selection == 0) guideWeapons(player);
   });
 }
 function superchargedCopperAxe2(player) {
-  const form = new ActionFormData2().title("Supercharged Copper Axe").label("This Legendary Axe, forged through the High-Grade Copper and Auric Material, is very powerful compared to other weapons, this weapon has very slow attack speed but has lightning bolt attacks when completing the attack pattern. This weapon have 4 skills :").label("Charge :\nGrants 5 Charges for your 2 skills, and Boost yourself temporarily, giving you a lot of extra damage when you attacking a mob.").label("Powered Leap :\nCreates an explosion that deals high damage for others than you to make you leap forward to your target, also giving you 1 Charge for your other skills.").label("Discharge :\nDischarge your collected charge, and cast a Auric Laser that moves in their direction, hitting a target will gives them a lot of damage.").label("Ultimate Discharge :\nDoes the same thing with Discharge, but it's more powerful, and combined with medium-range lightning attacks that covers both close and medium range.").label("This weapon obtained from killing Auric Automaton with 50% chance alongside with Auric Photonizer, a 50/50 between those two weapons").button("Back").show(player).then((r) => {
+  const form = new ActionFormData3().title(guideTitle("Supercharged Copper Axe")).label("This Legendary axe, forged from high-grade Copper and Auric material, hits very hard but swings very slowly, with lightning bolts on a completed attack pattern. It has 4 skills:").label("Charge :\nGrants 5 Charges for your other skills and briefly boosts your damage.").label("Powered Leap :\nCreates an explosion that damages everything except you and leaps you toward your target. Grants 1 Charge.").label("Discharge :\nSpends your charges to fire an Auric Laser forward. Direct hits deal heavy damage.").label("Ultimate Discharge :\nA stronger Discharge, combined with medium-range lightning covering close and medium range.").label("Drops from the Auric Automaton at 50% chance, alternating with the Auric Photonizer (50/50).").button("Back").show(player).then((r) => {
     if (r.canceled || r.selection == 0) guideWeapons(player);
   });
 }
 function auricPhotonizer2(player) {
-  const form = new ActionFormData2().title("Auric Photonizer").label("This Legendary Sword, forged through the High-Grade Copper and Auric Material, is powerful compared to other weapons, this weapon has very fast attack speed. This weapon have 4 skills :").label("Stab :\nDash and Stab forward with this weapons, any mob collided with you will deal a lot damage.").label("Powered Leap :\nLeaps backward to dodge your opponents, creates an explosion after short delay that deals a lot damage").label("Blade Barrage :\nSummon 5 Auric Double Blade, moving towards you, anyone other than you will deals a lot of damage").label("Ethereal Blade :\nSummon 3 sequence of a lot of Ethereal Sword stabbing in random direction dealing a lot of damage, you can still move while the skill is activated").label("This weapon obtained from killing Auric Automaton with 50% chance alongside with Supercharged Copper Axe, a 50/50 between those two weapons").button("Back").show(player).then((r) => {
+  const form = new ActionFormData3().title(guideTitle("Auric Photonizer")).label("This Legendary sword, forged from high-grade Copper and Auric material, swings very fast. It has 4 skills:").label("Stab :\nDash-stab forward. Mobs you collide with take heavy damage.").label("Powered Leap :\nLeap backward to dodge, leaving an explosion after a short delay that deals heavy damage.").label("Blade Barrage :\nSummons 5 Auric Double Blades that fly toward you, heavily damaging anything else in the way.").label("Ethereal Blade :\nSummons 3 waves of Ethereal Swords stabbing in random directions for heavy damage. You can keep moving while it fires.").label("Drops from the Auric Automaton at 50% chance, alternating with the Supercharged Copper Axe (50/50).").button("Back").show(player).then((r) => {
     if (r.canceled || r.selection == 0) guideWeapons(player);
   });
 }
 
-// data/scripts/guidescreen/mechanic_guide.ts
-import { ActionFormData as ActionFormData3 } from "@minecraft/server-ui";
+// data/scripts/ui/guide/mechanic_guide.ts
+import { ActionFormData as ActionFormData4 } from "@minecraft/server-ui";
 function mechanicsList(player) {
-  const form = new ActionFormData3().title("Mechanics").body("There are the list of the mechanics in Phantasm, starting from the simple one to complex one.").button("Skill Unlock").button("Passive Dash").button("Extra Health").button("Wind Plunge").button("Dynamic Light").button("Legendary Items").button("Upgrading Items").button("Better Mending").button("Accessories").button("Auric Charges").button("Back").show(player).then((r) => {
+  const form = new ActionFormData4().title(guideTitle("Mechanics")).body("The mechanics in Phantasm, from simplest to most complex.").button("Skill Unlock").button("Passive Dash").button("Extra Health").button("Wind Plunge").button("Dynamic Light").button("Legendary Items").button("Upgrading Items").button("Better Mending").button("Accessories").button("Auric Charges").button("Back").show(player).then((r) => {
     if (r.canceled || r.selection == 10) mainGuideScreen(player);
     if (r.selection == 0) skillUnlockGuide(player);
     if (r.selection == 1) passiveDash(player);
@@ -2910,61 +3161,61 @@ function mechanicsList(player) {
   });
 }
 function skillUnlockGuide(player) {
-  const form = new ActionFormData3().title("Unlock Skill").header("Skill Unlocking").divider().label("Skill unlocking is an mechanics to upgrade yourself throughout the progress, you essentially need to upgrade your statistic by unlocking these skill listed in the /unlockskill command!").label("There are 3 Skill / Passive that you need to unlock :\n- Passive Dash\n- Extra health\n- Wind Plunge\nEach of them require 30 Experience levels to upgrade, and they have their own maximum level in the unlocking UI.").divider().button("Unlock Skill").button("Back").show(player).then((r) => {
+  const form = new ActionFormData4().title(guideTitle("Unlock Skill")).header("Skill Unlocking").divider().label("Skill Unlock upgrades your stats as you progress. Unlock the skills listed in the /unlockskill command!").label("3 skills to unlock :\n- Passive Dash\n- Extra Health\n- Wind Plunge\nEach costs 30 experience levels per upgrade, up to its own max level in the unlock UI.").divider().button("Unlock Skill").button("Back").show(player).then((r) => {
     if (r.selection == 1 || r.canceled) mechanicsList(player);
     if (r.selection == 0) skillUnlock(player);
   });
 }
 function passiveDash(player) {
-  const form = new ActionFormData3().title("Passive Dash").header("Passive Dash").divider().label("This skill able to make you dash forward without any dash item required, this skill is very useful at mobility and some combat style.").label("To use this skill / passive, you need to press Jump while falling.").divider().button("Back").show(player).then((r) => {
+  const form = new ActionFormData4().title(guideTitle("Passive Dash")).header("Passive Dash").divider().label("This skill lets you dash forward with no dash item. Useful for mobility and some combat styles.").label("Press Jump while falling to dash. Use /setting if you want a different control (double-tap Jump, Sprint + Jump, or Jump + Sneak).").divider().button("Back").show(player).then((r) => {
     if (r.selection == 0 || r.canceled) mechanicsList(player);
   });
 }
 function extraHealth(player) {
-  const form = new ActionFormData3().title("Extra Health").header("Extra Health").divider().label("This passive will grants you additional health, +16 at the first level, +12 at level 2, and higher, this passive is essential for tanking boss / attacks from other players.").divider().button("Back").show(player).then((r) => {
+  const form = new ActionFormData4().title(guideTitle("Extra Health")).header("Extra Health").divider().label("This passive grants bonus health: +16 at level 1, +12 at level 2 and above. Essential for tanking bosses and other players.").divider().button("Back").show(player).then((r) => {
     if (r.selection == 0 || r.canceled) mechanicsList(player);
   });
 }
 function windPlunge(player) {
-  const form = new ActionFormData3().title("Wind Plunging").header("Wind Plunge Attack").divider().label("This skill will grants you ability to plunge down quickly while you falling at long distance, significantly reduces the fall damage, and creates an explosion when landing to damages anything.").label("To use this skill / passive, you need to press Sneak while falling over 10 blocks.").divider().button("Back").show(player).then((r) => {
+  const form = new ActionFormData4().title(guideTitle("Wind Plunging")).header("Wind Plunge Attack").divider().label("This skill lets you plunge down fast when falling a long distance. It greatly reduces fall damage and explodes on landing, damaging everything nearby.").label("Sneak while falling more than 10 blocks to plunge.").divider().button("Back").show(player).then((r) => {
     if (r.selection == 0 || r.canceled) mechanicsList(player);
   });
 }
 function dynamicLighting(player) {
-  const form = new ActionFormData3().title("Dynamic Light").header("Phantasm Light System").divider().label("a Mechanic that already exists in some add-ons, but this one is slightly different because you don't need to hold the items to use it").label("To use the mechanic, please put your Light Items into a Hotbar slot with + Sign (Accessories Slot).").divider().button("Back").show(player).then((r) => {
+  const form = new ActionFormData4().title(guideTitle("Dynamic Light")).header("Phantasm Light System").divider().label("Other add-ons have this mechanic, but here you do not need to hold the light item.").label("Put a light item in a hotbar slot with a + sign (accessory slot).").divider().button("Back").show(player).then((r) => {
     if (r.selection == 0 || r.canceled) mechanicsList(player);
   });
 }
 function legendaryItems(player) {
-  const form = new ActionFormData3().title("Legendary Items").header("Legendary Mechanics").divider().label("Legendary Tier like Weapons, items, mechanic can be slightly complicated, so how do I use it?").label("To perform an attack, just Left-Click (KBM), or Press Attack to the ground,\nTo use a skill Press Interact / Right Click,\nand for Changing a skill to use in the Legendary Item, just Press Sneak.").divider().button("Back").show(player).then((r) => {
+  const form = new ActionFormData4().title(guideTitle("Legendary Items")).header("Legendary Mechanics").divider().label("Legendary weapons and items can be complicated. Here is how to use them:").label("Attack: left-click (or tap Attack).\nSkill: Interact / right-click.\nSwitch skill: Sneak.").label("Use /setting to change how you switch skill: Sneak, Sneak + Attack, or Double Sneak.").divider().button("Back").show(player).then((r) => {
     if (r.selection == 0 || r.canceled) mechanicsList(player);
   });
 }
 function upgradingItems(player) {
-  const form = new ActionFormData3().title("Item Upgrade").header("Upgrading Item").divider().label("You can use some items to upgrade yourself such dash ability, health, or damage. You can upgrade yourself permanently or temporarily by using an items.").label("Currently, there are only 3 Items that will upgrade yourself :\n- Auric Star (permanent)\n- Suspicious Mushroom (temporary)\n- Supercharged Copper Axe with Charge Skill (temporary)").divider().button("Back").show(player).then((r) => {
+  const form = new ActionFormData4().title(guideTitle("Item Upgrade")).header("Upgrading Item").divider().label("Some items upgrade your dash, health, or damage, permanently or temporarily.").label("Only 3 items do this :\n- Auric Star (permanent)\n- Suspicious Mushroom (temporary)\n- Supercharged Copper Axe Charge skill (temporary)").divider().button("Back").show(player).then((r) => {
     if (r.selection == 0 || r.canceled) mechanicsList(player);
   });
 }
 function betterMending(player) {
-  const form = new ActionFormData3().title("Better Mending").header("Mending QoL").divider().label("Mending has its own mechanic, while they can repair themselves with exp orb, you can use your stored level to repair the items.").label("To use the second mechanics of mending, you need to Sneak and Use the items, and they will start using your level to repair the items until full durability or you ran out of experience points. To cancel the repairing, just change to other items.").divider().button("Back").show(player).then((r) => {
+  const form = new ActionFormData4().title(guideTitle("Better Mending")).header("Mending QoL").divider().label("Mending still repairs with EXP orbs, but you can also spend your stored levels to repair items directly.").label("Sneak and use the item to spend levels on repairs until it is full or you run out of EXP. Switch items to cancel.").divider().button("Back").show(player).then((r) => {
     if (r.selection == 0 || r.canceled) mechanicsList(player);
   });
 }
 function accessories(player) {
-  const form = new ActionFormData3().title("Accessories").header("Accessories").divider().label("This mechanic allow you to use an Accessory Type Items to make yourself stronger by a lot while sacrificing up to 4 slots of your inventory, you can combine them to create such a perfect build that you'd like.").label("To use an Accessory Item, put the Accessory slot in Offhand Slot, and Hotbar Slots with + Sign.").divider().button("Back").show(player).then((r) => {
+  const form = new ActionFormData4().title(guideTitle("Accessories")).header("Accessories").divider().label("Accessories make you much stronger at the cost of up to 4 inventory slots. Combine them into whatever build you like.").label("Put accessories in the offhand slot or hotbar slots with a + sign.").divider().button("Back").show(player).then((r) => {
     if (r.selection == 0 || r.canceled) mechanicsList(player);
   });
 }
 function auricCharges(player) {
-  const form = new ActionFormData3().title("Auric Charge").header("Auric Charge").divider().label("This universal charges is used for an ammunition for some Items, collect Auric Charges using Charged Copper Axe, Auric Stock Battery, and Auric Proton to gain some charges.").label("To use it, please use an Items that costs Auric Charge.").divider().button("Back").show(player).then((r) => {
+  const form = new ActionFormData4().title(guideTitle("Auric Charge")).header("Auric Charge").divider().label("Auric Charges are universal ammo for some items. Collect them with the Charged Copper Axe, Auric Stock Battery, or Auric Proton.").label("Spend them by using an item that costs Auric Charges.").divider().button("Back").show(player).then((r) => {
     if (r.selection == 0 || r.canceled) mechanicsList(player);
   });
 }
 
-// data/scripts/guidescreen/item_guide.ts
-import { ActionFormData as ActionFormData4 } from "@minecraft/server-ui";
+// data/scripts/ui/guide/item_guide.ts
+import { ActionFormData as ActionFormData5 } from "@minecraft/server-ui";
 function guideItems(player) {
-  const form = new ActionFormData4().title("Items").label("This is the list of Usable Items, any items that doesn't show up here is an Items that only be used as a recipe").button("Auric Communicator", "textures/items/auric_communicator").button("Auric Stock Battery", "textures/items/auric_stock_battery").button("Combat Dummy", "textures/items/dummy").button("Flow Channeler", "textures/items/flow_channeler").button("Hell Charge", "textures/items/hell_charge").button("Suspicious Mushroom", "textures/items/suspicious_mushroom").button("Back").show(player).then((r) => {
+  const form = new ActionFormData5().title(guideTitle("Items")).label("Usable items. Anything not listed here is recipe-only.").button("Auric Communicator", "textures/items/auric_communicator").button("Auric Stock Battery", "textures/items/auric_stock_battery").button("Combat Dummy", "textures/items/dummy").button("Flow Channeler", "textures/items/flow_channeler").button("Hell Charge", "textures/items/hell_charge").button("Suspicious Mushroom", "textures/items/suspicious_mushroom").button("Back").show(player).then((r) => {
     if (r.selection === 6 || r.canceled) mainGuideScreen(player);
     if (r.selection === 0) auricCommunicator(player);
     if (r.selection === 1) auricStockBattery(player);
@@ -2975,40 +3226,40 @@ function guideItems(player) {
   });
 }
 function auricCommunicator(player) {
-  const form = new ActionFormData4().title("Auric Communicator").label("Auric Communicator is an item that used to call an Orbital Strike, this item uses your Auric Charges to cast the strike.").label("This item has 2 modes that you can use, one is Stab Shot which can be used to cast a direct strike, the other is Nuke Shot which can be used to call a spread strike.").label("Interact to use it, sneaking with Interact will change the mode of the item.").label("This item can be obtained from Auric Automaton : Copper Mechanical Array.").button("Back").show(player).then((r) => {
+  const form = new ActionFormData5().title(guideTitle("Auric Communicator")).label("The Auric Communicator calls an Orbital Strike using your Auric Charges.").label("It has 2 modes: Stab Shot for a direct strike, Nuke Shot for a spread strike.").label("Interact to fire. Sneak-interact to switch modes.").label("Drops from the Auric Automaton (Copper Mechanical Array).").button("Back").show(player).then((r) => {
     if (r.canceled || r.selection == 0) guideItems(player);
   });
 }
 function auricStockBattery(player) {
-  const form = new ActionFormData4().title("Auric Stock Battery").label("Auric Stock Battery is an item that used to recharge your Auric Charges quickly by one click.").label("This item can be used up to 2 times recharging your Auric Charges up to 100 per use.").label("Interact to use it, if the charges ran out, put it at Auric Battery Recharge Station.").label("This item can be obtained from Crafting with Auric Stars / Ancient Copper Core with Copper Block, obtained from Trial Chamber, and from Auric Automaton : Copper Mechanical Array.").button("Back").show(player).then((r) => {
+  const form = new ActionFormData5().title(guideTitle("Auric Stock Battery")).label("The Auric Stock Battery recharges your Auric Charges in one click.").label("2 uses. Each restores up to 100 Auric Charges.").label("Interact to use it. When empty, recharge it at an Auric Battery Recharge Station.").label("Craft it with Auric Stars or an Ancient Copper Core plus Copper Blocks. Those come from Trial Chambers. It also drops from the Auric Automaton.").button("Back").show(player).then((r) => {
     if (r.canceled || r.selection == 0) guideItems(player);
   });
 }
 function combatDummy(player) {
-  const form = new ActionFormData4().title("Combat Dummy").label("Combat Dummy is an item that can be used to test your combat skills, and testing your maximum damage output.").label("Place it on the ground and try to hit it with your best weapon to test your damage output.").label("To pick it up, interact with it while sneaking.").label("This item can be crafted with 2 Planks, 2 Sticks, and 3 Smooth Stone Slabs.").button("Back").show(player).then((r) => {
+  const form = new ActionFormData5().title(guideTitle("Combat Dummy")).label("The Combat Dummy tests your combat skills and max damage output.").label("Place it down and hit it with your best weapon.").label("To pick it up, interact with it while sneaking.").label("This item can be crafted with 2 Planks, 2 Sticks, and 3 Smooth Stone Slabs.").button("Back").show(player).then((r) => {
     if (r.canceled || r.selection == 0) guideItems(player);
   });
 }
 function flowChanneler(player) {
-  const form = new ActionFormData4().title("Flow Channeler").label("Flow Channeler is an Active Support item that can be used to dash forward, and evading your enemies.").label("Interact with this item to dash forward, and you can enchant your items with Mending and Unbreaking.").label("This item can be obtained by killing Sealed Soul of Nature.").button("Back").show(player).then((r) => {
+  const form = new ActionFormData5().title(guideTitle("Flow Channeler")).label("The Flow Channeler is Active Support. It dashes you forward, away from enemies.").label("Interact to dash. Enchantable with Mending and Unbreaking.").label("Drops from the Sealed Soul of Nature.").button("Back").show(player).then((r) => {
     if (r.canceled || r.selection == 0) guideItems(player);
   });
 }
 function hellCharge(player) {
-  const form = new ActionFormData4().title("Hell Charge").label("Hell Charge is an Active Support item that boosts your mobility by giving you small boost into your movement.").label("Interact with this item to boost your mobility, you can also Spam Interact with this item to make you flying or falling slowly. Use with best control set-up to maximize this item capabilities.").label("But remember, this item is very fragile, long spammed use and your item gone. To prevent this happening, you can enchant your items with Mending and Unbreaking.").label("This item can be crafted with Magma Cream, and 4 Blaze Powder.").button("Back").show(player).then((r) => {
+  const form = new ActionFormData5().title(guideTitle("Hell Charge")).label("Hell Charge is Active Support. It boosts your mobility.").label("Interact for a mobility boost. Spam interact to fly or fall slowly. Tune your controls to get the most out of it.").label("But it is fragile: long spam breaks it. Enchant with Mending and Unbreaking to make it last.").label("Craft it with Magma Cream and 4 Blaze Powder.").button("Back").show(player).then((r) => {
     if (r.canceled || r.selection == 0) guideItems(player);
   });
 }
 function suspiciousMushroom(player) {
-  const form = new ActionFormData4().title("Suspicious Mushroom").label("Suspicious Mushroom is an Active Support item that boosts all of your stats minimally.").label("Eat this item to improve your stats without any side effects, Stats will be increased temporarily for 10 minutes.").label("But remember, this item is hard to get, use wisely.").label("This item can be obtained from Punicea : A Crimson Eye.").button("Back").show(player).then((r) => {
+  const form = new ActionFormData5().title(guideTitle("Suspicious Mushroom")).label("The Suspicious Mushroom is Active Support. It slightly boosts all your stats.").label("Eat it for 10 minutes of boosted stats, no side effects.").label("But remember, this item is hard to get, use wisely.").label("Drops from Punicea, the Crimson Eye.").button("Back").show(player).then((r) => {
     if (r.canceled || r.selection == 0) guideItems(player);
   });
 }
 
-// data/scripts/guidescreen/block_guide.ts
-import { ActionFormData as ActionFormData5 } from "@minecraft/server-ui";
+// data/scripts/ui/guide/block_guide.ts
+import { ActionFormData as ActionFormData6 } from "@minecraft/server-ui";
 function guideBlocks(player) {
-  const form = new ActionFormData5().title("Blocks").label("This is the list of Blocks that exist in the add-on, each blocks showed here have a functionality.").button("Ancient Copper Core").button("Auric Battery Recharge Station").button("Nature Soul Altar").button("Suspicious Crimson Eye").button("Back").show(player).then((r) => {
+  const form = new ActionFormData6().title(guideTitle("Blocks")).label("Every functional block in the add-on.").button("Ancient Copper Core").button("Auric Recharge Station").button("Nature Soul Altar").button("Suspicious Crimson Eye").button("Back").show(player).then((r) => {
     if (r.selection === 4 || r.canceled) mainGuideScreen(player);
     if (r.selection === 0) ancientCopperCore(player);
     if (r.selection === 1) auricRechargeStation(player);
@@ -3017,30 +3268,30 @@ function guideBlocks(player) {
   });
 }
 function ancientCopperCore(player) {
-  const form = new ActionFormData5().title("Ancient Copper Core").label("Ancient Copper Core is a block that contains large power of Auric Charges, those power needs a specific power to fully activate the blocks.").label("This block will create another battery if you interact with it, Fill those block scattered with the specific item, and try to interact the core again, and you'll see the boss : Auric Automaton - Copper Mechanical Array.").label("This block can be found in Trial Chamber.").button("Back").show(player).then((r) => {
+  const form = new ActionFormData6().title(guideTitle("Ancient Copper Core")).label("The Ancient Copper Core holds a large charge of Auric power, and needs specific items to fully activate.").label("Interact with it to create another battery. Fill the scattered batteries with the required item, interact with the core again, and the boss appears: Auric Automaton, the Copper Mechanical Array.").label("Found in Trial Chambers.").button("Back").show(player).then((r) => {
     if (r.canceled || r.selection == 0) guideBlocks(player);
   });
 }
 function auricRechargeStation(player) {
-  const form = new ActionFormData5().title("Auric Battery Recharge Station").label("Auric Battery Recharge Station is a block that used to recharge your Auric Battery by placing them in the block, interacting while there's battery inside will charge the battery slowly, It takes 100 seconds to complete the charging session, better place more batteries inside since the time to charge will not be changed regardless how many the battery is.").label("This block can't be broken while there are batteries inside.").label("This block can be crafted with Ancient Copper Core, Copper Block, Auric Charging Module.").button("Back").show(player).then((r) => {
+  const form = new ActionFormData6().title(guideTitle("Auric Battery Recharge Station")).label("The Auric Battery Recharge Station recharges Auric Batteries placed inside it. Interact while a battery is inside to charge it slowly. A full charge takes 100 seconds no matter how many batteries are inside, so load it up.").label("It cannot be broken while batteries are inside.").label("Craft it with Ancient Copper Core, Copper Block, and Auric Charging Module.").button("Back").show(player).then((r) => {
     if (r.canceled || r.selection == 0) guideBlocks(player);
   });
 }
 function natureSoulAltar(player) {
-  const form = new ActionFormData5().title("Nature Soul Altar").label("Nature Soul Altar is a natural block that spawned with Prismarine Arena that appears underwater in the ocean.").label("Try to give it Prismarine Shard, and the fight will begin..").label("This block only found naturally in Prismarine Arena.").button("Back").show(player).then((r) => {
+  const form = new ActionFormData6().title(guideTitle("Nature Soul Altar")).label("The Nature Soul Altar generates with the underwater Prismarine Arena.").label("Give it a Prismarine Shard to start the fight.").label("Only found in the Prismarine Arena.").button("Back").show(player).then((r) => {
     if (r.canceled || r.selection == 0) guideBlocks(player);
   });
 }
 function suspiciousCrimsonEye(player) {
-  const form = new ActionFormData5().title("Suspicious Crimson Eye").label("Suspicious Crimson Eye is a natural block that spawned with Crimson Overgrowth that appears in the Crimson FOREST.").label("Try to give it 5 Essence of Crimson, and the fight will begin..").label("This block only found naturally in Crimson Overgrowth.").button("Back").show(player).then((r) => {
+  const form = new ActionFormData6().title(guideTitle("Suspicious Crimson Eye")).label("The Suspicious Crimson Eye generates with the Crimson Overgrowth in the Crimson Forest.").label("Give it 5 Essence of Crimson to start the fight.").label("Only found in the Crimson Overgrowth.").button("Back").show(player).then((r) => {
     if (r.canceled || r.selection == 0) guideBlocks(player);
   });
 }
 
-// data/scripts/guidescreen/boss_guide.ts
-import { ActionFormData as ActionFormData6 } from "@minecraft/server-ui";
+// data/scripts/ui/guide/boss_guide.ts
+import { ActionFormData as ActionFormData7 } from "@minecraft/server-ui";
 function guideBosses(player) {
-  const form = new ActionFormData6().title("Bosses").label("This is the list of Bosses that exist in the add-on, you will face each of these bosses through your progression.").button("Soul of Nature").button("Punicea - A Crimson Eye").button("Auric Automaton - Copper Mechanical Array").button("Back").show(player).then((r) => {
+  const form = new ActionFormData7().title(guideTitle("Bosses")).label("Every boss in the add-on, in progression order.").button("Soul of Nature").button("Punicea - A Crimson Eye").button("Auric Automaton").button("Back").show(player).then((r) => {
     if (r.selection === 4 || r.canceled) mainGuideScreen(player);
     if (r.selection === 0) soulOfNature(player);
     if (r.selection === 1) puniceaCrimsonEye(player);
@@ -3048,44 +3299,44 @@ function guideBosses(player) {
   });
 }
 function soulOfNature(player) {
-  const form = new ActionFormData6().title("Sealed Soul of Nature").label("Sealed Soul of Nature is a boss that possesses the power of nature, and the prism. this have several deadly attacks that can deplete your oxgen level during fighting.").label("This boss generally have 500 HP and 3 different attack patterns. when reached 70% HP, the boss will spawn more Nature and Prism Crystal assisting the bossfight to make the fight harder.").label("You can summon this boss by interacting Nature Soul Altar in Prismarine Arena located underwater..").label("Defeating this boss ensure that Phantasm journey have just started and you will get a Treasure bag...").button("Back").show(player).then((r) => {
+  const form = new ActionFormData7().title(guideTitle("Sealed Soul of Nature")).label("Sealed Soul of Nature wields nature and prism power. Its attacks can drain your oxygen mid-fight.").label("It has 500 HP and 3 attack patterns. At 70% HP it spawns extra Nature and Prism Crystals, making the fight harder.").label("Summon it by interacting with the Nature Soul Altar in the underwater Prismarine Arena.").label("Defeating it marks the true start of your Phantasm journey. You get a treasure bag...").button("Back").show(player).then((r) => {
     if (r.canceled || r.selection == 0) guideBosses(player);
   });
 }
 function puniceaCrimsonEye(player) {
-  const form = new ActionFormData6().title("Punicea - A Crimson Eye").label("Punicea is a boss that wield the power of crimson corruption. this have 6 different attacks and very tough Health.").label("This boss generally have 3000 HP and 6 different attack patterns. Each attack patterns are well telegraphed, so the attack will deal more damages, and easier to dodge. Just be careful with your movement.").label("You can summon this boss by interacting Suspicious Crimson Eye in Crimson Overgrowth.").label("Defeating this boss ensure that you learned how to dodge very well, and you will get a Treasure bag...").button("Back").show(player).then((r) => {
+  const form = new ActionFormData7().title(guideTitle("Punicea - A Crimson Eye")).label("Punicea wields crimson corruption. It has 6 attacks and very high health.").label("It has 3000 HP and 6 attack patterns. Each is well telegraphed but hits hard, so keep moving.").label("Summon it by interacting with the Suspicious Crimson Eye in the Crimson Overgrowth.").label("Defeating it proves you can dodge. You get a treasure bag...").button("Back").show(player).then((r) => {
     if (r.canceled || r.selection == 0) guideBosses(player);
   });
 }
 function copperMechanicalArray(player) {
-  const form = new ActionFormData6().title("Auric Automaton - Copper Mechanical Array").label("Auric Mechanical Array is a mechanical boss that wield the ultimate power of Auric. this boss have very complicated attack patterns, massive damage, combined with it's great mobility, this boss can obliterate anything easily. Ensure you have Ultimate Gear setup before you fight this abomination.").label("This boss generally have less hp than other end game bosses, 1750 HP and 7 different attack patterns based of how you fight. Each attack patterns are very dangerous to tank, so be more mobile than it. to survive, and kill the boss.").label("You can summon this boss by completing the ritual of Ancient Copper Core.").label("Defeating this boss will drop a Treasure bag, completing the journey of Phantasm, for now... Stay tuned for the next Phantasm Update!").button("Back").show(player).then((r) => {
+  const form = new ActionFormData7().title(guideTitle("Auric Automaton - Copper Mechanical Array")).label("The Auric Mechanical Array wields ultimate Auric power. Complicated patterns, massive damage, and high mobility. Bring your best gear.").label("It has 1750 HP and 7 attack patterns that adapt to how you fight. Do not try to tank them. Stay mobile to survive and kill it.").label("Summon it by completing the Ancient Copper Core ritual.").label("It drops a treasure bag. That completes the Phantasm journey, for now. Stay tuned for the next update!").button("Back").show(player).then((r) => {
     if (r.canceled || r.selection == 0) guideBosses(player);
   });
 }
 
-// data/scripts/guidescreen/accessories_guide.ts
-import { ActionFormData as ActionFormData7 } from "@minecraft/server-ui";
-function guideAccessories(player) {
-  const form = new ActionFormData7().title("Accessories").label("Every accessory explains its own effect in its item description, so hover over the item to read what it does!").divider().label("Accessories are an Item Type that can be used as a combat support, or anything to enhance your experience. Accessories can be found anywhere, from doing mining, looting structures, until fighting a boss").divider().label("There are two types of accessories :").label("Active Accessories :\nActive accessories are an accessory that have both passive, and interactability, this type of accessories are recommended to use it at the hotbar with plus sign.").label("Passive Accessories :\nPassive accessories are an accessory that have only passive effect, this type of accessories are recommended to use it at offhand slot, but you can still use it at the hotbar with plus sign.").divider().label("To use accessory, put an accessories item type into Offhand Slot, or Hotbar with plus sign. The passive effect will automatically be applied as soon you equip it.").button("Back").show(player).then((r) => {
-    if (r.selection === 0 || r.canceled) mainGuideScreen(player);
-  });
-}
-
-// data/scripts/guidescreen/enemies_guide.ts
+// data/scripts/ui/guide/accessories_guide.ts
 import { ActionFormData as ActionFormData8 } from "@minecraft/server-ui";
-function guideEnemies(player) {
-  const form = new ActionFormData8().title("Enemies").divider().label("Currently we only have 1 type of enemies, Crimson Tentacles").label("Crimson Tentacles spawn naturally in Crimson Forest, when defeated drop Essence of Crimson with chance of 50%").divider().button("Back").show(player).then((r) => {
+function guideAccessories(player) {
+  const form = new ActionFormData8().title(guideTitle("Accessories")).label("Every accessory explains its own effect in its item description, so hover over the item to read what it does!").divider().label("Accessories are items that support you in combat and beyond. Find them anywhere: mining, looting structures, even boss fights.").divider().label("Two types:").label("Active accessories :\nThey have both a passive effect and an interact use. Keep them in a hotbar slot with a plus sign.").label("Passive accessories :\nPassive effect only. Best in the offhand slot, but a plus-sign hotbar slot works too.").divider().label("Put an accessory in the offhand slot or a plus-sign hotbar slot. Its passive applies as soon as you equip it.").button("Back").show(player).then((r) => {
     if (r.selection === 0 || r.canceled) mainGuideScreen(player);
   });
 }
 
-// data/scripts/guidescreen/main_guide.ts
+// data/scripts/ui/guide/enemies_guide.ts
+import { ActionFormData as ActionFormData9 } from "@minecraft/server-ui";
+function guideEnemies(player) {
+  const form = new ActionFormData9().title(guideTitle("Enemies")).divider().label("Only one enemy type so far: Crimson Tentacles.").label("They spawn naturally in the Crimson Forest and drop Essence of Crimson at 50% chance.").divider().button("Back").show(player).then((r) => {
+    if (r.selection === 0 || r.canceled) mainGuideScreen(player);
+  });
+}
+
+// data/scripts/ui/guide/main_guide.ts
 function mainGuideScreen(player) {
-  const form = new ActionFormData9().title("Guide").header("Phantasm Guide").divider().label(
+  const form = new ActionFormData10().title(guideTitle("Guide")).header("Phantasm Guide").divider().label(
     "Phantasm is an add-on that adds a lot of content into your world: new weapons, mechanics, enemies, and bosses. This add-on is updated regularly, so stay tuned for the next content!"
   ).label("New to the add-on? Click Getting Started below to learn where to begin!").divider().button("Getting Started").button("Mechanics", "textures/ui/speed_effect").button("Weapons", "textures/items/diamond_sword").button("Items", "textures/items/essence_of_crimson").button("Blocks", "textures/blocks/stonebrick_carved").button("Accessories", "textures/items/fire_bracelet").button("Bosses", "textures/items/the_crimson_watcher").button("Enemies", "textures/items/egg_zombie").divider().button("Changelogs").button("Contact the Developer!").divider().label(
-    "Are you stuck? You can press this button to unstuck yourself, or use /unstuck command. Sometimes, minecraft can be really bugged with inputpermission so I add these button and command for that reason."
-  ).button("Unstuck (reset some effects and tags)").divider().button("Exit").show(player).then((r) => {
+    "Stuck? Press this button or use /unstuck. Minecraft's input permission bugs out sometimes, so I added both for that reason."
+  ).button("Unstuck").divider().button("Exit").show(player).then((r) => {
     if (r.canceled) player.sendMessage("\xA7eYou can use /guide to check the guide or list of features in Phantasm!");
     if (r.selection == 0) gettingStarted(player);
     if (r.selection == 1) mechanicsList(player);
@@ -3101,25 +3352,25 @@ function mainGuideScreen(player) {
   });
 }
 function gettingStarted(player) {
-  const form = new ActionFormData9().title("Getting Started").header("Where to begin?").divider().header("Early Game \u2014 Mining").label("- Mine ores to get a chance at the Rusted Fortune Coin and Item Magnet Ore (1% chance per ore).").label("- Use /unlockskill to upgrade your passive abilities: Passive Dash, Extra Health, and Wind Plunge.").divider().header("Mid Game \u2014 Exploration").label("- Explore Trial Chambers to find the Ancient Copper Core, Auric Proton, and the Peacemaker Oath.").label("- Visit the Crimson Forest: fight Crimson Tentacles for Essence of Crimson, and locate the Crimson Overgrowth.").divider().header("Bosses \u2014 Your Progression").label("1. Sealed Soul of Nature (Prismarine Arena, underwater) \u2014 your first boss, drops Prismatic Ingots and a treasure bag (Animitta / Prism Weaver).").label("2. Punicea : A Crimson Eye (Crimson Overgrowth) \u2014 drops The Bleeding Spire and Suspicious Mushroom.").label("3. Auric Automaton : Copper Mechanical Array (Ancient Copper Core ritual) \u2014 the final boss, drops Supercharged Copper Axe / Auric Photonizer.").divider().button("Back").show(player).then((r) => {
+  const form = new ActionFormData10().title(guideTitle("Getting Started")).header("Where to begin?").divider().header("Early Game \u2014 Mining").label("- Mine ores to get a chance at the Rusted Fortune Coin and Item Magnet Ore (1% chance per ore).").label("- Use /unlockskill to upgrade your passive abilities: Passive Dash, Extra Health, and Wind Plunge.").divider().header("Mid Game \u2014 Exploration").label("- Explore Trial Chambers to find the Ancient Copper Core, Auric Proton, and the Peacemaker Oath.").label("- Visit the Crimson Forest: fight Crimson Tentacles for Essence of Crimson, and locate the Crimson Overgrowth.").divider().header("Bosses \u2014 Your Progression").label("1. Sealed Soul of Nature (Prismarine Arena, underwater) \u2014 your first boss, drops Prismatic Ingots and a treasure bag (Animitta / Prism Weaver).").label("2. Punicea : A Crimson Eye (Crimson Overgrowth) \u2014 drops The Bleeding Spire and Suspicious Mushroom.").label("3. Auric Automaton : Copper Mechanical Array (Ancient Copper Core ritual) \u2014 the final boss, drops Supercharged Copper Axe / Auric Photonizer.").divider().button("Back").show(player).then((r) => {
     if (r.selection == 0 || r.canceled) mainGuideScreen(player);
   });
 }
 function Changelogs(player) {
-  const form = new ActionFormData9().title("Changelogs").header("v1.5.2").divider().header("Changes").label("= Added a cooldown between Legendary Weapon attacks (Solaris Verdant, Supercharged Copper Axe, Prism Weaver, Auric Photonizer, The Bleeding Spire, and Seiketsu) so attack patterns can no longer be spammed without a pause - ExplerHD").label("= Fixed player scoreboard initialization: all scores are now reset when a player spawns (including weapon attack scores), so no leftover scores remain from previous sessions - ExplerHD").divider().header("Addition").label("+ Upgraded several particle textures to use PBR (metalness/emissive/roughness) so they can glow and look smoother: circle_fade, circle_load, crosshair_warning, slash_effect_white, slash_effect_white_2, sonic_explosion_grayscaled, sparkle, and the Damage Indicator - ExplerHD").divider().header("v1.5.1").divider().header("Removal").label("- Removed the debug log spam that printed on every ore mined - ExplerHD").divider().header("Changes").label("= Rewrote the Dynamic Light System: no more flickering when switching items, lights are placed instantly, and they only spawn on air or liquid blocks so they won't break tall grass, flowers, or doors - ExplerHD").label("= Health Bar now uses the native on-screen display, so it no longer spams the chat and shows correctly on respawn - ExplerHD").label('= Fixed a crash ("setTitle of undefined") that occurred whenever a mob took damage - ExplerHD').label("= Overhauled the Guidescreen: fixed wrong weapon titles and a wrong drop source, cleaned up typos, and corrected outdated HP data - ExplerHD").label("= Fixed the Damage Indicator icons being mispositioned - ExplerHD").label("= Moved the Dash cooldown scoreboard to be initialized when a player joins - ExplerHD").divider().header("Addition").label("+ Added a Getting Started page to the Guidescreen with a recommended progression path, plus a welcome message on first join - ExplerHD").label("+ Added a crafting recipe to turn a Rusted Fortune Coin into 4 Gold Blocks - ExplerHD").divider().header("v1.5.0").divider().header("Removal").label("- Removed the Glyph System, but you can still use the glyphs available in Phantasm - ExplerHD").label("- Removed the mining functionality from Legendary Weapons, as they were never designed for that purpose - ExplerHD").label("- Removed the Direct Hit feature from Legendary Weapons and Seiketsu - ExplerHD").divider().header("Changes").label("= Refactored the Custom Mace system - ExplerHD").label("= Reworked the Damage Indicator system to use Runtime Particles - ExplerHD").label("= Changed Prism Boss Arena from fixed ground positions to locatable underwater structures - ExplerHD").label("= Updated the Soul of Nature boss fight to follow the new structure generation (underwater boss fight) - ExplerHD").label("= Adjusted the placement of the Crimson Overgrowth structure to make it more logical and visible - ExplerHD").label("= Increased Seiketsu damage by +4 - ExplerHD").label("= Slightly updated the visuals of The Bleeding Spire attack - ExplerHD").label("= Rebalanced the damage of all Legendary Weapons so they can compete with enchanted Epic Weapons - ExplerHD").label("= Made Soul of Nature, Punicea, and Auric Automaton have 500 HP, 3000 HP, and 1750 HP due to Recent Weapons changes. - ExplerHD").label("= Added support for Fire Aspect, Knockback, and Weakness on Legendary Weapons - ExplerHD").label("= Updated all Legendary Weapons so their attack patterns now loop continuously without an ending cooldown - ExplerHD").label('= Fixed a bug where upgrading Dash to Level 2 would display "Insufficient Experience Level" instead of "Maximum level of Dash is reached." - ExplerHD').divider().header("Addition").label("+ Added the `damage_number` and `damage_icons` particles - ExplerHD").label("+ Added the Better than Mending feature - ExplerHD").label("+ Added a Combat Dummy - ExplerHD").label("+ Added a Turtle Shell item to the Prismarine Boss Arena to make the boss fight in that arena easier - ExplerHD").label("+ Added Rusted Fortune Coin, which doubles ore drops, and the Item Magnet Ore. Both can be obtained from a 1% chance when mining any ore - Passive Type - ExplerHD").label("+ Added Condensed Sea Nature, providing much longer underwater breathing and slightly faster health regeneration while underwater - Passive Type - ExplerHD").label("+ Added Guidescreen - ExplerHD & ZeroMaster178").divider().label("Stay tuned for the next content update!").button("Back").show(player).then((r) => {
+  const form = new ActionFormData10().title(guideTitle("Changelogs")).header("v1.5.2").divider().header("Changes").label("= Added a cooldown between Legendary Weapon attacks (Solaris Verdant, Supercharged Copper Axe, Prism Weaver, Auric Photonizer, The Bleeding Spire, and Seiketsu) so attack patterns can no longer be spammed without a pause - ExplerHD").label("= Fixed player scoreboard initialization: all scores are now reset when a player spawns (including weapon attack scores), so no leftover scores remain from previous sessions - ExplerHD").divider().header("Addition").label("+ Upgraded several particle textures to use PBR (metalness/emissive/roughness) so they can glow and look smoother: circle_fade, circle_load, crosshair_warning, slash_effect_white, slash_effect_white_2, sonic_explosion_grayscaled, sparkle, and the Damage Indicator - ExplerHD").divider().header("v1.5.1").divider().header("Removal").label("- Removed the debug log spam that printed on every ore mined - ExplerHD").divider().header("Changes").label("= Rewrote the Dynamic Light System: no more flickering when switching items, lights are placed instantly, and they only spawn on air or liquid blocks so they won't break tall grass, flowers, or doors - ExplerHD").label("= Health Bar now uses the native on-screen display, so it no longer spams the chat and shows correctly on respawn - ExplerHD").label('= Fixed a crash ("setTitle of undefined") that occurred whenever a mob took damage - ExplerHD').label("= Overhauled the Guidescreen: fixed wrong weapon titles and a wrong drop source, cleaned up typos, and corrected outdated HP data - ExplerHD").label("= Fixed the Damage Indicator icons being mispositioned - ExplerHD").label("= Moved the Dash cooldown scoreboard to be initialized when a player joins - ExplerHD").divider().header("Addition").label("+ Added a Getting Started page to the Guidescreen with a recommended progression path, plus a welcome message on first join - ExplerHD").label("+ Added a crafting recipe to turn a Rusted Fortune Coin into 4 Gold Blocks - ExplerHD").divider().header("v1.5.0").divider().header("Removal").label("- Removed the Glyph System, but you can still use the glyphs available in Phantasm - ExplerHD").label("- Removed the mining functionality from Legendary Weapons, as they were never designed for that purpose - ExplerHD").label("- Removed the Direct Hit feature from Legendary Weapons and Seiketsu - ExplerHD").divider().header("Changes").label("= Refactored the Custom Mace system - ExplerHD").label("= Reworked the Damage Indicator system to use Runtime Particles - ExplerHD").label("= Changed Prism Boss Arena from fixed ground positions to locatable underwater structures - ExplerHD").label("= Updated the Soul of Nature boss fight to follow the new structure generation (underwater boss fight) - ExplerHD").label("= Adjusted the placement of the Crimson Overgrowth structure to make it more logical and visible - ExplerHD").label("= Increased Seiketsu damage by +4 - ExplerHD").label("= Slightly updated the visuals of The Bleeding Spire attack - ExplerHD").label("= Rebalanced the damage of all Legendary Weapons so they can compete with enchanted Epic Weapons - ExplerHD").label("= Made Soul of Nature, Punicea, and Auric Automaton have 500 HP, 3000 HP, and 1750 HP due to Recent Weapons changes. - ExplerHD").label("= Added support for Fire Aspect, Knockback, and Weakness on Legendary Weapons - ExplerHD").label("= Updated all Legendary Weapons so their attack patterns now loop continuously without an ending cooldown - ExplerHD").label('= Fixed a bug where upgrading Dash to Level 2 would display "Insufficient Experience Level" instead of "Maximum level of Dash is reached." - ExplerHD').divider().header("Addition").label("+ Added the `damage_number` and `damage_icons` particles - ExplerHD").label("+ Added the Better than Mending feature - ExplerHD").label("+ Added a Combat Dummy - ExplerHD").label("+ Added a Turtle Shell item to the Prismarine Boss Arena to make the boss fight in that arena easier - ExplerHD").label("+ Added Rusted Fortune Coin, which doubles ore drops, and the Item Magnet Ore. Both can be obtained from a 1% chance when mining any ore - Passive Type - ExplerHD").label("+ Added Condensed Sea Nature, providing much longer underwater breathing and slightly faster health regeneration while underwater - Passive Type - ExplerHD").label("+ Added Guidescreen - ExplerHD & ZeroMaster178").divider().label("Stay tuned for the next content update!").button("Back").show(player).then((r) => {
     if (r.selection == 0) mainGuideScreen(player);
   });
 }
 function developer(player) {
-  const form = new ActionFormData9().title("Developer Contact").header("Contact Us!").divider().label("ExplerHD\nGitHub : ExplHD\nDiscord : explerhd\nYoutube : ExplerHD (@ExplHD)\nMCPEDL : ExplerHD\nCurseforge : ExplerHD").label("ZeroMaster178\nInstagram : zeromaster_178\nMCPEDL : Zeromaster 178\nCurseforge : Zeromaster178\nTiktok : Zeromaster_178\nYoutube : zeromaster178\nDiscord : zeromaster178").divider().button("Back").show(player).then((r) => {
+  const form = new ActionFormData10().title(guideTitle("Developer Contact")).header("Contact Us!").divider().label("ExplerHD\nGitHub : ExplHD\nDiscord : explerhd\nYoutube : ExplerHD (@ExplHD)\nMCPEDL : ExplerHD\nCurseforge : ExplerHD").label("ZeroMaster178\nInstagram : zeromaster_178\nMCPEDL : Zeromaster 178\nCurseforge : Zeromaster178\nTiktok : Zeromaster_178\nYoutube : zeromaster178\nDiscord : zeromaster178").divider().button("Back").show(player).then((r) => {
     if (r.selection == 0) mainGuideScreen(player);
   });
 }
 
-// data/scripts/dynamicPropertyEdit.ts
+// data/scripts/ui/forms/dynamicProperties.ts
 import "@minecraft/server";
 import { CustomForm, ObservableNumber, ObservableBoolean, ObservableString } from "@minecraft/server-ui";
-var DYNAMIC_PROPERTY_IDS = ["ph:dash_level", "ph:health_level", "ph:plunge_unlock", "ph:guidebook_acquired"];
+var DYNAMIC_PROPERTY_IDS = ["ph:dash_level", "ph:health_level", "ph:plunge_unlock", "ph:guidebook_acquired", "ph:dash_control", "ph:skill_switch_control"];
 function getPropertyType(value) {
   if (typeof value === "boolean") return "boolean";
   if (typeof value === "number") return "number";
@@ -3198,7 +3449,48 @@ function openDynamicPropertyMenu(player) {
   });
 }
 
-// data/scripts/custom_components.ts
+// data/scripts/features/blocks/customComponents.ts
+var BOSS_SPAWN_MIN_DISTANCE = 4;
+var BOSS_SPAWN_MAX_DISTANCE = 12;
+var BOSS_SPAWN_HEAD_ROOM = 4;
+var BOSS_SPAWN_SEARCH_DEPTH = 12;
+function isGroundBlock(block) {
+  return !!block && !block.isAir && !block.isLiquid;
+}
+function findBossSpawnPoint(dimension, origin, player) {
+  const angles = 12;
+  for (let i = 0; i < angles; i++) {
+    const angle = i / angles * Math.PI * 2 + Math.random() * 0.5;
+    const distance = BOSS_SPAWN_MIN_DISTANCE + Math.random() * (BOSS_SPAWN_MAX_DISTANCE - BOSS_SPAWN_MIN_DISTANCE);
+    const x = Math.floor(origin.x + Math.cos(angle) * distance);
+    const z = Math.floor(origin.z + Math.sin(angle) * distance);
+    const startY = Math.floor(player.location.y);
+    for (let drop = 0; drop <= BOSS_SPAWN_SEARCH_DEPTH; drop++) {
+      const y = startY - drop;
+      const floor = dimension.getBlock({ x, y: y - 1, z });
+      if (!isGroundBlock(floor)) continue;
+      let headRoom = true;
+      for (let up = 0; up < BOSS_SPAWN_HEAD_ROOM; up++) {
+        const space = dimension.getBlock({ x, y: y + up, z });
+        if (!space || !space.isAir) {
+          headRoom = false;
+          break;
+        }
+      }
+      if (!headRoom) break;
+      return { x: x + 0.5, y, z: z + 0.5 };
+    }
+  }
+  return { x: origin.x, y: origin.y + 1.1, z: origin.z };
+}
+var COPPER_RING_COLOR = { red: 1, green: 0.63137, blue: 0, alpha: 1 };
+function coreRing(size, color) {
+  const map = new MolangVariableMap4();
+  map.setFloat("variable.size", size);
+  map.setColorRGBA("variable.rgba", color);
+  return map;
+}
+var copperRing = () => coreRing(1, COPPER_RING_COLOR);
 system12.beforeEvents.startup.subscribe((initEvent) => {
   initEvent.itemComponentRegistry.registerCustomComponent("ph:charge_passive", {
     onHitEntity(e) {
@@ -3219,7 +3511,7 @@ system12.beforeEvents.startup.subscribe((initEvent) => {
     onUse(e) {
       const player = e.source;
       player.startItemCooldown("charged_copper_axe", 120);
-      applyDurabilityDamage2(player, { damage: 36 });
+      applyDurabilityDamage(player, { damage: 36 });
       system12.run(() => {
         player.playAnimation("animation.charged_copper_axe.attack_3", player.location);
         system12.runTimeout(() => {
@@ -3261,7 +3553,7 @@ system12.beforeEvents.startup.subscribe((initEvent) => {
       const durabilityDamage = params.durability_damage ?? 0;
       const cooldownValue = params.cooldown_value ?? 20;
       const particleEffect = params.particle_effect ?? "minecraft:critical_hit_emitter";
-      applyDurabilityDamage2(source, { damage: durabilityDamage });
+      applyDurabilityDamage(source, { damage: durabilityDamage });
       switch (dashDirection) {
         case "impulse":
           source.applyImpulse({ x: source.getViewDirection().x * horizontalDashStrength, y: verticalDashStrength, z: source.getViewDirection().z * horizontalDashStrength });
@@ -3336,7 +3628,7 @@ system12.beforeEvents.startup.subscribe((initEvent) => {
       }
       if (upgrade_to != void 0) source.setDynamicProperty(passive_ability, upgrade_to);
       if (upgrade_step > 0) source.setDynamicProperty(passive_ability, property + upgrade_step);
-      source.sendMessage(`\xA7aUpgrade successful, feels the difference of the abilities`);
+      source.sendMessage(`\xA7aUpgrade successful, feel the difference`);
       source.dimension.playSound(upgrade_sound, source.location);
       source.dimension.spawnParticle(upgrade_particle, source.location);
       source.runCommand(`clear @s ${inventory.getItem(source.selectedSlotIndex).typeId} -1 1`);
@@ -3356,11 +3648,11 @@ system12.beforeEvents.startup.subscribe((initEvent) => {
       if (item?.hasTag("minecraft:is_shovel") && block.typeId.includes(dirtPathable)) {
         block.dimension.setBlockType(block.location, "minecraft:dirt_path");
         source.playSound("use.grass");
-        applyDurabilityDamage2(source);
+        applyDurabilityDamage(source);
       }
     },
     onMineBlock({ source, itemStack }) {
-      applyDurabilityDamage2(source);
+      applyDurabilityDamage(source);
     }
   });
   initEvent.itemComponentRegistry.registerCustomComponent("ph:custom_shooter", {
@@ -3396,21 +3688,21 @@ system12.beforeEvents.startup.subscribe((initEvent) => {
           return;
         }
         if (costType === "durability") {
-          applyDurabilityDamage2(player, { damage: altCostAmount });
+          applyDurabilityDamage(player, { damage: altCostAmount });
         } else {
           if (getScore(player, altCostType) < altCostAmount) return player.sendMessage("Insufficient Charges");
-          removeScore2(player, altCostType, altCostAmount);
-          applyDurabilityDamage2(player, { damage: altCostAmount });
+          removeScore(player, altCostType, altCostAmount);
+          applyDurabilityDamage(player, { damage: altCostAmount });
         }
         eventFunc();
         return;
       }
       if (costType === "durability") {
-        applyDurabilityDamage2(player, { damage: costAmount });
+        applyDurabilityDamage(player, { damage: costAmount });
       } else {
         if (getScore(player, costType) < costAmount) return player.sendMessage("Insufficient Charges");
-        removeScore2(player, costType, costAmount);
-        applyDurabilityDamage2(player, { damage: costAmount });
+        removeScore(player, costType, costAmount);
+        applyDurabilityDamage(player, { damage: costAmount });
       }
       if (cooldownCategory) player.startItemCooldown(cooldownCategory, cooldownValue);
       if (animation != void 0) player.playAnimation(animation);
@@ -3470,7 +3762,7 @@ system12.beforeEvents.startup.subscribe((initEvent) => {
           }, 2);
         }, 30);
       });
-      applyDurabilityDamage2(player, { damage: 50 });
+      applyDurabilityDamage(player, { damage: 50 });
     },
     onUseOn(e) {
       const player = e.source;
@@ -3542,7 +3834,7 @@ system12.beforeEvents.startup.subscribe((initEvent) => {
           }
           block.dimension.spawnParticle("ph:auric_stab_shot", { x: blockLoc.x, y: 0, z: blockLoc.z });
           block.dimension.spawnParticle("ph:auric_nuke_shot", { x: blockLoc.x, y: blockLoc.y + 1, z: blockLoc.z });
-          removeScore2(source, "auric_charge", 100);
+          removeScore(source, "auric_charge", 100);
           source.startItemCooldown("auric_communicator", 600);
           source.removeTag("AURIC_ORBITAL_NUKE");
         }, 30);
@@ -3559,7 +3851,7 @@ system12.beforeEvents.startup.subscribe((initEvent) => {
         }
         block.dimension.spawnParticle("ph:auric_stab_shot_refined", { x: blockLoc.x, y: 0, z: blockLoc.z });
         block.dimension.spawnParticle("ph:auric_stab_shot_line", { x: blockLoc.x, y: 0, z: blockLoc.z });
-        removeScore2(source, "auric_charge", 50);
+        removeScore(source, "auric_charge", 50);
         source.startItemCooldown("auric_communicator", 600);
         source.removeTag("AURIC_ORBITAL_LASER");
       }, 30);
@@ -3598,7 +3890,7 @@ system12.beforeEvents.startup.subscribe((initEvent) => {
         whereToFill,
         currentCharge + transferAmount
       );
-      applyDurabilityDamage2(source, { damage: transferAmount });
+      applyDurabilityDamage(source, { damage: transferAmount });
       source.sendMessage(
         `\xA7b+${transferAmount} Auric Charge`
       );
@@ -3613,7 +3905,7 @@ system12.beforeEvents.startup.subscribe((initEvent) => {
       source.dimension.playSound("item.spear.use", source.location);
       source.addTag("parried");
       source.inputPermissions.setPermissionCategory(2, false);
-      applyDurabilityDamage2(source, { damage: 1 });
+      applyDurabilityDamage(source, { damage: 1 });
       system12.runTimeout(() => {
         if (source?.hasTag("parried")) source.removeTag("parried");
         source.inputPermissions.setPermissionCategory(2, true);
@@ -3632,7 +3924,7 @@ system12.beforeEvents.startup.subscribe((initEvent) => {
       let bargaining_item_amount = block.getComponent("ph:boss_summon").customComponentParameters.params.bargaining_item_amount;
       const message = block.getComponent("ph:boss_summon").customComponentParameters.params.message;
       let transform_into_entity = block.getComponent("ph:boss_summon").customComponentParameters.params.transform_into_entity;
-      const mergedDataItem = new ItemStack5(bargaining_item, bargaining_item_amount);
+      const mergedDataItem = new ItemStack4(bargaining_item, bargaining_item_amount);
       const mainhand = player.getComponent("equippable").getEquipment("Mainhand");
       if (!bargaining_item_amount) bargaining_item_amount = 1;
       if (mainhand?.typeId === bargaining_item && mainhand?.amount >= bargaining_item_amount) {
@@ -3673,7 +3965,7 @@ system12.beforeEvents.startup.subscribe((initEvent) => {
       const southBlockState = block.south(2).permutation.getState("ph:activation_state");
       const westBlockState = block.west(2).permutation.getState("ph:activation_state");
       if (northBlockState == 1 && eastBlockState == 1 && southBlockState == 1 && westBlockState == 1) {
-        player.sendMessage("Successfully activating the core. Waiting for his approach");
+        player.sendMessage("Core activated. Waiting for his approach");
         block.dimension.setBlockType(block.north(2), "ph:core_battery");
         block.dimension.setBlockType(block.south(2), "ph:prismarine_battery");
         block.dimension.spawnParticle("ph:auric_beam", block.center());
@@ -3683,9 +3975,12 @@ system12.beforeEvents.startup.subscribe((initEvent) => {
         block.dimension.spawnParticle("ph:auric_beam_small", block.south(2).center());
         block.dimension.spawnParticle("ph:auric_beam_small", block.west(2).center());
         block.dimension.playSound("custom_sfx.boss_summoned", block.center());
+        const bossSpawnPoint = findBossSpawnPoint(block.dimension, block.center(), player);
         system12.runTimeout(() => {
-          block.dimension.spawnEntity("ph:copper_mechanical_array", block.above(1.1));
-          block.dimension.playSound("mob.zombie.woodbreak", block.center());
+          block.dimension.spawnEntity("ph:copper_mechanical_array", bossSpawnPoint);
+          block.dimension.playSound("mob.zombie.woodbreak", bossSpawnPoint);
+          block.dimension.spawnParticle("ph:auric_beam_small", bossSpawnPoint);
+          block.dimension.spawnParticle("ph:auric_light_flash", bossSpawnPoint);
         }, 100);
       }
       if (block.north(2).typeId != "minecraft:air" || block.east(2).typeId != "minecraft:air" || block.south(2).typeId != "minecraft:air" || block.west(2).typeId != "minecraft:air") return;
@@ -3696,40 +3991,32 @@ system12.beforeEvents.startup.subscribe((initEvent) => {
       if (block.west(2).typeId === "minecraft:air") block.dimension.setBlockType(block.west(2), "ph:auric_battery");
     },
     onTick({ block, dimension }) {
-      const northBlockState = block.north(2).permutation.getState("ph:activation_state");
-      const eastBlockState = block.east(2).permutation.getState("ph:activation_state");
-      const southBlockState = block.south(2).permutation.getState("ph:activation_state");
-      const westBlockState = block.west(2).permutation.getState("ph:activation_state");
-      let molangMap = new MolangVariableMap4();
-      molangMap.setFloat("variable.size", 1);
-      molangMap.setColorRGBA("variable.rgba", { red: 1, green: 0.63137, blue: 0, alpha: 1 });
-      let centerMap = new MolangVariableMap4();
-      centerMap.setFloat("variable.size", 3);
-      centerMap.setColorRGBA("variable.rgba", { red: 1, green: 0.63137, blue: 0, alpha: 1 });
-      let activatedCoreMap = new MolangVariableMap4();
-      activatedCoreMap.setFloat("variable.size", 1);
-      activatedCoreMap.setColorRGBA("variable.rgba", { red: 1, green: 1, blue: 1, alpha: 1 });
-      let activatedPrismarineMap = new MolangVariableMap4();
-      activatedPrismarineMap.setFloat("variable.size", 1);
-      activatedPrismarineMap.setColorRGBA("variable.rgba", { red: 0.352, green: 1, blue: 0.705, alpha: 1 });
-      if (northBlockState == 1) {
-        block.dimension.spawnParticle("ph:bounding_circle", block.north(2).center(), activatedCoreMap);
+      const north = block.north(2);
+      const east = block.east(2);
+      const south = block.south(2);
+      const west = block.west(2);
+      const northActive = north.permutation.getState("ph:activation_state") == 1;
+      const eastActive = east.permutation.getState("ph:activation_state") == 1;
+      const southActive = south.permutation.getState("ph:activation_state") == 1;
+      const westActive = west.permutation.getState("ph:activation_state") == 1;
+      if (northActive) {
+        dimension.spawnParticle("ph:bounding_circle", north.center(), coreRing(1, { red: 1, green: 1, blue: 1, alpha: 1 }));
       }
-      if (eastBlockState == 1) {
-        block.dimension.spawnParticle("ph:bounding_circle", block.east(2).center(), molangMap);
+      if (eastActive) {
+        dimension.spawnParticle("ph:bounding_circle", east.center(), copperRing());
       }
-      if (southBlockState == 1) {
-        block.dimension.spawnParticle("ph:bounding_circle", block.south(2).center(), activatedPrismarineMap);
+      if (southActive) {
+        dimension.spawnParticle("ph:bounding_circle", south.center(), coreRing(1, { red: 0.352, green: 1, blue: 0.705, alpha: 1 }));
       }
-      if (westBlockState == 1) {
-        block.dimension.spawnParticle("ph:bounding_circle", block.west(2).center(), molangMap);
+      if (westActive) {
+        dimension.spawnParticle("ph:bounding_circle", west.center(), copperRing());
       }
-      if (block.north(2).typeId != "minecraft:air" || block.east(2).typeId != "minecraft:air" || block.south(2).typeId != "minecraft:air" || block.west(2).typeId != "minecraft:air") return;
-      block.dimension.spawnParticle("ph:bounding_circle", block.center(), centerMap);
-      block.dimension.spawnParticle("ph:bounding_circle", block.north(2).center(), molangMap);
-      block.dimension.spawnParticle("ph:bounding_circle", block.east(2).center(), molangMap);
-      block.dimension.spawnParticle("ph:bounding_circle", block.south(2).center(), molangMap);
-      block.dimension.spawnParticle("ph:bounding_circle", block.west(2).center(), molangMap);
+      if (north.typeId != "minecraft:air" || east.typeId != "minecraft:air" || south.typeId != "minecraft:air" || west.typeId != "minecraft:air") return;
+      dimension.spawnParticle("ph:bounding_circle", block.center(), coreRing(3, { red: 1, green: 0.63137, blue: 0, alpha: 1 }));
+      dimension.spawnParticle("ph:bounding_circle", north.center(), copperRing());
+      dimension.spawnParticle("ph:bounding_circle", east.center(), copperRing());
+      dimension.spawnParticle("ph:bounding_circle", south.center(), copperRing());
+      dimension.spawnParticle("ph:bounding_circle", west.center(), copperRing());
     },
     onBreak({ block, dimension, brokenBlockPermutation }) {
       dimension.setBlockType(block.north(2), "minecraft:air");
@@ -3745,7 +4032,7 @@ system12.beforeEvents.startup.subscribe((initEvent) => {
       const itemCount = params.item_count ?? 1;
       const playerChargeObjective = params.player_charge_objective ?? "superchargd_copper_axe";
       const chargeMin = params.charge_min ?? 0;
-      const mergedDataItem = new ItemStack5(item, itemCount);
+      const mergedDataItem = new ItemStack4(item, itemCount);
       if (chargeType == "item") {
         if (player.getComponent("equippable")?.getEquipment("Mainhand")?.typeId != item) {
           player.sendMessage({
@@ -3774,7 +4061,7 @@ system12.beforeEvents.startup.subscribe((initEvent) => {
         }
         block.setPermutation(block.permutation.withState("ph:activation_state", 1));
         block.dimension.spawnEntity("minecraft:lightning_bolt", block.center());
-        removeScore2(player, "auric_charge", chargeMin);
+        removeScore(player, "auric_charge", chargeMin);
       }
     }
   });
@@ -3824,7 +4111,7 @@ system12.beforeEvents.startup.subscribe((initEvent) => {
       dimension.setBlockType(loc, "minecraft:air");
       if (dropId) {
         try {
-          dimension.spawnItem(new ItemStack5(dropId, 1), center);
+          dimension.spawnItem(new ItemStack4(dropId, 1), center);
         } catch {
         }
       }
@@ -3840,7 +4127,7 @@ system12.beforeEvents.startup.subscribe((initEvent) => {
       const maxBatteryStack = params.max_battery_stack || 4;
       const soundInput = params.sound_input;
       const soundPickup = params.sound_pickup;
-      const itemData = new ItemStack5(item);
+      const itemData = new ItemStack4(item);
       const batteryCount = block.permutation.getState("ph:battery_count");
       const batteryState = block.permutation.getState("ph:battery_state");
       const mainhand = player.getComponent("equippable").getEquipmentSlot("Mainhand");
@@ -3919,6 +4206,19 @@ system12.beforeEvents.startup.subscribe((initEvent) => {
     });
   });
   initEvent.customCommandRegistry.registerCommand({
+    name: "ph:setting",
+    description: "Opens the settings ui to configure your controls",
+    cheatsRequired: false,
+    permissionLevel: CommandPermissionLevel.Any
+  }, (origin) => {
+    const player = origin.sourceEntity;
+    if (player?.typeId !== "minecraft:player") return { status: CustomCommandStatus.Failure };
+    system12.run(() => {
+      openSettings(player);
+    });
+    return { status: CustomCommandStatus.Success };
+  });
+  initEvent.customCommandRegistry.registerCommand({
     name: "ph:unstuck",
     description: "Unstuck yourself when you cannot move.",
     cheatsRequired: true,
@@ -3941,13 +4241,13 @@ function clearDynamicProperty({ sourceEntity: player }) {
   return { status: CustomCommandStatus.Success };
 }
 
-// data/scripts/custom_mace/detection.ts
-import { world as world13, system as system13, EquipmentSlot as EquipmentSlot5, EntityDamageCause as EntityDamageCause4 } from "@minecraft/server";
+// data/scripts/features/mace/detection.ts
+import { world as world7, system as system13, EquipmentSlot as EquipmentSlot7, EntityDamageCause as EntityDamageCause4 } from "@minecraft/server";
 
-// data/scripts/custom_mace/manager.ts
-import { EntityEquippableComponent, EquipmentSlot as EquipmentSlot4 } from "@minecraft/server";
+// data/scripts/features/mace/manager.ts
+import { EntityEquippableComponent, EquipmentSlot as EquipmentSlot6 } from "@minecraft/server";
 
-// data/scripts/custom_mace/detection.ts
+// data/scripts/features/mace/detection.ts
 var CustomMaceItems = /* @__PURE__ */ new Set([
   "ph:cruxshaper"
 ]);
@@ -3956,13 +4256,14 @@ function isCustomMace(item) {
 }
 var playerFallData = /* @__PURE__ */ new Map();
 system13.runInterval(() => {
-  for (const player of world13.getAllPlayers()) {
-    const item = player.getComponent("minecraft:equippable")?.getEquipment(EquipmentSlot5.Mainhand);
-    const isMace = isCustomMace(item);
-    const blockAt = player?.dimension?.getBlock(player.location);
-    const isInWeb = blockAt?.typeId === "minecraft:web";
-    const isInvalid = player.isInWater || player.isClimbing || player.isGliding || player.isFlying || !!player.getEffect("minecraft:slow_falling") || !!player.getEffect("minecraft:levitation") || isInWeb;
-    if (isMace && !player.isOnGround && !isInvalid) {
+  for (const player of world7.getAllPlayers()) {
+    const item = player.getComponent("minecraft:equippable")?.getEquipment(EquipmentSlot7.Mainhand);
+    const isFallingWithMace = isCustomMace(item) && !player.isOnGround && !player.isInWater && !player.isClimbing && !player.isGliding && !player.isFlying && !player.getEffect("minecraft:slow_falling") && !player.getEffect("minecraft:levitation");
+    if (isFallingWithMace && player.dimension?.getBlock(player.location)?.typeId === "minecraft:web") {
+      playerFallData.delete(player.id);
+      continue;
+    }
+    if (isFallingWithMace) {
       const currentStoredY = playerFallData.get(player.id) || 0;
       if (player.location.y > currentStoredY) {
         playerFallData.set(player.id, player.location.y);
@@ -3975,145 +4276,3 @@ system13.runInterval(() => {
 
 // data/scripts/main.ts
 console.warn("\xA7a\xA7lPhantasm 1.5.2 Activated!");
-function addScore(target, objective, score) {
-  try {
-    world14.scoreboard.getObjective(objective).addScore(target, score);
-  } catch (e) {
-    target.runCommand(`scoreboard players add "${target.name}" ${objective} ${score}`);
-  }
-}
-function removeScore2(target, objective, score) {
-  try {
-    world14.scoreboard.getObjective(objective).addScore(target, -score);
-  } catch (e) {
-    target.runCommand(`scoreboard players remove "${target.name}" ${objective} ${score}`);
-  }
-}
-function setScore(target, objective, score) {
-  try {
-    world14.scoreboard.getObjective(objective).setScore(target, score);
-  } catch (e) {
-    target.runCommand(`scoreboard players set "${target.name}" ${objective} ${score}`);
-  }
-}
-function getScore(target, objective) {
-  try {
-    return world14.scoreboard.getObjective(objective).getScore(target) ?? 0;
-  } catch (error) {
-    return 0;
-  }
-}
-function applyDurabilityDamage2(source, options = {}) {
-  const {
-    damage = 1,
-    slot = source?.selectedSlotIndex,
-    ignoreUnbreaking = false,
-    breakSound = true
-  } = options;
-  const inventory = source?.getComponent("inventory")?.container;
-  if (!inventory) return;
-  const item = inventory.getItem(slot);
-  if (!item) return;
-  const durability = item.getComponent("durability");
-  if (!durability) return;
-  if (source.getGameMode && source.getGameMode() === "Creative") return;
-  if (!ignoreUnbreaking) {
-    const unbreaking = item?.getComponent("enchantable")?.getEnchantment("unbreaking")?.level ?? 0;
-    const chance = unbreaking * 21;
-    const roll = Math.floor(Math.random() * 101);
-    if (roll <= chance) return;
-  }
-  const newDamage = durability.damage + damage;
-  if (newDamage >= durability.maxDurability) {
-    inventory.setItem(slot, void 0);
-    if (breakSound && source.playSound) {
-      source.playSound("random.break");
-    }
-    return;
-  }
-  durability.damage = newDamage;
-  inventory.setItem(slot, item);
-}
-function detectMove2(entity, tickInterval = 1, callback) {
-  const startLocation = {
-    x: Math.floor(entity.location.x),
-    y: Math.floor(entity.location.y),
-    z: Math.floor(entity.location.z)
-  };
-  const interval = system14.runInterval(() => {
-    if (!entity?.isValid) {
-      system14.clearRun(interval);
-      return;
-    }
-    const currentLocation = {
-      x: Math.floor(entity.location.x),
-      y: Math.floor(entity.location.y),
-      z: Math.floor(entity.location.z)
-    };
-    if (currentLocation.x !== startLocation.x || currentLocation.y !== startLocation.y || currentLocation.z !== startLocation.z) {
-      callback(currentLocation, startLocation);
-      system14.clearRun(interval);
-    }
-  }, tickInterval);
-  return interval;
-}
-function runUntilMoved(entity, tickInterval = 1, callback) {
-  const startLocation = {
-    x: Math.floor(entity.location.x),
-    y: Math.floor(entity.location.y),
-    z: Math.floor(entity.location.z)
-  };
-  const interval = system14.runInterval(() => {
-    if (!entity?.isValid) {
-      system14.clearRun(interval);
-      return;
-    }
-    const currentLocation = {
-      x: Math.floor(entity.location.x),
-      y: Math.floor(entity.location.y),
-      z: Math.floor(entity.location.z)
-    };
-    callback(currentLocation, startLocation);
-    if (currentLocation.x !== startLocation.x || currentLocation.y !== startLocation.y || currentLocation.z !== startLocation.z) {
-      system14.clearRun(interval);
-    }
-  }, tickInterval);
-  return interval;
-}
-function getAccessoryItems(player) {
-  const items = [];
-  if (player.typeId !== "minecraft:player") return items;
-  const equippable = player.getComponent("minecraft:equippable");
-  const inventory = player.getComponent("minecraft:inventory")?.container;
-  const offhand = equippable?.getEquipment(EquipmentSlot6.Offhand);
-  if (offhand) items.push(offhand);
-  for (const slot of [6, 7, 8]) {
-    const item = inventory?.getItem(slot);
-    if (item) items.push(item);
-    if (!item) continue;
-    const processed = /* @__PURE__ */ new Set();
-    if (processed.has(item.typeId)) continue;
-    processed.add(item.typeId);
-  }
-  return items;
-}
-function unstuckPlayer(player) {
-  system14.run(() => {
-    player.runCommand("inputpermission set @s movement enabled");
-    player.runCommand("inputpermission set @s jump enabled");
-    player.runCommand("inputpermission set @s camera enabled");
-    player.removeTag("parried");
-    player.runCommand("camera @s clear");
-  });
-}
-export {
-  addScore,
-  applyDurabilityDamage2 as applyDurabilityDamage,
-  detectMove2 as detectMove,
-  getAccessoryItems,
-  getScore,
-  removeScore2 as removeScore,
-  runUntilMoved,
-  setScore,
-  unstuckPlayer
-};

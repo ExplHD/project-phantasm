@@ -4,7 +4,6 @@ item.ph:charged_copper_axe=Charged Copper Axe
 item.ph:spectric_bow=Spectric Bow
 item.ph:spectral_arrow=Spectral Arrow
 tile.ph:nature_soul_altar.name=Nature Soul Altar
-item.ph:weather_polarizer=Weather Polarizer
 item.ph:flow_channeler=Flow Channeler
 item.ph:soul_of_nature_treasure_bag=Soul of Nature Treasure Loot
 item.ph:prismatic_ingot=Prismatic Ingot
@@ -143,3 +142,112 @@ category.ph:usable_items=Usable Items
 category.ph:treasure_bags=Treasure Bags
 category.ph:admin_item=Operator Utilities
 category.ph:other_weapons=Other Weapon Types
+
+## ================================================================================
+## ITEM TOOLTIPS
+## Native Mojang item descriptions, migrated from data/scripts/core/constants.ts
+## (the addLore map that used to stamp lore onto items at runtime).
+## Multi-line values use \n. tile.<id>.tooltip is the key for items AND blocks,
+## matching vanilla (e.g. tile.shears.tooltip, tile.compass.tooltip).
+## ================================================================================
+
+## Items with a real description
+## Vanilla items (parry is Phantasm-wide, not a Phantasm drop, so no brand marker)
+tile.minecraft:wooden_sword.tooltip=§r§9+300ms Parry\n§r§aInteract to parry, damages 30 durability on success
+tile.minecraft:stone_sword.tooltip=§r§9+300ms Parry\n§r§aInteract to parry, damages 30 durability on success
+tile.minecraft:copper_sword.tooltip=§r§9+300ms Parry\n§r§aInteract to parry, damages 30 durability on success
+tile.minecraft:iron_sword.tooltip=§r§9+300ms Parry\n§r§aInteract to parry, damages 30 durability on success
+tile.minecraft:golden_sword.tooltip=§r§9+300ms Parry\n§r§aInteract to parry, damages 30 durability on success
+tile.minecraft:diamond_sword.tooltip=§r§9+300ms Parry\n§r§aInteract to parry, damages 30 durability on success
+tile.minecraft:netherite_sword.tooltip=§r§9+300ms Parry\n§r§aInteract to parry, damages 30 durability on success
+
+## Phantasm items
+tile.ph:solaris_verdant.tooltip=§r§7Interact to :\n §r§cUse Skill\n§r§7Sneak to :\n §r§cChange Skills\n§9Phantasm
+tile.ph:supercharged_copper_axe.tooltip=§r§7Interact to :\n §r§cUse Skill\n§r§7Sneak to :\n §r§cChange Skills\n§9Phantasm
+tile.ph:prism_weaver.tooltip=§r§7Interact to :\n §r§cUse Skill\n§r§7Sneak to :\n §r§cChange Skills\n§9Phantasm
+tile.ph:auric_photonizer.tooltip=§r§7Interact to :\n §r§cUse Skill\n§r§7Sneak to :\n §r§cChange Skills\n§9Phantasm
+tile.ph:charged_copper_axe.tooltip=§r§9Has Charge Passive\n§r§cKilling with this grants Auric Charges\n§r§aInteract to perform Lightning Slash\n§9Phantasm
+tile.ph:spectric_bow.tooltip=§r§7Support Spectral Arrow\n§r§aUse Spectral Arrow for Maximum Potential\n§9Phantasm
+tile.ph:time_polarizer.tooltip=§r§7Speeds you up or Slow anything around if sneaking when interacted\n§r§7Grants Permanent Speed boost when put into accessory slot\n§r§9Accessory Item (Offhand, Hotbar Slot with +)\n§9Phantasm
+tile.ph:flow_channeler.tooltip=§7Dash smoothly by interacting this item\n§9Enchantable\n§9Phantasm
+tile.ph:hell_charge.tooltip=§7Spam interact to boost you\n§9Enchantable\n§9Phantasm
+tile.ph:ocean_tide_helmet.tooltip=§r§9+4 Armor Toughness\n§9Phantasm
+tile.ph:ocean_tide_chestplate.tooltip=§r§9+4 Armor Toughness\n§9Phantasm
+tile.ph:ocean_tide_leggings.tooltip=§r§9+4 Armor Toughness\n§9Phantasm
+tile.ph:ocean_tide_boots.tooltip=§r§9+4 Armor Toughness\n§9Phantasm
+tile.ph:naturalist_helmet.tooltip=§r§9+4 Armor Toughness\n§9Phantasm
+tile.ph:naturalist_chestplate.tooltip=§r§9+4 Armor Toughness\n§9Phantasm
+tile.ph:naturalist_leggings.tooltip=§r§9+4 Armor Toughness\n§9Phantasm
+tile.ph:naturalist_boots.tooltip=§r§9+4 Armor Toughness\n§9Phantasm
+tile.ph:impulse_booster.tooltip=§7Dash absurdly fast by interacting this item\nBypass 70% of the knockback resistance\n§9Enchantable\n§9Phantasm
+tile.ph:auric_star.tooltip=§aUpgrade your passive dash ability to second phase\n§9Upgrade to : Passive Dash Ability\n§9Phantasm
+tile.ph:cruxshaper.tooltip=§r§aInteract to perform Plunge Attack\n§r§9Mace Variant\n§9Phantasm
+tile.ph:nature_staff.tooltip=§r§9A Quarter-Close ranged weapons\n §r§9Interact to shoot slow lasers\n§r§aSneaking will cast alternate attacks with longer cooldown.\n§9Phantasm
+tile.ph:weeping_repair.tooltip=§r§7Repairs everything in your inventory, to maximum durability INSTANTLY\n§r§7Repairs all items slowly when put into accessory slot\n§r§9Accessory Item (Offhand, Hotbar Slot with +)\n§r§9Experience Cost : 30 Experience Level\n§r§cCooldown : 10 Minutes\n§9Phantasm
+tile.ph:suspicious_mushroom.tooltip=§r§7Minor improvement to all stats for 10 minutes\n§9Phantasm
+tile.ph:the_crimson_watcher.tooltip=§r§725% Chance to summon laser when hitting entity / hurt by entity\n§r§9Accessory Item (Offhand, Hotbar Slot with +)\n§9Phantasm
+tile.ph:fire_bracelet.tooltip=§r§7An Alternative to Fire Aspect Enchantment, gives you short Fire Res too\n§r§9Accessory Item (Offhand, Hotbar Slot with +)\n§9Phantasm
+tile.ph:prismatic_sword.tooltip=§r§9+300ms Parry\n§r§9+1 Reach\n§r§cPiercing Attack\n§r§aInteract to parry, damages 30 durability on success\n§9Phantasm
+tile.ph:seiketsu.tooltip=§r§9+700ms Parry\n§r§cArea Attack\n§r§aInteract to parry, damages 1 durability on success\n§9Phantasm
+tile.ph:auric_proton.tooltip=§7Grants Auric Charge when hitting entity, being hurt, or periodically\n§r§9Accessory Item (Offhand, Hotbar Slot with +)\n§9Phantasm
+tile.ph:condensed_sea_nature.tooltip=§7Brings the gills, and the Nature Regeneration\n§r§9Accessory Item (Offhand, Hotbar Slot with +)\n§9Phantasm
+tile.ph:dummy_spawn_egg.tooltip=§r§7Use this to test your damage!\n§r§7Interact with this dummy to remove them\n§9Phantasm
+tile.ph:rust_coin.tooltip=§7Double the Fortune, Double the Problem!\n§r§9Accessory Item (Offhand, Hotbar Slot with +)\n§9Phantasm
+
+## Brand marker: the old script appended this to every other ph: item
+tile.ph:ancient_copper_core.tooltip=§9Phantasm
+tile.ph:astralite.tooltip=§9Phantasm
+tile.ph:astralite_astralium_ore.tooltip=§9Phantasm
+tile.ph:astralite_solarium_ore.tooltip=§9Phantasm
+tile.ph:astralith_alloy.tooltip=§9Phantasm
+tile.ph:astralium.tooltip=§9Phantasm
+tile.ph:astralium_ore.tooltip=§9Phantasm
+tile.ph:auric_battery.tooltip=§9Phantasm
+tile.ph:auric_battery_recharge_station.tooltip=§9Phantasm
+tile.ph:auric_charging_module.tooltip=§9Phantasm
+tile.ph:auric_communicator.tooltip=§9Phantasm
+tile.ph:auric_stock_battery.tooltip=§9Phantasm
+tile.ph:chiseled_astralite.tooltip=§9Phantasm
+tile.ph:condensed_crystall.tooltip=§9Phantasm
+tile.ph:construction_line_block.tooltip=§9Phantasm
+tile.ph:copper_mechanical_array_treasure_bag.tooltip=§9Phantasm
+tile.ph:core_battery.tooltip=§9Phantasm
+tile.ph:crystall_cluster.tooltip=§9Phantasm
+tile.ph:crystall_cluster_item.tooltip=§9Phantasm
+tile.ph:deepslate_astralium_ore.tooltip=§9Phantasm
+tile.ph:deepslate_solarium_ore.tooltip=§9Phantasm
+tile.ph:deepslate_xeonnite_ore.tooltip=§9Phantasm
+tile.ph:essence_of_crimson.tooltip=§9Phantasm
+tile.ph:golden_nether_fruit.tooltip=§9Phantasm
+tile.ph:guidebook.tooltip=§9Phantasm
+tile.ph:large_crystall_bud.tooltip=§9Phantasm
+tile.ph:large_crystall_bud_item.tooltip=§9Phantasm
+tile.ph:luminous_crystall.tooltip=§9Phantasm
+tile.ph:nature_soul_altar.tooltip=§9Phantasm
+tile.ph:peacemaker_oath.tooltip=§9Phantasm
+tile.ph:polished_astralite.tooltip=§9Phantasm
+tile.ph:prismarine_battery.tooltip=§9Phantasm
+tile.ph:prismatic_axe.tooltip=§9Phantasm
+tile.ph:prismatic_hoe.tooltip=§9Phantasm
+tile.ph:prismatic_ingot.tooltip=§9Phantasm
+tile.ph:prismatic_pickaxe.tooltip=§9Phantasm
+tile.ph:prismatic_shovel.tooltip=§9Phantasm
+tile.ph:prismatic_spear.tooltip=§9Phantasm
+tile.ph:punicea_crimson_eye_treasure_bag.tooltip=§9Phantasm
+tile.ph:raw_solarium.tooltip=§9Phantasm
+tile.ph:small_crystall_bud.tooltip=§9Phantasm
+tile.ph:small_crystall_bud_item.tooltip=§9Phantasm
+tile.ph:smooth_astralite.tooltip=§9Phantasm
+tile.ph:solarium_ingot.tooltip=§9Phantasm
+tile.ph:solarium_ore.tooltip=§9Phantasm
+tile.ph:soul_of_nature_treasure_bag.tooltip=§9Phantasm
+tile.ph:spectral_arrow.tooltip=§9Phantasm
+tile.ph:stardust.tooltip=§9Phantasm
+tile.ph:suspicious_crimson_eye.tooltip=§9Phantasm
+tile.ph:the_bleeding_spire.tooltip=§9Phantasm
+tile.ph:thunder_gale.tooltip=§9Phantasm
+tile.ph:wither_treasure_bag.tooltip=§9Phantasm
+tile.ph:xeonnite_block.tooltip=§9Phantasm
+tile.ph:xeonnite_cube.tooltip=§9Phantasm
+tile.ph:xeonnite_ore.tooltip=§9Phantasm
+tile.ph:xeonnite_shard.tooltip=§9Phantasm

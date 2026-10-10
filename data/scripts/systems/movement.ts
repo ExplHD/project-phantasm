@@ -12,10 +12,21 @@ import { applyDurabilityDamage } from '../core/items'
 // with an upward jump, so the player is airborne but not falling yet when Sneak lands.
 export function dashRuntime(player: Player, requireFalling: boolean = true): void {
     const scoreboard_dash = world.scoreboard.getObjective("dash_cd");
-    const equipmentTag = player?.getComponent("minecraft:equippable")?.getEquipment(EquipmentSlot.Mainhand)?.getTags()
-    if ( !scoreboard_dash || (scoreboard_dash?.getScore(player) ?? 0) > 0 || player.getDynamicProperty("ph:dash_unlock") == 0 || player.getDynamicProperty("ph:dash_level") == undefined || equipmentTag?.includes("minecraft:is_sword") || equipmentTag?.includes("minecraft:is_tool")) return;
-    if (player.getDynamicProperty("ph:dash_level") == 1) {
-        player.applyKnockback({ x: player.getViewDirection().x * 3, z: player.getViewDirection().z * 3 }, 0.2)
+    if (!scoreboard_dash || (scoreboard_dash.getScore(player) ?? 0) > 0) return;
+    if (player.getDynamicProperty("ph:dash_unlock") == 0) return;
+
+    // Read the level and the view direction once: this used to re-read both up to four
+    // times per dash, and it runs on every bound Jump/Sneak press.
+    const dashLevel = player.getDynamicProperty("ph:dash_level");
+    if (dashLevel == undefined || (dashLevel != 1 && dashLevel != 2)) return;
+
+    const equipmentTag = player?.getComponent("minecraft:equippable")?.getEquipment(EquipmentSlot.Mainhand)?.getTags();
+    if (equipmentTag?.includes("minecraft:is_sword") || equipmentTag?.includes("minecraft:is_tool")) return;
+
+    const view = player.getViewDirection();
+
+    if (dashLevel == 1) {
+        player.applyKnockback({ x: view.x * 3, z: view.z * 3 }, 0.2)
         setScore(player, 'dash_cd', 60);
         player.playSound("player.dash", {
             volume: 1
@@ -26,19 +37,19 @@ export function dashRuntime(player: Player, requireFalling: boolean = true): voi
                 stopExpression: "query.is_on_ground || query.is_gliding || query.is_in_water"
             });
         }
+        return;
     }
-    if (player.getDynamicProperty("ph:dash_level") == 2) {
-        player.applyKnockback({ x: player.getViewDirection().x * 5, z: player.getViewDirection().z * 5 }, 0.3)
-        setScore(player, 'dash_cd', 60);
-        player.playSound("mob.enderdragon.flap", {
-            volume: 0.75
+
+    player.applyKnockback({ x: view.x * 5, z: view.z * 5 }, 0.3)
+    setScore(player, 'dash_cd', 60);
+    player.playSound("mob.enderdragon.flap", {
+        volume: 0.75
+    });
+    player.dimension.spawnParticle("ph:copper_mech_explosion", player.location);
+    if (!player.isGliding) {
+        player.playAnimation("animation.player_extend.dash", {
+            stopExpression: "query.is_on_ground || query.is_gliding || query.is_in_water"
         });
-        player.dimension.spawnParticle("ph:copper_mech_explosion", player.location);
-        if (!player.isGliding) {
-            player.playAnimation("animation.player_extend.dash", {
-                stopExpression: "query.is_on_ground || query.is_gliding || query.is_in_water"
-            });
-        }
     }
 }
 
@@ -154,33 +165,33 @@ export function vanillaBlockInteractFix(player: Player, item: any, block: Block)
 }
 
 // Parry Function Runtime!
-export function parryRuntime(source: Player, itemStack: any): void {
-    const itemList = [
-        "minecraft:wooden_sword",
-        "minecraft:stone_sword",
-        "minecraft:copper_sword",
-        "minecraft:iron_sword",
-        "minecraft:golden_sword",
-        "minecraft:diamond_sword",
-        "minecraft:netherite_sword",
-        "ph:prismatic_sword"
-    ]
+// Fires on every item use, so the sword list is a set lookup instead of a fresh array
+// walked on each swing.
+const PARRY_ITEMS = new Set([
+    "minecraft:wooden_sword",
+    "minecraft:stone_sword",
+    "minecraft:copper_sword",
+    "minecraft:iron_sword",
+    "minecraft:golden_sword",
+    "minecraft:diamond_sword",
+    "minecraft:netherite_sword",
+    "ph:prismatic_sword"
+]);
 
-    for (const item of itemList) {
-        if (itemStack?.typeId == item && !source.hasTag("parried")) {
-            const durability = itemStack?.getComponent("minecraft:durability");
-            source.playAnimation("animation.player_extend.parry");
-            source.dimension.spawnParticle("ph:parry_prepare", source.location);
-            source.dimension.playSound("item.spear.use", source.location);
-            source.addTag("parried");
-            source.inputPermissions.setPermissionCategory(2, false);
-            applyDurabilityDamage(source, { damage: 1 });
-            system.runTimeout(() => {
-                if (source?.hasTag("parried")) source.removeTag("parried");
-                source.inputPermissions.setPermissionCategory(2, true);
-            }, 6) // 200ms
-        }
-    }
+export function parryRuntime(source: Player, itemStack: any): void {
+    if (!itemStack?.typeId || !PARRY_ITEMS.has(itemStack.typeId)) return;
+    if (source.hasTag("parried")) return;
+
+    source.playAnimation("animation.player_extend.parry");
+    source.dimension.spawnParticle("ph:parry_prepare", source.location);
+    source.dimension.playSound("item.spear.use", source.location);
+    source.addTag("parried");
+    source.inputPermissions.setPermissionCategory(2, false);
+    applyDurabilityDamage(source, { damage: 1 });
+    system.runTimeout(() => {
+        if (source?.hasTag("parried")) source.removeTag("parried");
+        source.inputPermissions.setPermissionCategory(2, true);
+    }, 6) // 200ms
 }
 
 // Better Mending Aplication
@@ -229,19 +240,28 @@ export function startBetterMending(source: Player, itemStack: any): void {
 // Java Saturation Regeneration
 export function javaSaturationRegen(player: Player): void {
     const health = player.getComponent("minecraft:health");
-    const hunger = player.getComponent("minecraft:player.hunger");
-    const saturation = player.getComponent("minecraft:player.saturation");
-    const maxHealth = player?.getComponent("minecraft:health")?.effectiveMax;
-    const playerHealthLevel = Number(player?.getDynamicProperty("ph:health_level"));
+    if (!health) return;
+
+    const playerHealthLevel = Number(player.getDynamicProperty("ph:health_level"));
 
     if (playerHealthLevel >= 1 && playerHealthLevel <= 3) {
         const maxAllowedHealth = 24 + (playerHealthLevel * 12);
-        if (maxHealth && maxHealth < maxAllowedHealth) {
-            player.runCommand(`effect @s health_boost infinite ${3 * playerHealthLevel} true`);
+        const maxHealth = health.effectiveMax;
+        if (maxHealth < maxAllowedHealth) {
+            // This runs every 6 ticks per player and runCommand is the most expensive call
+            // in the pack, so only re-apply when the boost is missing or at another level.
+            // Re-applying an identical "health_boost infinite N" is a no-op anyway.
+            const wantedAmplifier = 3 * playerHealthLevel;
+            const active = player.getEffect("health_boost");
+            if (!active || active.amplifier !== wantedAmplifier) {
+                player.runCommand(`effect @s health_boost infinite ${wantedAmplifier} true`);
+            }
         }
     }
 
-    if (!health || !hunger || !saturation) return;
+    const hunger = player.getComponent("minecraft:player.hunger");
+    const saturation = player.getComponent("minecraft:player.saturation");
+    if (!hunger || !saturation) return;
 
     // kondisi regen (kayak Java)
     if (

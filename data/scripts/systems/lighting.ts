@@ -46,10 +46,18 @@ interface LightingState {
     interval: number;
     lastLightBlock: Block | undefined;
     maxLight: number;
+    /** The single `light_<level>` tag this state added, so teardown only removes that one. */
+    tag: string;
 }
 
 const lightingStates = new Map<string, LightingState>();
 
+/**
+ * Sweeps a box around the player for leftover light blocks. This is only the fallback for
+ * light blocks this script lost track of (world reloaded while a light was placed), so it
+ * runs on death and leave. The frequent accessory-swap teardown clears the exact block it
+ * placed instead of paying 16 fill commands over ~296k block checks.
+ */
 function removeLightBlocks(player: Player): void {
     for (let i = 0; i <= 15; i++) {
         try {
@@ -57,6 +65,20 @@ function removeLightBlocks(player: Player): void {
         } catch (e) {
             // Ignore, e.g. chunk not loaded / command unavailable
         }
+    }
+}
+
+/** Clears the one light block this state placed, if it is still standing. */
+function clearPlacedLight(state: LightingState): void {
+    const block = state.lastLightBlock;
+    state.lastLightBlock = undefined;
+    if (!block) return;
+    try {
+        if (block.isValid && block.typeId.startsWith('minecraft:light_block')) {
+            block.setType('minecraft:air');
+        }
+    } catch (e) {
+        // Ignore, e.g. the chunk unloaded while the light was placed
     }
 }
 
@@ -77,7 +99,14 @@ export function clearPlayerLighting(player: Player): void {
         return;
     }
     const state = key !== undefined ? lightingStates.get(key) : undefined;
-    if (state && state.interval !== -1) {
+
+    // Without a tracked state the player never carried a light accessory, so the sweep
+    // below would be 16 commands over ~296k block checks to find nothing.
+    if (!state) {
+        return;
+    }
+
+    if (state.interval !== -1) {
         try {
             system.clearRun(state.interval);
         } catch (e) {
@@ -88,9 +117,8 @@ export function clearPlayerLighting(player: Player): void {
 
     if (!player?.isValid) return;
 
-    for (let i = 0; i <= 15; i++) {
-        safeRemoveTag(player, `light_${i}`);
-    }
+    safeRemoveTag(player, state.tag);
+    clearPlacedLight(state);
     removeLightBlocks(player);
 }
 
@@ -112,15 +140,15 @@ export function onDynamicLighting(player: Player): void {
     // Nothing changed -> keep the current lighting running (avoids flickering)
     if (existing && existing.maxLight === maxLight) return;
 
-    // Tear down the old state
-    if (existing && existing.interval !== -1) {
-        system.clearRun(existing.interval);
-    }
-    if (existing || maxLight !== -1) {
-        for (let i = 0; i <= 15; i++) {
-            player.removeTag(`light_${i}`);
+    // Tear down the old state. This runs on every accessory swap that changes the level, so
+    // it clears the one block it placed and the one tag it added instead of sweeping the
+    // whole box; the sweep stays in clearPlayerLighting as the reload fallback.
+    if (existing) {
+        if (existing.interval !== -1) {
+            system.clearRun(existing.interval);
         }
-        removeLightBlocks(player);
+        player.removeTag(existing.tag);
+        clearPlacedLight(existing);
     }
 
     if (maxLight === -1) {
@@ -128,12 +156,14 @@ export function onDynamicLighting(player: Player): void {
         return;
     }
 
-    player.addTag(`light_${maxLight}`);
+    const tag = `light_${maxLight}`;
+    player.addTag(tag);
 
     const state: LightingState = {
         interval: -1,
         lastLightBlock: undefined,
-        maxLight
+        maxLight,
+        tag
     };
     lightingStates.set(player.id, state);
 
@@ -152,9 +182,9 @@ export function onDynamicLighting(player: Player): void {
             // the previous light is then removed again once we step back out.
             if (!block.isAir && !block.isLiquid) return;
 
-            if (state.lastLightBlock?.typeId.startsWith('minecraft:light_block')) {
-                state.lastLightBlock.setType('minecraft:air');
-            }
+            // Clear the previous light first, but isolate that failure: a stale reference to
+            // an unloaded chunk must not stop the new light from being placed.
+            clearPlacedLight(state);
 
             block.setPermutation(
                 BlockPermutation.resolve('minecraft:light_block', {

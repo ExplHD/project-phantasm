@@ -63,6 +63,17 @@ function findBossSpawnPoint(dimension: any, origin: any, player: any): any {
     return { x: origin.x, y: origin.y + 1.1, z: origin.z };
 }
 
+const COPPER_RING_COLOR = { red: 1, green: 0.63137, blue: 0, alpha: 1 };
+
+function coreRing(size: number, color: { red: number; green: number; blue: number; alpha: number }): MolangVariableMap {
+    const map = new MolangVariableMap();
+    map.setFloat("variable.size", size);
+    map.setColorRGBA("variable.rgba", color);
+    return map;
+}
+
+const copperRing = (): MolangVariableMap => coreRing(1, COPPER_RING_COLOR);
+
 system.beforeEvents.startup.subscribe((initEvent: any) => {
     initEvent.itemComponentRegistry.registerCustomComponent("ph:charge_passive", {
         onHitEntity(e: any) {
@@ -645,42 +656,39 @@ system.beforeEvents.startup.subscribe((initEvent: any) => {
             if (block.west(2).typeId === "minecraft:air") block.dimension.setBlockType(block.west(2), "ph:auric_battery");
         },
         onTick({ block, dimension }: any) {
-            const northBlockState = block.north(2).permutation.getState("ph:activation_state");
-            const eastBlockState = block.east(2).permutation.getState("ph:activation_state");
-            const southBlockState = block.south(2).permutation.getState("ph:activation_state");
-            const westBlockState = block.west(2).permutation.getState("ph:activation_state");
+            // Runs every tick for every core in the world. Each block.north(2) style call
+            // builds a new Block, and each MolangVariableMap is pure overhead when the
+            // branch it belongs to is skipped, so resolve the four neighbours once and only
+            // build a map when a particle is actually spawned.
+            const north = block.north(2);
+            const east = block.east(2);
+            const south = block.south(2);
+            const west = block.west(2);
 
-            let molangMap = new MolangVariableMap();
-            molangMap.setFloat("variable.size", 1);
-            molangMap.setColorRGBA("variable.rgba", { red: 1, green: 0.63137, blue: 0, alpha: 1 });
-            let centerMap = new MolangVariableMap();
-            centerMap.setFloat("variable.size", 3);
-            centerMap.setColorRGBA("variable.rgba", { red: 1, green: 0.63137, blue: 0, alpha: 1 });
-            let activatedCoreMap = new MolangVariableMap();
-            activatedCoreMap.setFloat("variable.size", 1);
-            activatedCoreMap.setColorRGBA("variable.rgba", { red: 1, green: 1, blue: 1, alpha: 1 });
-            let activatedPrismarineMap = new MolangVariableMap();
-            activatedPrismarineMap.setFloat("variable.size", 1);
-            activatedPrismarineMap.setColorRGBA("variable.rgba", { red: 0.352, green: 1, blue: 0.705, alpha: 1 });
-            if (northBlockState == 1) {
-                block.dimension.spawnParticle("ph:bounding_circle", block.north(2).center(), activatedCoreMap);
+            const northActive = north.permutation.getState("ph:activation_state") == 1;
+            const eastActive = east.permutation.getState("ph:activation_state") == 1;
+            const southActive = south.permutation.getState("ph:activation_state") == 1;
+            const westActive = west.permutation.getState("ph:activation_state") == 1;
+
+            if (northActive) {
+                dimension.spawnParticle("ph:bounding_circle", north.center(), coreRing(1, { red: 1, green: 1, blue: 1, alpha: 1 }));
             }
-            if (eastBlockState == 1) {
-                block.dimension.spawnParticle("ph:bounding_circle", block.east(2).center(), molangMap);
+            if (eastActive) {
+                dimension.spawnParticle("ph:bounding_circle", east.center(), copperRing());
             }
-            if (southBlockState == 1) {
-                block.dimension.spawnParticle("ph:bounding_circle", block.south(2).center(), activatedPrismarineMap);
+            if (southActive) {
+                dimension.spawnParticle("ph:bounding_circle", south.center(), coreRing(1, { red: 0.352, green: 1, blue: 0.705, alpha: 1 }));
             }
-            if (westBlockState == 1) {
-                block.dimension.spawnParticle("ph:bounding_circle", block.west(2).center(), molangMap);
+            if (westActive) {
+                dimension.spawnParticle("ph:bounding_circle", west.center(), copperRing());
             }
 
-            if (block.north(2).typeId != "minecraft:air" || block.east(2).typeId != "minecraft:air" || block.south(2).typeId != "minecraft:air" || block.west(2).typeId != "minecraft:air") return;
-            block.dimension.spawnParticle("ph:bounding_circle", block.center(), centerMap);
-            block.dimension.spawnParticle("ph:bounding_circle", block.north(2).center(), molangMap);
-            block.dimension.spawnParticle("ph:bounding_circle", block.east(2).center(), molangMap);
-            block.dimension.spawnParticle("ph:bounding_circle", block.south(2).center(), molangMap);
-            block.dimension.spawnParticle("ph:bounding_circle", block.west(2).center(), molangMap);
+            if (north.typeId != "minecraft:air" || east.typeId != "minecraft:air" || south.typeId != "minecraft:air" || west.typeId != "minecraft:air") return;
+            dimension.spawnParticle("ph:bounding_circle", block.center(), coreRing(3, { red: 1, green: 0.63137, blue: 0, alpha: 1 }));
+            dimension.spawnParticle("ph:bounding_circle", north.center(), copperRing());
+            dimension.spawnParticle("ph:bounding_circle", east.center(), copperRing());
+            dimension.spawnParticle("ph:bounding_circle", south.center(), copperRing());
+            dimension.spawnParticle("ph:bounding_circle", west.center(), copperRing());
         },
         onBreak({ block, dimension, brokenBlockPermutation }: any) {
             dimension.setBlockType(block.north(2), "minecraft:air");
