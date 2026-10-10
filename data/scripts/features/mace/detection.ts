@@ -163,14 +163,27 @@ function handleWindBurst(attacker: Player, victim: Entity, vLoc: { x: number; y:
 // I wouldn't touch this code since these cancel the slam
 system.runInterval(() => {
     for (const player of world.getAllPlayers()) {
+        // This runs every tick for every player, so the cheap entity-state checks run first
+        // and the block query (the only expensive call here) only happens for a player who
+        // is actually falling with a mace. Same condition as before, just short-circuited.
         const item: ItemStack | undefined = player.getComponent("minecraft:equippable")?.getEquipment(EquipmentSlot.Mainhand);
-        const isMace: boolean = isCustomMace(item);
 
-        const blockAt = player?.dimension?.getBlock(player.location);
-        const isInWeb: boolean = blockAt?.typeId === "minecraft:web";
-        const isInvalid: boolean = player.isInWater || player.isClimbing || player.isGliding || player.isFlying || !!player.getEffect("minecraft:slow_falling") || !!player.getEffect("minecraft:levitation") || isInWeb;
+        const isFallingWithMace =
+            isCustomMace(item) &&
+            !player.isOnGround &&
+            !player.isInWater &&
+            !player.isClimbing &&
+            !player.isGliding &&
+            !player.isFlying &&
+            !player.getEffect("minecraft:slow_falling") &&
+            !player.getEffect("minecraft:levitation");
 
-        if (isMace && !player.isOnGround && !isInvalid) {
+        if (isFallingWithMace && player.dimension?.getBlock(player.location)?.typeId === "minecraft:web") {
+            playerFallData.delete(player.id);
+            continue;
+        }
+
+        if (isFallingWithMace) {
             const currentStoredY: number = playerFallData.get(player.id) || 0;
             if (player.location.y > currentStoredY) {
                 playerFallData.set(player.id, player.location.y);

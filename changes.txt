@@ -5,6 +5,8 @@ Phantasm 1.6.0 / 2.0.0 :
 # Removal :
 
 # Changes :
+= Item descriptions migrated from the addLore script to native Mojang tooltips (94 tile.<id>.tooltip keys in en_US.lang, multi-line via \n; addLore map and the runtime lore pass in the inventory handler deleted; removed dead item.ph:weather_polarizer name key - ph:time_polarizer is named by minecraft:display_name in its item file) - ExplerHD
+= Script performance pass (inventory change now 1 container scan instead of 3 + an O(n^2) merge, dynamic lighting clears its exact block instead of 16 fill commands per accessory swap, health_boost /effect no longer re-runs every 6 ticks when already correct, accessory/damage checks skip mobs, entity spawn family lookup uses a Map, combat dummy nametag only updates on change, core onTick no longer allocates Molang maps every tick) - ExplerHD
 = Dynamic Lighting now based on head location - ExplerHD
 = Fixed grasshopper animation IDs (graasshoper -> grasshopper, attack_1 -> attack) + renamed anim file to grasshopper.animation.json - zeromaster178
 = Fixed grasshopper geometry ID (geometry.graasshoper -> geometry.grasshopper) + renamed vara3.png -> var3.png - zeromaster178

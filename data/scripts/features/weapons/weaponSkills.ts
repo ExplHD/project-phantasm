@@ -2,12 +2,10 @@ import { addScore, setScore } from '../../core/scoreboard'
 import { CommandHandler, SkillHandler, applyCustomDamage } from './weaponHandler'
 import { MolangVariableMap, system, Player, Entity, EntityDamageCause } from '@minecraft/server';
 
-function getAxisDelta(a: { x: number; y: number; z: number }, b: { x: number; y: number; z: number }): { x: number; y: number; z: number } {
-    return {
-        x: b.x - a.x,
-        y: b.y - a.y,
-        z: b.z - a.z
-    };
+function setAxisDelta(map: MolangVariableMap, a: { x: number; y: number; z: number }, b: { x: number; y: number; z: number }): void {
+    map.setFloat("variable.x", b.x - a.x);
+    map.setFloat("variable.y", b.y - a.y);
+    map.setFloat("variable.z", b.z - a.z);
 }
 
 // Solaris Verdant (Animitta)
@@ -634,10 +632,8 @@ theBleedingSpireSkill.addSkill(2, {
             }
             const entityLoc = entity.location;
 
-            let pConfig = new MolangVariableMap();
-            pConfig.setFloat("variable.x", getAxisDelta(playerLoc, entityLoc).x);
-            pConfig.setFloat("variable.y", getAxisDelta(playerLoc, entityLoc).y);
-            pConfig.setFloat("variable.z", getAxisDelta(playerLoc, entityLoc).z);
+            const pConfig = new MolangVariableMap();
+            setAxisDelta(pConfig, playerLoc, entityLoc);
 
             source.dimension.spawnParticle("ph:entanglement_lead_particle", source.location, pConfig);
         }
@@ -693,10 +689,8 @@ theBleedingSpireSkill.addSkill(3, {
             }
             const entityLoc = entity.location;
 
-            let pConfig = new MolangVariableMap();
-            pConfig.setFloat("variable.x", getAxisDelta(playerLoc, entityLoc).x);
-            pConfig.setFloat("variable.y", getAxisDelta(playerLoc, entityLoc).y);
-            pConfig.setFloat("variable.z", getAxisDelta(playerLoc, entityLoc).z);
+            const pConfig = new MolangVariableMap();
+            setAxisDelta(pConfig, playerLoc, entityLoc);
 
             source.dimension.spawnParticle("ph:entanglement_lead_particle", source.location, pConfig);
         }

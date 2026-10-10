@@ -3,7 +3,6 @@ import { setScore, getScore, addScore } from '../core/scoreboard'
 import { applyDurabilityDamage } from '../core/items'
 import { getAccessoryItems } from '../core/player'
 import { weaponSkills } from '../features/weapons/weaponSkills'
-import * as Phantasm from '../core/constants'
 import { handleAccessory } from '../systems/accessories'
 import { loadScoreboards, onPlayerSpawn } from './loader'
 import { onDamageIndicator } from '../systems/damageIndicator'
@@ -17,20 +16,30 @@ import { weapons } from '../features/weapons/weapons'
 
 world.beforeEvents.entityHurt.subscribe((acc) => {
     const hurtEntity = acc.hurtEntity;
-    const damagingEntity = acc.damageSource.damagingEntity;
 
-    handleAccessory(hurtEntity, "onHurt", acc);
-    if (hurtEntity.typeId === "minecraft:player" && hurtEntity?.hasTag("parried")) {
+    // Accessories only exist on players, so every mob hurt event bails out here instead
+    // of running the equipment scan twice for a result that is always empty.
+    if (hurtEntity?.typeId !== "minecraft:player") return;
+
+    const damagingEntity = acc.damageSource.damagingEntity;
+    // One scan, reused by both the accessory hooks and the crimson laser check below.
+    const player = hurtEntity as Player;
+    const accessories = getAccessoryItems(player);
+
+    handleAccessory(player, "onHurt", acc, undefined, accessories);
+    if (hurtEntity.hasTag("parried")) {
         acc.cancel = true;
         system.run(() => {
             const mainItem = hurtEntity?.getComponent("equippable")?.getEquipment(EquipmentSlot.Mainhand);
+            const head = hurtEntity.getHeadLocation();
+            const view = hurtEntity.getViewDirection();
             hurtEntity.runCommand(`particle ph:parry_success ^^^0.5`);
             (hurtEntity as Player).dimension.spawnParticle(
                 "ph:parry_invert_flash",
                 {
-                    x: hurtEntity.getHeadLocation().x + hurtEntity.getViewDirection().x * 1,
-                    y: hurtEntity.getHeadLocation().y + hurtEntity.getViewDirection().y * 1,
-                    z: hurtEntity.getHeadLocation().z + hurtEntity.getViewDirection().z * 1
+                    x: head.x + view.x,
+                    y: head.y + view.y,
+                    z: head.z + view.z
                 }
             )
             hurtEntity.runCommand('camerashake add @s 1 0.1 positional');
@@ -43,7 +52,7 @@ world.beforeEvents.entityHurt.subscribe((acc) => {
             applyDurabilityDamage(hurtEntity, { damage: 30 });
         })
     }
-    if (getAccessoryItems(hurtEntity as Player).some(item => item.typeId === "ph:the_crimson_watcher") || hurtEntity?.getComponent("equippable")?.getEquipment(EquipmentSlot.Mainhand)?.typeId === "ph:the_bleeding_spire") {
+    if (accessories.some(item => item.typeId === "ph:the_crimson_watcher") || hurtEntity?.getComponent("equippable")?.getEquipment(EquipmentSlot.Mainhand)?.typeId === "ph:the_bleeding_spire") {
         if (damagingEntity?.typeId === "ph:crimson_laser") acc.cancel = true;
     }
 })
@@ -100,55 +109,36 @@ world.beforeEvents.entityHurt.subscribe(data => {
     data.damage -= finalDamage;
 });
 
+// Ore blocks have a 1% chance to drop a rust coin, checked before the prismarine rule.
 world.beforeEvents.playerBreakBlock.subscribe((e) => {
+    if (!e.block.typeId.includes("ore")) return;
+    if (Math.floor(Math.random() * 100) !== 1) return;
+    if (e.player.getGameMode() === "Creative") return;
+    system.run(() => {
+        e.dimension.spawnItem(new ItemStack("ph:rust_coin", 1), e.block.location);
+    })
+})
+
+// Prismarine drops a random shard stack when broken with a pickaxe and no Silk Touch.
+// The typeId is matched first so an ordinary block break never allocates the ItemStack
+// (the shard amount is rolled inside the branch, so it still varies per break).
+world.beforeEvents.playerBreakBlock.subscribe((e) => {
+    if (e.block.typeId !== "minecraft:prismarine") return;
+
     const player = e.player;
     const itemStack = e.itemStack;
     const block = e.block;
     const dimension = e.dimension;
 
-    let blockAndItems = [
-        {
-            block: "minecraft:prismarine",
-            item: new ItemStack("minecraft:prismarine_shard", Math.floor(Math.random() * (7 - 4) + 4)),
-            item_tag: "minecraft:is_pickaxe",
-            tool: undefined
-        }
-    ]
+    if (player.getGameMode() === "Creative") return;
+    if (itemStack?.getComponent("enchantable")?.getEnchantment("silk_touch")) return;
+    if (!itemStack?.getTags().includes("minecraft:is_pickaxe")) return;
 
-    if (block.typeId.includes("ore")) {
-		const randomChance = Math.floor(Math.random() * 100);
-        if (player.getGameMode() === "Creative") return;
-        if (randomChance != 1) return;
-        system.run(() => {
-            dimension.spawnItem(new ItemStack("ph:rust_coin", 1), block.location);
-        })
-    }
-
-    for (const splittedData of blockAndItems) {
-        if (block.typeId === splittedData.block) {
-            const tags = itemStack?.getTags();
-            const enchantment = itemStack?.getComponent("enchantable")?.getEnchantment("silk_touch");
-            const gameMode = player.getGameMode();
-            if (gameMode == "Creative") return;
-            if (enchantment) return;
-            if (!enchantment && tags != undefined && splittedData.item_tag && tags.includes(splittedData.item_tag)) {
-                e.cancel = true;
-                system.run(() => {
-                    dimension.setBlockType(block.location, "minecraft:air");
-                    dimension.spawnItem(splittedData.item, block.location);
-                })
-            } else {
-                if (!splittedData.tool) {
-                    return;
-                }
-                if (itemStack?.typeId == splittedData.tool) {
-                    system.run(() => {
-                        dimension.spawnItem(splittedData.item, block.location);
-                    })
-                }
-            }
-        }
-    }
+    e.cancel = true;
+    system.run(() => {
+        dimension.setBlockType(block.location, "minecraft:air");
+        dimension.spawnItem(new ItemStack("minecraft:prismarine_shard", Math.floor(Math.random() * 3 + 4)), block.location);
+    })
 })
 
 world.beforeEvents.playerInteractWithBlock.subscribe((event) => {
@@ -165,6 +155,16 @@ const crystallDrops: Record<string, string> = {
     "ph:large_crystall_bud": "ph:large_crystall_bud_item",
     "ph:crystall_cluster": "ph:crystall_cluster_item"
 };
+
+const crystallDropIds = new Set(Object.keys(crystallDrops));
+
+// The six face neighbours, hoisted out of the handlers so the safety-net sweep does not
+// rebuild the array for every player on every pass.
+const faceOffsets = [
+    { x: 0, y: 1, z: 0 }, { x: 0, y: -1, z: 0 },
+    { x: 0, y: 0, z: 1 }, { x: 0, y: 0, z: -1 },
+    { x: 1, y: 0, z: 0 }, { x: -1, y: 0, z: 0 }
+];
 
 function getCrystallSupport(block: any) {
     let face: string;
@@ -188,8 +188,8 @@ function getCrystallSupport(block: any) {
 function popCrystallIfFloating(block: any, drop = true): boolean {
     if (!block?.isValid) return false;
     const typeId: string = block.typeId;
+    if (!crystallDropIds.has(typeId)) return false;
     const dropId: string | undefined = crystallDrops[typeId];
-    if (!dropId) return false;
     const support = getCrystallSupport(block);
     if (!support) return false;
     if (!support.isAir && !support.isLiquid) return false;
@@ -219,12 +219,7 @@ world.afterEvents.playerBreakBlock.subscribe((e) => {
         drop = e.player?.getGameMode?.() !== "Creative";
     } catch { }
     system.run(() => {
-        const offsets = [
-            { x: 0, y: 1, z: 0 }, { x: 0, y: -1, z: 0 },
-            { x: 0, y: 0, z: 1 }, { x: 0, y: 0, z: -1 },
-            { x: 1, y: 0, z: 0 }, { x: -1, y: 0, z: 0 }
-        ];
-        for (const off of offsets) {
+        for (const off of faceOffsets) {
             try {
                 const neighbor = dimension.getBlock({ x: loc.x + off.x, y: loc.y + off.y, z: loc.z + off.z });
                 if (neighbor) popCrystallIfFloating(neighbor, drop);
@@ -245,8 +240,54 @@ world.afterEvents.entityHitEntity.subscribe((acc) => {
 world.afterEvents.entityHurt.subscribe(onDamageIndicator)
 world.afterEvents.entityHurt.subscribe(onDummyHurt)
 
-world.afterEvents.playerInventoryItemChange.subscribe(({ player }) => {
+// One subscription for the two things an inventory change triggers (dynamic lighting and
+// the health bar). The stack merge used to sit here too, alongside a lore pass that
+// re-applied addLore to every item on every pickup; descriptions now come from the native
+// tile.<id>.tooltip keys in packs/RP/texts/en_US.lang, so only the merge is left.
+world.afterEvents.playerInventoryItemChange.subscribe(({ player, itemStack, beforeItemStack }) => {
     onDynamicLighting(player);
+
+    const container = player.getComponent("inventory")?.container;
+    if (container) {
+        const filled: { slot: number; item: any }[] = [];
+
+        for (let i = 0; i < container.size; i++) {
+            const item = container.getItem(i);
+            if (!item) continue;
+
+            filled.push({ slot: i, item });
+        }
+
+        // Merge partial stacks into earlier ones. Every full stack stays in the list as a
+        // source, only a full target is skipped.
+        for (let a = 0; a < filled.length; a++) {
+            const slotA = filled[a];
+            const itemA = slotA.item;
+            if (itemA.amount >= itemA.maxAmount) continue;
+
+            for (let b = a + 1; b < filled.length; b++) {
+                const slotB = filled[b];
+                const itemB = slotB.item;
+                if (!itemA.isStackableWith(itemB)) continue;
+
+                const spaceLeft = itemA.maxAmount - itemA.amount;
+                if (spaceLeft <= 0) break;
+
+                const moveAmount = Math.min(spaceLeft, itemB.amount);
+                itemA.amount += moveAmount;
+                container.setItem(slotA.slot, itemA);
+
+                if (moveAmount >= itemB.amount) {
+                    container.setItem(slotB.slot, undefined);
+                } else {
+                    itemB.amount -= moveAmount;
+                    container.setItem(slotB.slot, itemB);
+                }
+            }
+        }
+    }
+
+    healthBarRuntime(player, "inventoryItemChanged", beforeItemStack, itemStack);
 })
 
 world.afterEvents.worldLoad.subscribe(() => {
@@ -310,59 +351,9 @@ world.afterEvents.entityDie.subscribe(({ damageSource, deadEntity }) => {
     }
 })
 
-world.afterEvents.playerInventoryItemChange.subscribe(({ player }) => {
-    const container = player.getComponent("inventory")?.container;
-    if (!container) return;
-
-    for (let i = 0; i < container.size; i++) {
-        const item = container.getItem(i);
-        if (!item) continue;
-        const expectedLore =
-            Phantasm.addLore.get(item.typeId) ??
-            (item.typeId.startsWith("ph:") ? ["§9Phantasm"] : undefined);
-        if (!expectedLore) continue;
-        const currentLore = item.getLore() ?? [];
-        const isSame =
-            currentLore.length === expectedLore.length &&
-            currentLore.every((line, index) => line === expectedLore[index]);
-        if (isSame) continue;
-        item.setLore(expectedLore);
-        container.setItem(i, item);
-    }
-
-    for (let i = 0; i < container.size; i++) {
-        const itemA = container.getItem(i);
-        if (!itemA || itemA.amount >= itemA.maxAmount) continue;
-
-        for (let j = i + 1; j < container.size; j++) {
-            const itemB = container.getItem(j);
-            if (!itemB) continue;
-            if (!itemA.isStackableWith(itemB)) continue;
-
-            const spaceLeft = itemA.maxAmount - itemA.amount;
-            if (spaceLeft <= 0) break;
-
-            const moveAmount = Math.min(spaceLeft, itemB.amount);
-            itemA.amount += moveAmount;
-            container.setItem(i, itemA);
-
-            if (moveAmount >= itemB.amount) {
-                container.setItem(j, undefined);
-            } else {
-                itemB.amount -= moveAmount;
-                container.setItem(j, itemB);
-            }
-        }
-    }
-});
-
 world.afterEvents.entityHealthChanged.subscribe(({ entity }) => {
     if (!entity.isValid) return;
     healthBarRuntime(entity as Player, "healthChanged");
-})
-
-world.afterEvents.playerInventoryItemChange.subscribe(({ player, itemStack, beforeItemStack }) => {
-    healthBarRuntime(player, "inventoryItemChanged", beforeItemStack, itemStack);
 })
 
 world.afterEvents.playerDimensionChange.subscribe(({ player }) => {
@@ -373,39 +364,47 @@ world.afterEvents.playerGameModeChange.subscribe(({ player, toGameMode }) => {
     healthBarRuntime(player, "gamemodeChanged");
 })
 
+// Family -> speed for the "animated_tp" entity families, looked up instead of scanning the
+// config list (with an array allocation per family) on every single entity spawn.
+const animatedTpSpeeds = new Map<string, number>(
+    specifiedFamilityAndSpeed.map(data => [data.type_family, data.speed])
+);
+
 world.afterEvents.entitySpawn.subscribe(({ entity, cause }) => {
     if (cause != "Spawned") return;
     if (!entity.isValid) return;
-    let RUN_INTERVAL_ANIMATED_TP: number | undefined;
+
     const family = entity?.getComponent("minecraft:type_family")?.getTypeFamilies();
     if (!family) return;
-    const matchedFamily = specifiedFamilityAndSpeed.find(data =>
-        family.includes(data.type_family)
-    );
 
-    if (entity?.isValid && matchedFamily) {
-        if (RUN_INTERVAL_ANIMATED_TP === undefined) {
-            const headLoc = entity?.getViewDirection();
-            const dx = headLoc.x;
-            const dy = headLoc.y;
-            const dz = headLoc.z;
-
-            RUN_INTERVAL_ANIMATED_TP = system.runInterval(() => {
-                if (!entity?.isValid) {
-                    system.clearRun(RUN_INTERVAL_ANIMATED_TP!);
-                    return;
-                }
-
-                const SPEED = matchedFamily.speed;
-
-                entity?.teleport({
-                    x: entity.location.x + dx * SPEED,
-                    y: entity.location.y + dy * SPEED,
-                    z: entity.location.z + dz * SPEED
-                });
-            }, 1);
+    let speed: number | undefined;
+    for (const typeFamily of family) {
+        const matched = animatedTpSpeeds.get(typeFamily);
+        if (matched !== undefined) {
+            speed = matched;
+            break;
         }
     }
+    if (speed === undefined) return;
+
+    // Direction is sampled once, so the entity keeps drifting along it.
+    const dir = entity.getViewDirection();
+    const dx = dir.x;
+    const dy = dir.y;
+    const dz = dir.z;
+
+    const interval = system.runInterval(() => {
+        if (!entity?.isValid) {
+            system.clearRun(interval);
+            return;
+        }
+
+        entity?.teleport({
+            x: entity.location.x + dx * speed,
+            y: entity.location.y + dy * speed,
+            z: entity.location.z + dz * speed
+        });
+    }, 1);
 })
 
 world.beforeEvents.playerLeave.subscribe(({ player }) => {
@@ -441,7 +440,7 @@ system.runInterval(() => {
                         } catch {
                             continue;
                         }
-                        if (block && block.typeId in crystallDrops) {
+                        if (block && crystallDropIds.has(block.typeId)) {
                             popCrystallIfFloating(block, true);
                         }
                     }

@@ -25,7 +25,7 @@ Minecraft Bedrock addon (Regolith project). Behavior pack `packs/BP`, resource p
 
 ## Conventions
 
-- All custom ids use `ph:` prefix. Item lore/tiers live in `data/scripts/phantasmConstants.ts` (`addLore`, `LEGENDARY_TIER`); scoreboard objectives are registered in `data/scripts/loader.ts` — add new ones there.
+- All custom ids use `ph:` prefix. Item descriptions are native lang keys, not script: `tile.<id>.tooltip=<line>\n<line>` in `packs/RP/texts/en_US.lang` (the `tile.` prefix is correct for items *and* blocks, matching vanilla). Comment lines in that file start with `##`. Legacy tiers live in `data/scripts/core/constants.ts` (`LEGENDARY_TIER`); scoreboard objectives are registered in `data/scripts/events/loader.ts` — add new ones there.
 - Log changes in `changes.txt` with `< - / = / + > <Removal/Changes/Addition> - <Name>` under `# Removal` / `# Changes` / `# Addition` per version.
 - `.vscode/settings.json` pins Rockide pack paths (`./packs/BP`, `./packs/RP`) and empty `json.schemas` — leave both alone or JSON/Molang autocomplete breaks.
 
