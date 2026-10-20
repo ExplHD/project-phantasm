@@ -7,6 +7,7 @@ import { handleAccessory } from '../systems/accessories'
 import { loadScoreboards, onPlayerSpawn } from './loader'
 import { onDamageIndicator } from '../systems/damageIndicator'
 import { onDummyHurt } from '../systems/combatDummy'
+import { onTitanCoreHurt, onTitanCoreDie } from '../features/titan_core/manager'
 import { clearPlayerLighting, onDynamicLighting } from '../systems/lighting'
 import { windPlungeRuntime, vanillaBlockInteractFix, parryRuntime, startBetterMending, javaSaturationRegen, healthBarRuntime, specifiedFamilityAndSpeed } from '../systems/movement'
 import { onControlButtonInput, onControlSwingInput, clearControlState } from '../systems/controls'
@@ -239,6 +240,7 @@ world.afterEvents.entityHitEntity.subscribe((acc) => {
 
 world.afterEvents.entityHurt.subscribe(onDamageIndicator)
 world.afterEvents.entityHurt.subscribe(onDummyHurt)
+world.afterEvents.entityHurt.subscribe(onTitanCoreHurt)
 
 // One subscription for the two things an inventory change triggers (dynamic lighting and
 // the health bar). The stack merge used to sit here too, alongside a lore pass that
@@ -341,6 +343,9 @@ world.afterEvents.entityDie.subscribe(({ damageSource, deadEntity }) => {
 		} catch (e) {
 			// Ignore cleanup errors for invalid entities
 		}
+	}
+	if (deadEntity?.typeId === "ph:titan_core") {
+		onTitanCoreDie(deadEntity);
 	}
 	if (!killer?.isValid) return;
     const mainhand = killer?.getComponent("equippable")?.getEquipment(EquipmentSlot.Mainhand);

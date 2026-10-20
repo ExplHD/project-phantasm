@@ -1,12 +1,10 @@
 {
-	// Guidebook router: renders guide forms inside a book shell.
-	// Guide screens opt in by suffixing their ActionForm title with the
-	// invisible marker defined in data/scripts/guidescreen/guidebook_title.ts
-	// (currently "§r§0§7" — reset + two color codes, renders as nothing).
+	// Form router: renders custom shells based on invisible title markers.
+	// Guidebook: title ends with "§r§0§7" (see guidebook_title.ts).
 	// Every other server form keeps the vanilla long_form below (fallback).
 	"namespace": "server_form",
 
-	// Hide the vanilla dialog only when the guidebook marker is present.
+	// Hide the vanilla dialog only when a custom marker is present.
 	"long_form": {
 		"modifications": [
 			{
@@ -27,8 +25,8 @@
 	},
 
 	// Custom factory product for action forms. Holds #title_text so the
-	// gated book below can test the marker (bedrock.wiki server-form recipe).
-	"ph_book_long_form_panel": {
+	// gated shells below can test their markers (bedrock.wiki server-form recipe).
+	"ph_custom_long_form_panel": {
 		"type": "panel",
 		"bindings": [
 			{
@@ -41,7 +39,7 @@
 					"bindings": [
 						{
 							"binding_type": "view",
-							"source_control_name": "ph_book_long_form_panel",
+							"source_control_name": "ph_custom_long_form_panel",
 							"source_property_name": "(not ((#title_text - '§r§0§7') = #title_text))",
 							"target_property_name": "#visible"
 						}
@@ -58,12 +56,12 @@
 				"operation": "insert_back",
 				"value": [
 					{
-						"ph_book_factory": {
+						"ph_custom_factory": {
 							"type": "panel",
 							"factory": {
 								"name": "server_form_factory",
 								"control_ids": {
-									"long_form": "@server_form.ph_book_long_form_panel"
+									"long_form": "@server_form.ph_custom_long_form_panel"
 								}
 							}
 						}

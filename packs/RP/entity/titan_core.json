@@ -1,0 +1,39 @@
+{
+    "format_version": "1.21.0",
+    "minecraft:client_entity": {
+        "description": {
+            "identifier": "ph:titan_core",
+            "materials": {
+                "default": "entity_alphatest"
+            },
+            "geometry": {
+                "default": "geometry.titan_core"
+            },
+            "textures": {
+                "default": "textures/entity/titan_core"
+            },
+            "animations": {
+                "hover": "animation.titan_core.hover",
+                "rings": "animation.titan_core.rings",
+                "overload": "animation.titan_core.overload"
+            },
+            "scripts": {
+                "animate": [
+                    "hover",
+                    "rings",
+                    {
+                        "overload": "query.property('ph:shielded')"
+                    }
+                ],
+                "should_update_effects_offscreen": "1.0"
+            },
+            "render_controllers": [
+                "controller.render.default"
+            ],
+            "spawn_egg": {
+                "base_color": "#555B63",
+                "overlay_color": "#F3A017"
+            }
+        }
+    }
+}
