@@ -8,7 +8,10 @@
             }
         },
         "components": {
-            "minecraft:geometry": "minecraft:geometry.full_block",
+            "minecraft:geometry": {
+                "identifier": "geometry.custom_translucent",
+                "culling": "ph:culling.condensed_crystall"
+            },
             "minecraft:material_instances": {
                 "*": {
                     "texture": "ph_condensed_crystall",
@@ -16,8 +19,8 @@
                 }
             },
             "minecraft:destruction_particles": {
-              "texture": "ph_condensed_crystall",
-              "tint_method": "none"
+                "texture": "amethyst_block",
+                "tint_method": "none"
             },
             "minecraft:map_color": "#A78BDB",
             "minecraft:destructible_by_explosion": {

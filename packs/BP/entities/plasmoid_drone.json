@@ -8,7 +8,14 @@
             "is_experimental": false,
             "spawn_category": "monster"
         },
-        "component_groups": {},
+        "component_groups": {
+            "ph:core_guard": {
+                "minecraft:home": {
+                    "restriction_radius": 16,
+                    "restriction_type": "all_movement"
+                }
+            }
+        },
         "components": {
             "minecraft:health": {
                 "value": 16,
@@ -126,6 +133,14 @@
                 ]
             }
         },
-        "events": {}
+        "events": {
+            "ph:core_minion": {
+                "add": {
+                    "component_groups": [
+                        "ph:core_guard"
+                    ]
+                }
+            }
+        }
     }
 }

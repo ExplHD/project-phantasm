@@ -9,6 +9,12 @@
             "spawn_category": "monster"
         },
         "component_groups": {
+            "ph:core_guard": {
+                "minecraft:home": {
+                    "restriction_radius": 16,
+                    "restriction_type": "all_movement"
+                }
+            },
             "rupture:sensor": {
                 "minecraft:target_nearby_sensor": {
                     "inside_range": 4,
@@ -152,6 +158,13 @@
             }
         },
         "events": {
+            "ph:core_minion": {
+                "add": {
+                    "component_groups": [
+                        "ph:core_guard"
+                    ]
+                }
+            },
             "minecraft:entity_spawned": {
                 "add": {
                     "component_groups": [

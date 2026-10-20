@@ -1,0 +1,133 @@
+{
+    "format_version": "1.21.50",
+    "minecraft:entity": {
+        "description": {
+            "identifier": "ph:titan_core",
+            "is_spawnable": true,
+            "is_summonable": true,
+            "is_experimental": false,
+            "properties": {
+                "ph:shielded": {
+                    "type": "bool",
+                    "client_sync": true,
+                    "default": false
+                }
+            }
+        },
+        "component_groups": {
+            "ph:shield_up": {
+                "minecraft:damage_sensor": {
+                    "triggers": [
+                        {
+                            "cause": "all",
+                            "deals_damage": "no"
+                        }
+                    ]
+                }
+            }
+        },
+        "components": {
+            "minecraft:health": {
+                "value": 600,
+                "max": 600
+            },
+            "minecraft:collision_box": {
+                "width": 1.4,
+                "height": 2.4
+            },
+            "minecraft:type_family": {
+                "family": [
+                    "titan_core",
+                    "titan_ridge"
+                ]
+            },
+            "minecraft:boss": {
+                "hud_range": 60,
+                "name": "Titan Core"
+            },
+            "minecraft:physics": {
+                "has_collision": false,
+                "has_gravity": false
+            },
+            "minecraft:movement": {
+                "value": 0
+            },
+            "minecraft:knockback_resistance": {
+                "value": 100
+            },
+            "minecraft:fire_immune": {},
+            "minecraft:pushable": {
+                "is_pushable": false,
+                "is_pushable_by_piston": false
+            },
+            "minecraft:damage_sensor": {
+                "triggers": [
+                    {
+                        "cause": "suffocation",
+                        "deals_damage": "no"
+                    },
+                    {
+                        "cause": "drowning",
+                        "deals_damage": "no"
+                    },
+                    {
+                        "cause": "magma",
+                        "deals_damage": "no"
+                    },
+                    {
+                        "cause": "lightning",
+                        "deals_damage": "no"
+                    }
+                ]
+            },
+            "minecraft:experience_reward": {
+                "on_death": 500
+            }
+        },
+        "events": {
+            "minecraft:entity_spawned": {
+                "set_property": {
+                    "ph:shielded": false
+                },
+                "queue_command": {
+                    "command": [
+                        "playsound beacon.activate @a[r=48] ~~~ 1 0.8 0.3"
+                    ]
+                }
+            },
+            "ph:shield": {
+                "add": {
+                    "component_groups": [
+                        "ph:shield_up"
+                    ]
+                },
+                "set_property": {
+                    "ph:shielded": true
+                },
+                "queue_command": {
+                    "command": [
+                        "playsound beacon.power.select @a[r=48] ~~~ 1 1.4 0.3",
+                        "execute at @s run particle minecraft:knockback_roar_particle ~ ~1 ~",
+                        "playsound mob.warden.sonic_boom @a[r=48] ~~~ 0.4 1.8 0.1"
+                    ]
+                }
+            },
+            "ph:unshield": {
+                "remove": {
+                    "component_groups": [
+                        "ph:shield_up"
+                    ]
+                },
+                "set_property": {
+                    "ph:shielded": false
+                },
+                "queue_command": {
+                    "command": [
+                        "playsound beacon.deactivate @a[r=48] ~~~ 1 1 0.3",
+                        "execute at @s run particle minecraft:huge_explosion_emitter ~ ~1 ~"
+                    ]
+                }
+            }
+        }
+    }
+}

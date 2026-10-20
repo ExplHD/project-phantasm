@@ -294,7 +294,16 @@ export function applyCustomDamage(source: Player, damage: number, radius: number
 		}
 
 		const kbStrength = 1 + knockback * 1;
-		entity.applyKnockback({ x: dx * kbStrength, z: dz * kbStrength }, 0.4);
-		if (fireAspect > 0) entity.setOnFire(fireAspect * 4 - 1);
+		try {
+			entity.applyKnockback({ x: dx * kbStrength, z: dz * kbStrength }, 0.4);
+		} catch {
+			// Knockback is unsupported for some entities (frozen in place / hovering /
+			// physics-free like the Titan Core); damage still applies.
+		}
+		if (fireAspect > 0) {
+			try {
+				entity.setOnFire(fireAspect * 4 - 1);
+			} catch { }
+		}
 	});
 }

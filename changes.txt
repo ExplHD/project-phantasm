@@ -8,10 +8,6 @@ Phantasm 1.6.0 / 2.0.0 :
 = Item descriptions migrated from the addLore script to native Mojang tooltips (94 tile.<id>.tooltip keys in en_US.lang, multi-line via \n; addLore map and the runtime lore pass in the inventory handler deleted; removed dead item.ph:weather_polarizer name key - ph:time_polarizer is named by minecraft:display_name in its item file) - ExplerHD
 = Script performance pass (inventory change now 1 container scan instead of 3 + an O(n^2) merge, dynamic lighting clears its exact block instead of 16 fill commands per accessory swap, health_boost /effect no longer re-runs every 6 ticks when already correct, accessory/damage checks skip mobs, entity spawn family lookup uses a Map, combat dummy nametag only updates on change, core onTick no longer allocates Molang maps every tick) - ExplerHD
 = Dynamic Lighting now based on head location - ExplerHD
-= Fixed grasshopper animation IDs (graasshoper -> grasshopper, attack_1 -> attack) + renamed anim file to grasshopper.animation.json - zeromaster178
-= Fixed grasshopper geometry ID (geometry.graasshoper -> geometry.grasshopper) + renamed vara3.png -> var3.png - zeromaster178
-= Lizardman controller fix (is_attacking -> is_delayed_attacking, run pakai has_target bukan is_sprinting, tambah initial_state) - zeromaster178
-= Lizardman anim smoothing (idle life_time *120 -> *3, walk/run distance *180-440 -> *38.17/*57.3, legs 65 -> 48) + controller pakai modified_move_speed + hysteresis - zeromaster178
 = Copper Mechanical Array cast anims differentiated (sword = hovering V-arms sky gaze, axe = overhead two-hand chop synced to 1.5s summon, spear = sideways fencing lunge, double blade = T-pose cyclone spin) - ExplerHD
 = Copper Mechanical Array lightning laser windup shortened (3s -> 1.5s, anim 3.75s -> 2.0s) + 8-direction ground marker ring + charge sound + blade-tip/dash-warning telegraphs - ExplerHD
 = Copper Mechanical Array move/idle rework (walk cycle now driven by query.modified_distance_moved, fixing dead tcos0/gliding_speed_value variable; added body bob/lean/sway, gyro core, weapon lag; idle has breathing, weight shift, head scan, bigger weapon float; removed unused pre_animation) - ExplerHD
@@ -19,10 +15,15 @@ Phantasm 1.6.0 / 2.0.0 :
 
 # Addition :
 + Guidebook book-screen JSON UI, two-page field-guide spread (reading text left, Categories buttons right; RP ui/server_form.json router + ui/forms/guidebook/ layout with tooled-leather cover, aged parchment, leather chapter-tab buttons, gold dividers; invisible title marker via guidescreen/guidebook_title.ts) - ExplerHD
++ Titan Ridge Biome (Biome generation (replacing both plains or forest), Client Biome setting) - ExplerHD
++ Plasmoid Drone Hostile mob (BP entity, RP entity, animation controller, render controller, lang) - ExplerHD
++ Rupture Drone Hostile mob (BP entity, RP entity, animation controller, render controller, lang) - ExplerHD
++ Xeonnite Ore, Xeonnite Shard, Xeonnite Cube item - ExplerHD
 + Grasshopper hostile mob ph:grasshopper (BP entity, RP entity, animation controller, render controller 3 variant texture, lang) - zeromaster178
 + Grasshopper ambient hop via jump_to_block (cooldown 4-8s) + kalem random_stroll - zeromaster178
 + Furnace + blast furnace recipe raw solarium -> solarium ingot - zeromaster178
 + /setting command + settings UI, each player binds their own controls for Passive Dash (Double-tap Jump / Sprint + Jump / Jump + Sneak) and Legendary weapon skill switch (Sneak / Sneak + Attack / Double Sneak), saved in ph:dash_control and ph:skill_switch_control - ExplerHD
 + Crafting table recipe astralium + solarium ingot -> astralith alloy - zeromaster178
 + Lizardman hostile mob ph:lizardman (BP entity, RP entity, render controller, lang; model/anim/controller sudah ada) - zeromaster178
-+ Astralite stone family ph:polished_astralite, ph:smooth_astralite, ph:chiseled_astralite, ph:luminous_crystall (stone stats 7.5s/30, all pickaxe, stone sound/group; luminous light 15 seterang sea lantern)
++ Astralite stone family ph:polished_astralite, ph:smooth_astralite, ph:chiseled_astralite, ph:luminous_crystall (stone stats 7.5s/30, all pickaxe, stone sound/group; luminous light 15 seterang sea lantern) - zeromaster178
++ Titan Core mechanics (600 HP; invulnerable + defender wave di threshold 400/200 HP - 10 Easy / 20 Normal / 35 Hard, wave harus dibersihkan untuk membuka shield lagi, 4-minute safety release, final defense 30 drone on death; script features/titan_core/manager.ts + BP events ph:shield/ph:unshield + synced ph:shielded property) - ExplerHD

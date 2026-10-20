@@ -1,0 +1,36 @@
+{
+    "format_version": "1.10.0",
+    "animations": {
+        "animation.titan_core.hover": {
+            "loop": true,
+            "animation_length": 2,
+            "bones": {
+                "root": {
+                    "position": [0, "math.cos(query.life_time * 180) * 0.75", 0]
+                }
+            }
+        },
+        "animation.titan_core.rings": {
+            "loop": true,
+            "bones": {
+                "ring": {
+                    "rotation": [0, "query.life_time * 60", 0]
+                },
+                "ring2": {
+                    "rotation": [0, "-query.life_time * 42", 0]
+                }
+            }
+        },
+        "animation.titan_core.overload": {
+            "loop": true,
+            "bones": {
+                "marrow": {
+                    "scale": [1, "1 + 0.22 * math.abs(math.sin(query.life_time * 420))", 1]
+                },
+                "spires": {
+                    "scale": [1, "1 + 0.08 * math.abs(math.sin(query.life_time * 420))", 1]
+                }
+            }
+        }
+    }
+}

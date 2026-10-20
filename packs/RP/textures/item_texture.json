@@ -150,6 +150,9 @@
 		"ph_guidebook": {
 			"textures": "textures/items/guidebook"
 		},
+		"ph_compass": {
+			"textures": "textures/items/compass"
+		},
 		"ph_xeonnite_cube": {
 			"textures": "textures/items/xeonnite_cube"
 		},
