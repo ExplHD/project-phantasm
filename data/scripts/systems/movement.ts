@@ -287,7 +287,7 @@ export function javaSaturationRegen(player: Player): void {
 export function healthBarDisplay(player: Player, health: any, totalArmor: any, maxHealth: number): void {
     let scaled = (health.currentValue / maxHealth) * 100;
     player.onScreenDisplay.setTitle(
-        `bar0:${Math.min(100, Math.max(0, Math.floor(scaled)))}% healthind:${Math.floor(health.currentValue)}/${maxHealth} ${totalArmor}`,
+        `bar0:${Math.min(100, Math.max(0, Math.floor(scaled)))}%% healthind:${Math.floor(health.currentValue)}/${maxHealth}  ${totalArmor}`,
         { fadeInDuration: 10, stayDuration: 70, fadeOutDuration: 20 }
     );
 }

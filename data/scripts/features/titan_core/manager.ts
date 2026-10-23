@@ -14,8 +14,8 @@ const FALLBACK_DIFFICULTY = "normal";
 // Wave size per world difficulty.
 const WAVE_COUNTS: Record<string, number> = {
     easy: 10,
-    normal: 20,
-    hard: 35
+    normal: 17,
+    hard: 22
 };
 
 const POLL_INTERVAL = 40;   // ticks between wave-clear checks
