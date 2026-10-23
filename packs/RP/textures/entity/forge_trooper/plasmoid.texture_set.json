@@ -1,0 +1,8 @@
+{
+	"format_version": "1.16.100",
+	"minecraft:texture_set": {
+		"color": "plasmoid",
+		"metalness_emissive_roughness": "forge_trooper_mer",
+		"heightmap": "forge_trooper_height"
+	}
+}
