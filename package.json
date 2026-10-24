@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@minecraft/bedrock-schemas": "^1.26.50",
     "@minecraft/server": "^2.10.0",
     "@minecraft/server-ui": "^2.2.0",
     "shulker": "^1.4.0"
