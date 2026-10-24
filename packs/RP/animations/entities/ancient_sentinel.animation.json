@@ -1,0 +1,76 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		// Rage wake-up shudder while still rolled into a shell.
+		"animation.ph.sentinel.struggle": {
+			"loop": true,
+			"bones": {
+				"body_rolled_up": {
+					"rotation": ["math.sin(query.life_time * 11) * 2", "math.sin(query.life_time * 17) * 2.5", "math.sin(query.life_time * 13) * 1.5"]
+				}
+			}
+		},
+		// Continuous forward tumble while charging in a straight line.
+		"animation.ph.sentinel.roll_spin": {
+			"loop": true,
+			"bones": {
+				"body_rolled_up": {
+					"rotation": ["query.modified_distance_moved * 83", 0, 0]
+				}
+			}
+		},
+		// Launch stretch when the ball hops skyward.
+		"animation.ph.sentinel.launch": {
+			"animation_length": 0.3,
+			"bones": {
+				"body_rolled_up": {
+					"scale": {
+						"0.0": [0.9, 1.16, 0.9],
+						"0.3": [1, 1, 1]
+					}
+				}
+			}
+		},
+		// Ground-impact squash after falling.
+		"animation.ph.sentinel.slam": {
+			"animation_length": 0.45,
+			"bones": {
+				"body_rolled_up": {
+					"rotation": {
+						"0.0": [0, 0, 0],
+						"0.13": [14, 0, 0],
+						"0.45": [0, 0, 0]
+					},
+					"scale": {
+						"0.0": [1, 1, 1],
+						"0.08": [1.16, 0.72, 1.16],
+						"0.23": [1.06, 0.92, 1.06],
+						"0.45": [1, 1, 1]
+					}
+				}
+			}
+		},
+		// Wake-up roar: lean back, throw the head up.
+		"animation.ph.sentinel.roar": {
+			"animation_length": 0.85,
+			"bones": {
+				"body": {
+					"rotation": {
+						"0.0": [0, 0, 0],
+						"0.18": [-9, 0, 0],
+						"0.4": [-6, 0, 0],
+						"0.85": [0, 0, 0]
+					}
+				},
+				"head": {
+					"rotation": {
+						"0.0": [0, 0, 0],
+						"0.18": [-32, 0, 0],
+						"0.4": [-24, 0, 0],
+						"0.85": [0, 0, 0]
+					}
+				}
+			}
+		}
+	}
+}

@@ -8,6 +8,7 @@ import { loadScoreboards, onPlayerSpawn } from './loader'
 import { onDamageIndicator } from '../systems/damageIndicator'
 import { onDummyHurt } from '../systems/combatDummy'
 import { onTitanCoreHurt, onTitanCoreDie } from '../features/titan_core/manager'
+import { onSentinelSpawn, onSentinelHurt, onSentinelHit, onSentinelDie } from '../features/ancient_sentinel/manager'
 import { clearPlayerLighting, onDynamicLighting } from '../systems/lighting'
 import { windPlungeRuntime, vanillaBlockInteractFix, parryRuntime, startBetterMending, javaSaturationRegen, healthBarRuntime, specifiedFamilityAndSpeed } from '../systems/movement'
 import { onControlButtonInput, onControlSwingInput, clearControlState } from '../systems/controls'
@@ -236,11 +237,13 @@ world.afterEvents.entityHitEntity.subscribe((acc) => {
     const hitEntity = acc.hitEntity;
 
     handleAccessory(damagingEntity, "onHitEntity", acc, hitEntity);
+    onSentinelHit(damagingEntity, hitEntity);
 })
 
 world.afterEvents.entityHurt.subscribe(onDamageIndicator)
 world.afterEvents.entityHurt.subscribe(onDummyHurt)
 world.afterEvents.entityHurt.subscribe(onTitanCoreHurt)
+world.afterEvents.entityHurt.subscribe(onSentinelHurt)
 
 // One subscription for the two things an inventory change triggers (dynamic lighting and
 // the health bar). The stack merge used to sit here too, alongside a lore pass that
@@ -347,6 +350,9 @@ world.afterEvents.entityDie.subscribe(({ damageSource, deadEntity }) => {
 	if (deadEntity?.typeId === "ph:titan_core") {
 		onTitanCoreDie(deadEntity);
 	}
+	if (deadEntity?.typeId === "ph:ancient_sentinel") {
+		onSentinelDie(deadEntity);
+	}
 	if (!killer?.isValid) return;
     const mainhand = killer?.getComponent("equippable")?.getEquipment(EquipmentSlot.Mainhand);
 
@@ -411,6 +417,10 @@ world.afterEvents.entitySpawn.subscribe(({ entity, cause }) => {
         });
     }, 1);
 })
+
+// The Ancient Sentinel tracks its own spawn separately: every spawn route (egg, summon,
+// structure reload through the safety rescan) feeds its dormant -> berserk state machine.
+world.afterEvents.entitySpawn.subscribe(({ entity }) => onSentinelSpawn(entity))
 
 world.beforeEvents.playerLeave.subscribe(({ player }) => {
     clearPlayerLighting(player);
