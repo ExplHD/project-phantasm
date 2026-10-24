@@ -128,7 +128,7 @@
 				{
 					"name": "reactor",
 					"parent": "body",
-					"pivot": [0, 14, 0.5],
+					"pivot": [0, 24, -3.75],
 					"cubes": [
 						{
 							"origin": [-1, 23, -4],
@@ -294,7 +294,10 @@
 					"pivot": [2.5, 13, 0],
 					"cubes": [
 						{"origin": [0, 0, -2.5], "size": [5, 14, 5], "uv": [31, 21]}
-					]
+					],
+					"locators": {
+						"leftThruster": [2.5, 0, 0]
+					}
 				},
 				{
 					"name": "rightLeg",
@@ -302,7 +305,10 @@
 					"pivot": [-2.5, 13, 0],
 					"cubes": [
 						{"origin": [-5, 0, -2.5], "size": [5, 14, 5], "uv": [0, 41]}
-					]
+					],
+					"locators": {
+						"rightThruster": [-2.5, 0, 0]
+					}
 				}
 			]
 		}
