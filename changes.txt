@@ -14,6 +14,7 @@ Phantasm 1.6.0 / 2.0.0 :
 = Guidescreen copy cleanup (fixed grammar, agreement, and typos across weapon/mechanic/boss/block/item/accessories/enemy guides; all stats and facts unchanged) - ExplerHD
 
 # Addition :
++ Ancient Sentinel ph:ancient_sentinel, giant armadillo (model/texture + BP behavior clone vanilla armadillo, RP client entity reusing vanilla armadillo animations/controllers/sounds 1:1, render controller tanpa cabang baby, brush loot table, lang, spawn egg) - zeromaster178
 + Guidebook book-screen JSON UI, two-page field-guide spread (reading text left, Categories buttons right; RP ui/server_form.json router + ui/forms/guidebook/ layout with tooled-leather cover, aged parchment, leather chapter-tab buttons, gold dividers; invisible title marker via guidescreen/guidebook_title.ts) - ExplerHD
 + Titan Ridge Biome (Biome generation (replacing both plains or forest), Client Biome setting) - ExplerHD
 + Plasmoid Drone Hostile mob (BP entity, RP entity, animation controller, render controller, lang) - ExplerHD
