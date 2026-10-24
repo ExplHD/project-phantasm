@@ -14,6 +14,16 @@
                 },
                 "pitch": [0.85,1],
                 "volume": 1.0
+            },
+            "ph:ancient_sentinel": {
+                "events": {
+                    "ambient": "mob.armadillo.ambient",
+                    "death": "mob.armadillo.death",
+                    "eat": "mob.armadillo.eat",
+                    "hurt": "mob.armadillo.hurt",
+                    "hurt.reduced": "mob.armadillo.hurt_reduced",
+                    "step": "mob.armadillo.step"
+                }
             }
         }
     }

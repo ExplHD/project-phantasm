@@ -89,8 +89,10 @@ item.spawn_egg.entity.ph:grasshopper.name=Spawn Grasshopper
 item.spawn_egg.entity.ph:lizardman.name=Spawn Lizardman
 item.spawn_egg.entity.ph:dummy.name=Combat Dummy
 item.spawn_egg.entity.ph:titan_core.name=Spawn Titan Core
+item.spawn_egg.entity.ph:ancient_sentinel.name=Spawn Ancient Sentinel
 
 entity.ph:charged_copper_laser.name=§6Charged Lightning
+entity.ph:ancient_sentinel.name=Ancient Sentinel
 entity.ph:solaris_slash.name=§aSolaris Slash
 entity.ph:animirra_summon.name=§aAnimitta's Soul
 entity.ph:animirra_summon_ultimate.name=§aVulkan Stars
