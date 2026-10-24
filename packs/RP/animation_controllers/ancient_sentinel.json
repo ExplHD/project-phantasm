@@ -1,0 +1,60 @@
+{
+    "format_version": "1.10.0",
+    "animation_controllers": {
+        "controller.animation.ph.sentinel.state": {
+            "initial_state": "unrolled",
+            "states": {
+                "unrolled": {
+                    "animations": [],
+                    "blend_transition": 0.25,
+                    "transitions": [
+                        { "dormant": "variable.is_dormant" },
+                        { "awakening": "variable.is_awakening" },
+                        { "ball": "variable.is_ball" },
+                        { "roll": "variable.is_roll" },
+                        { "unrolling": "variable.is_unrolling" }
+                    ]
+                },
+                "dormant": {
+                    "animations": ["rolled_up"],
+                    "blend_transition": 0.25,
+                    "transitions": [
+                        { "awakening": "variable.is_awakening" },
+                        { "unrolled": "!variable.is_dormant" }
+                    ]
+                },
+                "awakening": {
+                    "animations": ["rolled_up", "struggle"],
+                    "blend_transition": 0.25,
+                    "transitions": [
+                        { "dormant": "variable.is_dormant" },
+                        { "unrolled": "!variable.is_rolled_up" }
+                    ]
+                },
+                "ball": {
+                    "animations": ["rolled_up"],
+                    "blend_transition": 0.25,
+                    "transitions": [
+                        { "unrolling": "variable.is_unrolling" },
+                        { "unrolled": "!variable.is_rolled_up" }
+                    ]
+                },
+                "roll": {
+                    "animations": ["roll_spin"],
+                    "blend_transition": 0.2,
+                    "transitions": [
+                        { "unrolling": "variable.is_unrolling" },
+                        { "unrolled": "!variable.is_rolled_up" }
+                    ]
+                },
+                "unrolling": {
+                    "animations": ["unroll"],
+                    "blend_transition": 0.15,
+                    "transitions": [
+                        { "unrolled": "!variable.is_unrolling" }
+                    ]
+                }
+            }
+        }
+    }
+}
