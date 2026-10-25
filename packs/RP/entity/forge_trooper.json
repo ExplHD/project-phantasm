@@ -1,0 +1,51 @@
+{
+	"format_version": "1.20.80",
+	"minecraft:client_entity": {
+		"description": {
+			"identifier": "ph:forge_trooper",
+			"materials": {
+				"default": "entity_alphatest"
+			},
+			"textures": {
+				"default": "textures/entity/forge_trooper/gold",
+				"var1": "textures/entity/forge_trooper/gold",
+				"var2": "textures/entity/forge_trooper/plasmoid",
+				"var3": "textures/entity/forge_trooper/amber"
+			},
+			"geometry": {
+				"default": "geometry.forge_trooper"
+			},
+			"animations": {
+				"look_at_target": "animation.forge_trooper.look_at_target",
+				"idle": "animation.forge_trooper.idle",
+				"walk": "animation.forge_trooper.walk",
+				"jump": "animation.forge_trooper.jump",
+				"slow_landing": "animation.forge_trooper.slow_landing",
+				"sweep": "animation.forge_trooper.sweep",
+				"parry": "animation.forge_trooper.parry",
+				"dash": "animation.forge_trooper.dash",
+				"forge_trooper_move": "controller.animation.forge_trooper.move"
+			},
+			"particle_effects": {
+				"forge_thruster": "ph:forge_trooper_thruster",
+				"forge_thruster_jet": "ph:forge_trooper_thruster_jet",
+				"forge_sweep_trail": "ph:forge_trooper_sweep_trail",
+				"forge_sweep_dust": "ph:forge_trooper_sweep_dust",
+				"forge_slash": "ph:forge_trooper_slash",
+				"forge_slash_sparks": "ph:forge_trooper_slash_sparks",
+				"forge_parry_spark": "ph:forge_trooper_parry_spark"
+			},
+			"scripts": {
+				"animate": [
+					"look_at_target",
+					"forge_trooper_move"
+				]
+			},
+			"render_controllers": ["controller.render.forge_trooper"],
+			"spawn_egg": {
+				"base_color": "#C8A14A",
+				"overlay_color": "#3B3B3B"
+			}
+		}
+	}
+}

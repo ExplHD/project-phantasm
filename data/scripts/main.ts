@@ -15,9 +15,11 @@ import { } from './systems/combatDummy'
 import { } from './systems/damageIndicator'
 import { } from './systems/lighting'
 import { } from './systems/movement'
+import { } from './systems/xeonniteBlessing'
 import { } from './ui/guide/main_guide'
 import { } from './features/weapons/weapons'
 // Credits to @biggamers4u for older mechanics, now ALL of the MECHANICS are remade by me.
 import { } from './features/mace/detection'
+import { } from './features/forge_trooper/manager'
 
 console.warn("§a§lPhantasm 1.5.2 Activated!");

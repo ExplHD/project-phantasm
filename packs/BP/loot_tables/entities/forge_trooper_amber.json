@@ -1,0 +1,28 @@
+{
+	"pools": [
+		{
+			"rolls": 1,
+			"entries": [
+				{
+					"type": "loot_table",
+					"name": "loot_tables/entities/forge_trooper.json",
+					"weight": 1
+				}
+			]
+		},
+		{
+			"rolls": 1,
+			"entries": [
+				{
+					"type": "item",
+					"name": "ph:rupture_cell",
+					"weight": 50
+				},
+				{
+					"type": "empty",
+					"weight": 50
+				}
+			]
+		}
+	]
+}

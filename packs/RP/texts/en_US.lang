@@ -49,6 +49,8 @@ item.ph:condensed_sea_nature=Condensed Sea Nature
 item.ph:guidebook=Phantasm Guidebook
 item.ph:xeonnite_cube=Xeonnite Cube
 item.ph:xeonnite_shard=Xeonnite Shard
+item.ph:plasmoid_scrap=Plasmoid Scrap
+item.ph:rupture_cell=Rupture Cell
 item.ph:raw_solarium=Raw Solarium
 item.ph:solarium_ingot=Solarium Ingot
 item.ph:astralium=Astralium
@@ -90,6 +92,9 @@ item.spawn_egg.entity.ph:lizardman.name=Spawn Lizardman
 item.spawn_egg.entity.ph:dummy.name=Combat Dummy
 item.spawn_egg.entity.ph:titan_core.name=Spawn Titan Core
 item.spawn_egg.entity.ph:ancient_sentinel.name=Spawn Ancient Sentinel
+item.spawn_egg.entity.ph:forge_trooper.name=Spawn Forge Trooper
+
+entity.ph:forge_trooper.name=Forge Trooper
 
 entity.ph:charged_copper_laser.name=§6Charged Lightning
 entity.ph:ancient_sentinel.name=Ancient Sentinel

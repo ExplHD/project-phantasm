@@ -1,4 +1,47 @@
 {
 	"format_version": "1.19.0",
-	"animation_controllers": {}
+	"animation_controllers": {
+		"controller.animation.forge_trooper.move": {
+			"initial_state": "default",
+			"states": {
+				"default": {
+					"animations": ["idle"],
+					"transitions": [
+						{ "walk": "q.is_moving && q.is_on_ground" },
+						{ "air_takeoff": "!q.is_on_ground && q.vertical_speed >= 0" },
+						{ "air_descent": "!q.is_on_ground && q.vertical_speed < 0" }
+					]
+				},
+				"walk": {
+					"animations": ["walk"],
+					"transitions": [
+						{ "default": "!q.is_moving && q.is_on_ground" },
+						{ "air_takeoff": "!q.is_on_ground && q.vertical_speed >= 0" },
+						{ "air_descent": "!q.is_on_ground && q.vertical_speed < 0" }
+					]
+				},
+				"air_takeoff": {
+					"animations": ["jump"],
+					"particle_effects": [
+						{ "effect": "forge_thruster_jet", "locator": "leftThruster" },
+						{ "effect": "forge_thruster_jet", "locator": "rightThruster" }
+					],
+					"transitions": [
+						{ "air_descent": "q.vertical_speed < 0" },
+						{ "default": "q.is_on_ground" }
+					]
+				},
+				"air_descent": {
+					"animations": ["slow_landing"],
+					"particle_effects": [
+						{ "effect": "forge_thruster_jet", "locator": "leftThruster" },
+						{ "effect": "forge_thruster_jet", "locator": "rightThruster" }
+					],
+					"transitions": [
+						{ "default": "q.is_on_ground" }
+					]
+				}
+			}
+		}
+	}
 }
