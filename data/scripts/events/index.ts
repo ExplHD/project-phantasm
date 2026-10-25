@@ -2,6 +2,7 @@ import { world, system, ItemStack, MolangVariableMap, EquipmentSlot, EntityDamag
 import { setScore, getScore, addScore } from '../core/scoreboard'
 import { applyDurabilityDamage } from '../core/items'
 import { getAccessoryItems } from '../core/player'
+import { summonOwned } from '../core/summons'
 import { weaponSkills } from '../features/weapons/weaponSkills'
 import { handleAccessory } from '../systems/accessories'
 import { loadScoreboards, onPlayerSpawn } from './loader'
@@ -486,7 +487,7 @@ system.afterEvents.scriptEventReceive.subscribe(({ id, message, sourceBlock, sou
             for (let i = 0; i < amount; i++) {
                 const { x, y, z } = sourceEntity.location;
                 const randXRot = Math.floor(Math.random() * 360)
-                sourceEntity.runCommand(`summon ${typeId} ${x} ${y + yOffset} ${z} ${randXRot} 0`)
+                summonOwned(sourceEntity, `summon ${typeId} ${x} ${y + yOffset} ${z} ${randXRot} 0`)
             }
             break;
         case "ph:boss_summon_projectile_with_y_facing":
@@ -500,7 +501,7 @@ system.afterEvents.scriptEventReceive.subscribe(({ id, message, sourceBlock, sou
                 const { x, y, z } = sourceEntity.location;
                 const randXRot = Math.floor(Math.random() * 360);
                 const randYRot = Math.floor(-90 + Math.random() * 180);
-                sourceEntity.runCommand(`summon ${typeIdRT} ${x} ${y + yOffsetRT} ${z} ${randXRot} ${randYRot}`)
+                summonOwned(sourceEntity, `summon ${typeIdRT} ${x} ${y + yOffsetRT} ${z} ${randXRot} ${randYRot}`)
             }
             break;
         case "ph:boss_summon":
@@ -519,9 +520,9 @@ system.afterEvents.scriptEventReceive.subscribe(({ id, message, sourceBlock, sou
                 const offsetZ = (Math.random() * 2 - 1) * radius;
 
                 if (spawnEvent) {
-                    sourceEntity.runCommand(`summon ${id2} ${x + offsetX} ${y + yAxis} ${z + offsetZ} ${Math.floor(Math.random() * 360)} 0 ${spawnEvent}`);
+                    summonOwned(sourceEntity, `summon ${id2} ${x + offsetX} ${y + yAxis} ${z + offsetZ} ${Math.floor(Math.random() * 360)} 0 ${spawnEvent}`);
                 } else {
-                    sourceEntity.runCommand(`summon ${id2} ${x + offsetX} ${y + yAxis} ${z + offsetZ} ${Math.floor(Math.random() * 360)} 0 `);
+                    summonOwned(sourceEntity, `summon ${id2} ${x + offsetX} ${y + yAxis} ${z + offsetZ} ${Math.floor(Math.random() * 360)} 0 `);
                 }
             }
             break;

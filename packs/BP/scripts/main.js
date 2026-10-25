@@ -115,6 +115,39 @@ function unstuckPlayer(player) {
   });
 }
 
+// data/scripts/core/summons.ts
+import "@minecraft/server";
+var SUMMONER_PROPERTY = "ph:summoner";
+var SCAN_RADIUS = 64;
+function getOwnerId(entity) {
+  if (entity.typeId === "minecraft:player") return entity.id;
+  try {
+    const owner = entity.getDynamicProperty(SUMMONER_PROPERTY);
+    return typeof owner === "string" ? owner : void 0;
+  } catch {
+    return void 0;
+  }
+}
+function summonOwned(owner, command, source = owner) {
+  const ownerId = getOwnerId(owner);
+  if (!ownerId) {
+    source.runCommand(command);
+    return;
+  }
+  let typeId = command.trim().split(/\s+/)[1];
+  if (!typeId.includes(":")) typeId = `minecraft:${typeId}`;
+  const query = { type: typeId, location: source.location, maxDistance: SCAN_RADIUS };
+  const existing = new Set(source.dimension.getEntities(query).map((e) => e.id));
+  source.runCommand(command);
+  for (const entity of source.dimension.getEntities(query)) {
+    if (existing.has(entity.id)) continue;
+    try {
+      entity.setDynamicProperty(SUMMONER_PROPERTY, ownerId);
+    } catch {
+    }
+  }
+}
+
 // data/scripts/features/weapons/weaponHandler.ts
 import { world as world2, system as system2, EquipmentSlot as EquipmentSlot2, EntityDamageCause } from "@minecraft/server";
 var WeaponHandler = class {
@@ -373,10 +406,10 @@ solarisverdantSkill.addSkill(1, {
           src.runCommand("particle ph:solaris_verdant_summon ~~1~-7");
           src.runCommand("particle ph:solaris_verdant_summon ~7~1~");
           src.runCommand("particle ph:solaris_verdant_summon ~-7~1~");
-          src.runCommand("summon ph:animirra_summon ~~1~7 ~~");
-          src.runCommand("summon ph:animirra_summon ~~1~-7 ~~");
-          src.runCommand("summon ph:animirra_summon ~7~1~ ~~");
-          src.runCommand("summon ph:animirra_summon ~-7~1~ ~~");
+          summonOwned(src, "summon ph:animirra_summon ~~1~7 ~~");
+          summonOwned(src, "summon ph:animirra_summon ~~1~-7 ~~");
+          summonOwned(src, "summon ph:animirra_summon ~7~1~ ~~");
+          summonOwned(src, "summon ph:animirra_summon ~-7~1~ ~~");
           src.dimension.playSound("custom_sfx.animirra_summon", src.location);
           source.runCommand("inputpermission set @s movement enabled");
         }
@@ -399,9 +432,9 @@ solarisverdantSkill.addSkill(2, {
         delay: 10,
         action: (src) => {
           src.dimension.playSound("weapon_slash.slash_heavy", src.location);
-          src.runCommand("summon ph:solaris_slash ^^3^5 ~ 0");
-          src.runCommand("summon ph:solaris_slash ^^3^5 ~-45 0");
-          src.runCommand("summon ph:solaris_slash ^^3^5 ~45 0");
+          summonOwned(src, "summon ph:solaris_slash ^^3^5 ~ 0");
+          summonOwned(src, "summon ph:solaris_slash ^^3^5 ~-45 0");
+          summonOwned(src, "summon ph:solaris_slash ^^3^5 ~45 0");
           source.runCommand("inputpermission set @s movement enabled");
         }
       }
@@ -430,20 +463,20 @@ solarisverdantSkill.addSkill(3, {
           src.runCommand("particle ph:solaris_verdant_summon ~~1~-7");
           src.runCommand("particle ph:solaris_verdant_summon ~7~1~");
           src.runCommand("particle ph:solaris_verdant_summon ~-7~1~");
-          src.runCommand("summon ph:animirra_summon_ultimate ~~1~7 ~~");
-          src.runCommand("summon ph:animirra_summon_ultimate ~~1~-7 ~~");
-          src.runCommand("summon ph:animirra_summon_ultimate ~7~1~ ~~");
-          src.runCommand("summon ph:animirra_summon_ultimate ~-7~1~ ~~");
+          summonOwned(src, "summon ph:animirra_summon_ultimate ~~1~7 ~~");
+          summonOwned(src, "summon ph:animirra_summon_ultimate ~~1~-7 ~~");
+          summonOwned(src, "summon ph:animirra_summon_ultimate ~7~1~ ~~");
+          summonOwned(src, "summon ph:animirra_summon_ultimate ~-7~1~ ~~");
         }
       },
       {
         delay: 10,
         action: (src) => {
           src.runCommand(`scriptevent ph:boss_summon 24, 20, 24, ph:animirra_meteor, custom_sfx.animirra_summon`);
-          src.runCommand("summon ph:animirra_summon_ultimate ~~1~14 ~~");
-          src.runCommand("summon ph:animirra_summon_ultimate ~~1~-14 ~~");
-          src.runCommand("summon ph:animirra_summon_ultimate ~14~1~ ~~");
-          src.runCommand("summon ph:animirra_summon_ultimate ~-14~1~ ~~");
+          summonOwned(src, "summon ph:animirra_summon_ultimate ~~1~14 ~~");
+          summonOwned(src, "summon ph:animirra_summon_ultimate ~~1~-14 ~~");
+          summonOwned(src, "summon ph:animirra_summon_ultimate ~14~1~ ~~");
+          summonOwned(src, "summon ph:animirra_summon_ultimate ~-14~1~ ~~");
           source.runCommand("inputpermission set @s movement enabled");
         }
       }
@@ -504,26 +537,26 @@ superchargedCopperAxeSkill.addSkill(3, {
       {
         delay: 3,
         action: (src) => {
-          src.runCommand("summon ph:charged_copper_laser ~~~ 90 0");
-          src.runCommand("summon ph:charged_copper_laser ~~~ 270 0");
+          summonOwned(src, "summon ph:charged_copper_laser ~~~ 90 0");
+          summonOwned(src, "summon ph:charged_copper_laser ~~~ 270 0");
           src.dimension.playSound("custom_sfx.high_voltage_spark", src.location);
         }
       },
       {
         delay: 2,
         action: (src) => {
-          src.runCommand("summon ph:charged_copper_laser ~~~ 45 0");
-          src.runCommand("summon ph:charged_copper_laser ~~~ 135 0");
-          src.runCommand("summon ph:charged_copper_laser ~~~ 215 0");
-          src.runCommand("summon ph:charged_copper_laser ~~~ 315 0");
+          summonOwned(src, "summon ph:charged_copper_laser ~~~ 45 0");
+          summonOwned(src, "summon ph:charged_copper_laser ~~~ 135 0");
+          summonOwned(src, "summon ph:charged_copper_laser ~~~ 215 0");
+          summonOwned(src, "summon ph:charged_copper_laser ~~~ 315 0");
           src.dimension.playSound("custom_sfx.high_voltage_spark", src.location);
         }
       },
       {
         delay: 2,
         action: (src) => {
-          src.runCommand("summon ph:charged_copper_laser ~~~ 0 0");
-          src.runCommand("summon ph:charged_copper_laser ~~~ 180 0");
+          summonOwned(src, "summon ph:charged_copper_laser ~~~ 0 0");
+          summonOwned(src, "summon ph:charged_copper_laser ~~~ 180 0");
           src.dimension.playSound("custom_sfx.high_voltage_spark", src.location);
         }
       }
@@ -548,53 +581,53 @@ superchargedCopperAxeSkill.addSkill(4, {
       {
         delay: 3,
         action: (src) => {
-          src.runCommand("summon ph:charged_copper_laser ~~~ 90 0");
-          src.runCommand("summon ph:charged_copper_laser ~~~ 270 0");
-          src.runCommand("summon lightning_bolt ~5~~ ");
-          src.runCommand("summon lightning_bolt ~-5~~ ");
+          summonOwned(src, "summon ph:charged_copper_laser ~~~ 90 0");
+          summonOwned(src, "summon ph:charged_copper_laser ~~~ 270 0");
+          summonOwned(src, "summon lightning_bolt ~5~~ ");
+          summonOwned(src, "summon lightning_bolt ~-5~~ ");
           src.dimension.playSound("custom_sfx.high_voltage_spark", src.location);
         }
       },
       {
         delay: 2,
         action: (src) => {
-          src.runCommand("summon ph:charged_copper_laser ~~~ 45 0");
-          src.runCommand("summon ph:charged_copper_laser ~~~ 135 0");
-          src.runCommand("summon ph:charged_copper_laser ~~~ 215 0");
-          src.runCommand("summon ph:charged_copper_laser ~~~ 315 0");
-          src.runCommand("summon lightning_bolt ~5~~5 ");
-          src.runCommand("summon lightning_bolt ~-5~~5 ");
-          src.runCommand("summon lightning_bolt ~5~~-5 ");
-          src.runCommand("summon lightning_bolt ~-5~~-5 ");
+          summonOwned(src, "summon ph:charged_copper_laser ~~~ 45 0");
+          summonOwned(src, "summon ph:charged_copper_laser ~~~ 135 0");
+          summonOwned(src, "summon ph:charged_copper_laser ~~~ 215 0");
+          summonOwned(src, "summon ph:charged_copper_laser ~~~ 315 0");
+          summonOwned(src, "summon lightning_bolt ~5~~5 ");
+          summonOwned(src, "summon lightning_bolt ~-5~~5 ");
+          summonOwned(src, "summon lightning_bolt ~5~~-5 ");
+          summonOwned(src, "summon lightning_bolt ~-5~~-5 ");
           src.dimension.playSound("custom_sfx.high_voltage_spark", src.location);
         }
       },
       {
         delay: 2,
         action: (src) => {
-          src.runCommand("summon ph:charged_copper_laser ~~~ 0 0");
-          src.runCommand("summon ph:charged_copper_laser ~~~ 180 0");
-          src.runCommand("summon lightning_bolt ~~~5 ");
-          src.runCommand("summon lightning_bolt ~~~-5");
-          src.runCommand("summon lightning_bolt ~10~~ ");
-          src.runCommand("summon lightning_bolt ~-10~~ ");
+          summonOwned(src, "summon ph:charged_copper_laser ~~~ 0 0");
+          summonOwned(src, "summon ph:charged_copper_laser ~~~ 180 0");
+          summonOwned(src, "summon lightning_bolt ~~~5 ");
+          summonOwned(src, "summon lightning_bolt ~~~-5");
+          summonOwned(src, "summon lightning_bolt ~10~~ ");
+          summonOwned(src, "summon lightning_bolt ~-10~~ ");
           src.dimension.playSound("custom_sfx.high_voltage_spark", src.location);
         }
       },
       {
         delay: 5,
         action: (src) => {
-          src.runCommand("summon lightning_bolt ~10~~10 ");
-          src.runCommand("summon lightning_bolt ~-10~~10 ");
-          src.runCommand("summon lightning_bolt ~10~~-10 ");
-          src.runCommand("summon lightning_bolt ~-10~~-10 ");
+          summonOwned(src, "summon lightning_bolt ~10~~10 ");
+          summonOwned(src, "summon lightning_bolt ~-10~~10 ");
+          summonOwned(src, "summon lightning_bolt ~10~~-10 ");
+          summonOwned(src, "summon lightning_bolt ~-10~~-10 ");
         }
       },
       {
         delay: 5,
         action: (src) => {
-          src.runCommand("summon lightning_bolt ~~~10 ");
-          src.runCommand("summon lightning_bolt ~~~-10");
+          summonOwned(src, "summon lightning_bolt ~~~10 ");
+          summonOwned(src, "summon lightning_bolt ~~~-10");
           src.runCommand("inputpermission set @s camera enabled");
           src.runCommand("inputpermission set @s movement enabled");
         }
@@ -617,60 +650,60 @@ prismWeaverSkill.addSkill(1, {
       {
         delay: 7,
         action: (src) => {
-          src.runCommand("summon ph:prism_weaver_laser ~2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          src.runCommand("summon ph:prism_weaver_laser ~-2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          src.runCommand("summon ph:prism_weaver_laser ~2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          src.runCommand("summon ph:prism_weaver_laser ~-2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+          summonOwned(src, "summon ph:prism_weaver_laser ~2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+          summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+          summonOwned(src, "summon ph:prism_weaver_laser ~2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+          summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
           src.dimension.playSound("custom_sfx.animirra_summon", src.location);
         }
       },
       {
         delay: 7,
         action: (src) => {
-          src.runCommand("summon ph:prism_weaver_laser ~2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          src.runCommand("summon ph:prism_weaver_laser ~-2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          src.runCommand("summon ph:prism_weaver_laser ~2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          src.runCommand("summon ph:prism_weaver_laser ~-2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+          summonOwned(src, "summon ph:prism_weaver_laser ~2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+          summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+          summonOwned(src, "summon ph:prism_weaver_laser ~2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+          summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
           src.dimension.playSound("custom_sfx.animirra_summon", src.location);
         }
       },
       {
         delay: 7,
         action: (src) => {
-          src.runCommand("summon ph:prism_weaver_laser ~2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          src.runCommand("summon ph:prism_weaver_laser ~-2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          src.runCommand("summon ph:prism_weaver_laser ~2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          src.runCommand("summon ph:prism_weaver_laser ~-2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+          summonOwned(src, "summon ph:prism_weaver_laser ~2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+          summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+          summonOwned(src, "summon ph:prism_weaver_laser ~2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+          summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
           src.dimension.playSound("custom_sfx.animirra_summon", src.location);
         }
       },
       {
         delay: 7,
         action: (src) => {
-          src.runCommand("summon ph:prism_weaver_laser ~2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          src.runCommand("summon ph:prism_weaver_laser ~-2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          src.runCommand("summon ph:prism_weaver_laser ~2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          src.runCommand("summon ph:prism_weaver_laser ~-2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+          summonOwned(src, "summon ph:prism_weaver_laser ~2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+          summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+          summonOwned(src, "summon ph:prism_weaver_laser ~2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+          summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
           src.dimension.playSound("custom_sfx.animirra_summon", src.location);
         }
       },
       {
         delay: 7,
         action: (src) => {
-          src.runCommand("summon ph:prism_weaver_laser ~2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          src.runCommand("summon ph:prism_weaver_laser ~-2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          src.runCommand("summon ph:prism_weaver_laser ~2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          src.runCommand("summon ph:prism_weaver_laser ~-2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+          summonOwned(src, "summon ph:prism_weaver_laser ~2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+          summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+          summonOwned(src, "summon ph:prism_weaver_laser ~2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+          summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
           src.dimension.playSound("custom_sfx.animirra_summon", src.location);
         }
       },
       {
         delay: 7,
         action: (src) => {
-          src.runCommand("summon ph:prism_weaver_laser ~2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          src.runCommand("summon ph:prism_weaver_laser ~-2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          src.runCommand("summon ph:prism_weaver_laser ~2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          src.runCommand("summon ph:prism_weaver_laser ~-2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+          summonOwned(src, "summon ph:prism_weaver_laser ~2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+          summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+          summonOwned(src, "summon ph:prism_weaver_laser ~2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+          summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
           src.dimension.playSound("custom_sfx.animirra_summon", src.location);
           src.runCommand("inputpermission set @s movement enabled");
         }
@@ -692,11 +725,11 @@ prismWeaverSkill.addSkill(2, {
       {
         delay: 10,
         action: (src) => {
-          source.runCommand("summon ph:water_wall ^^^4 ~ 0");
-          source.runCommand("summon ph:water_wall ^-2^^3 ~ 0");
-          source.runCommand("summon ph:water_wall ^2^^3 ~ 0");
-          source.runCommand("summon ph:water_wall ^-4^^2 ~ 0");
-          source.runCommand("summon ph:water_wall ^4^^2 ~ 0");
+          summonOwned(source, "summon ph:water_wall ^^^4 ~ 0");
+          summonOwned(source, "summon ph:water_wall ^-2^^3 ~ 0");
+          summonOwned(source, "summon ph:water_wall ^2^^3 ~ 0");
+          summonOwned(source, "summon ph:water_wall ^-4^^2 ~ 0");
+          summonOwned(source, "summon ph:water_wall ^4^^2 ~ 0");
           source.dimension.playSound("custom_sfx.prism_fire", source.location);
           src.runCommand("inputpermission set @s movement enabled");
         }
@@ -836,7 +869,7 @@ auricPhotonizerSkill.addSkill(2, {
     source.addTag("BACKLEAP");
     source.playAnimation("animation.auric_photonizer.skill_2");
     source.applyKnockback({ x: source.getViewDirection().x * -2, z: source.getViewDirection().z * -2 }, 1.1);
-    source.runCommand(`summon armor_stand ~~~ 0 0 a BACKLEAP`);
+    summonOwned(source, `summon armor_stand ~~~ 0 0 a BACKLEAP`);
     source.runCommand(`effect @e[name=BACKLEAP] invisibility infinite 0 true`);
     source.playSound("mob.enderdragon.flap");
     const command = new CommandHandler([
@@ -1091,7 +1124,7 @@ var accessoryRegistry = {
         const randomChance = Math.floor(Math.random() * 101);
         const { x, y, z } = player.location;
         if (randomChance < 26) {
-          player.runCommand(`summon ph:crimson_laser ${x + -15 + Math.floor(Math.random() * 30)} ~ ${z + -15 + Math.floor(Math.random() * 30)} facing @n`);
+          summonOwned(player, `summon ph:crimson_laser ${x + -15 + Math.floor(Math.random() * 30)} ~ ${z + -15 + Math.floor(Math.random() * 30)} facing @n`);
         }
       });
     },
@@ -1099,7 +1132,7 @@ var accessoryRegistry = {
       const randomChance = Math.floor(Math.random() * 101);
       const { x, y, z } = hitTarget.location;
       if (randomChance < 26) {
-        hitTarget.runCommand(`summon ph:crimson_laser ${x + -15 + Math.floor(Math.random() * 30)} ~ ${z + -15 + Math.floor(Math.random() * 30)} facing @n`);
+        summonOwned(player, `summon ph:crimson_laser ${x + -15 + Math.floor(Math.random() * 30)} ~ ${z + -15 + Math.floor(Math.random() * 30)} facing @n`, hitTarget);
       }
     }
   },
@@ -1181,6 +1214,34 @@ system4.runInterval(() => {
 
 // data/scripts/events/loader.ts
 import { world as world4, system as system5, ItemStack as ItemStack2 } from "@minecraft/server";
+
+// data/scripts/core/playerProperties.ts
+var PLAYER_PROPERTIES = [
+  // /setting controls (systems/controls.ts keeps an in-memory copy of these two).
+  { id: "ph:dash_control", label: "Passive Dash control", type: "number", group: "Settings", default: 0 },
+  { id: "ph:skill_switch_control", label: "Skill switch control", type: "number", group: "Settings", default: 0 },
+  // Upgrades and milestones.
+  { id: "ph:dash_level", label: "Dash level", type: "number", group: "Progress", default: 0 },
+  { id: "ph:health_level", label: "Health level", type: "number", group: "Progress", default: 0 },
+  { id: "ph:plunge_unlock", label: "Wind Plunge unlocked", type: "boolean", group: "Progress", default: false },
+  { id: "ph:guidebook_acquired", label: "Guidebook received", type: "boolean", group: "Progress", default: true },
+  { id: "ph:ever_obtained_xeonnite_cube", label: "Held a Xeonnite Cube", type: "boolean", group: "Progress", default: false },
+  { id: "ph:ever_visited_titan_ridge", label: "Visited Titan Ridge", type: "boolean", group: "Progress", default: false },
+  { id: "ph:xeonnite_blessing", label: "Xeonnite Blessing", type: "boolean", group: "Progress", default: false },
+  // Missing means dash allowed; only an explicit 0 disables it (systems/movement.ts).
+  { id: "ph:dash_unlock", label: "Dash unlock (0 disables dash)", type: "number", group: "Progress" },
+  // Short-lived state; missing means inactive.
+  { id: "ph:forge_parry_nerf_until", label: "Forge parry nerf ends (ms)", type: "number", group: "Runtime" },
+  { id: "ph:xeonnite_cutscene_active", label: "Blessing cutscene running", type: "boolean", group: "Runtime" }
+];
+function applyPropertyDefaults(player) {
+  for (const def of PLAYER_PROPERTIES) {
+    if (def.default === void 0) continue;
+    if (player.getDynamicProperty(def.id) === void 0) player.setDynamicProperty(def.id, def.default);
+  }
+}
+
+// data/scripts/events/loader.ts
 var objectives = [
   // System Scoreboard
   "delayatk",
@@ -1274,26 +1335,9 @@ function onPlayerSpawn(player, initialSpawn) {
   if (playerInput == "Touch") {
     player.sendMessage("\xA7eTouch controls? Joystick + Crosshair with the Action Button enabled makes weapons easier to use");
   }
-  const properties = [
-    "ph:dash_level",
-    "ph:health_level",
-    "ph:plunge_unlock",
-    "ph:guidebook_acquired",
-    "ph:dash_control",
-    "ph:skill_switch_control"
-  ];
-  for (const property of properties) {
-    if (player.getDynamicProperty(property) === void 0) {
-      system5.runTimeout(() => {
-        player.setDynamicProperty("ph:dash_level", 0);
-        player.setDynamicProperty("ph:health_level", 0);
-        player.setDynamicProperty("ph:plunge_unlock", false);
-        player.setDynamicProperty("ph:guidebook_acquired", true);
-        player.setDynamicProperty("ph:dash_control", 0);
-        player.setDynamicProperty("ph:skill_switch_control", 0);
-      }, 20);
-    }
-  }
+  system5.runTimeout(() => {
+    if (player.isValid) applyPropertyDefaults(player);
+  }, 20);
   for (const objective of objectives) {
     addScore(player, objective, 0);
   }
@@ -2750,7 +2794,7 @@ var solarisVerdant = new WeaponHandler("ph:solaris_verdant", "solaris_verdant_at
       {
         delay: 8,
         action: (src) => {
-          src.runCommand("summon ph:solaris_slash ^^3^5.5 ~ 0");
+          summonOwned(src, "summon ph:solaris_slash ^^3^5.5 ~ 0");
           if (getScore(src, "solaris_verdant_s3") > 2) {
             removeScore(src, "solaris_verdant_s3", 3);
           }
@@ -2785,8 +2829,8 @@ var superchargedCopperAxe = new WeaponHandler("ph:supercharged_copper_axe", "sup
           src.dimension.spawnParticle("ph:lightning_flash", src.location);
           src.dimension.spawnParticle("ph:lightning_sparks", src.location);
           applyCustomDamage(src, 31, 4.5);
-          src.runCommand("summon lightning_bolt ~~~5 ~ 0");
-          src.runCommand("summon lightning_bolt ~~~-5 ~ 0");
+          summonOwned(src, "summon lightning_bolt ~~~5 ~ 0");
+          summonOwned(src, "summon lightning_bolt ~~~-5 ~ 0");
           src.runCommand("particle ph:lightning_sparks ~~~5");
           src.runCommand("particle ph:lightning_sparks ~~~-5");
         }
@@ -2796,8 +2840,8 @@ var superchargedCopperAxe = new WeaponHandler("ph:supercharged_copper_axe", "sup
         action: (src) => {
           src.dimension.playSound("weapon_slash.slash_heavy", src.location);
           applyCustomDamage(src, 31, 4.5);
-          src.runCommand("summon lightning_bolt ~5~~ ~ 0");
-          src.runCommand("summon lightning_bolt ~-5~~ ~ 0");
+          summonOwned(src, "summon lightning_bolt ~5~~ ~ 0");
+          summonOwned(src, "summon lightning_bolt ~-5~~ ~ 0");
           src.runCommand("particle ph:lightning_sparks ~5~~");
           src.runCommand("particle ph:lightning_sparks ~-5~~");
           WeaponHandler.addScore(src, "supercharged_copper_axe_s3", 1);
@@ -2824,7 +2868,7 @@ var prismWeaver = new WeaponHandler("ph:prism_weaver", "prism_weaver_atk", [20, 
       {
         delay: 0,
         action: (src) => {
-          src.runCommand("summon ph:prism_weaver_laser ~-2~1~ facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+          summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~ facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
         }
       }
     ])
@@ -2839,7 +2883,7 @@ var prismWeaver = new WeaponHandler("ph:prism_weaver", "prism_weaver_atk", [20, 
       {
         delay: 0,
         action: (src) => {
-          src.runCommand("summon ph:prism_weaver_laser ~2~1~ facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+          summonOwned(src, "summon ph:prism_weaver_laser ~2~1~ facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
         }
       }
     ])
@@ -2854,10 +2898,10 @@ var prismWeaver = new WeaponHandler("ph:prism_weaver", "prism_weaver_atk", [20, 
       {
         delay: 0,
         action: (src) => {
-          src.runCommand("summon ph:prism_weaver_laser ~2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          src.runCommand("summon ph:prism_weaver_laser ~-2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          src.runCommand("summon ph:prism_weaver_laser ~2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          src.runCommand("summon ph:prism_weaver_laser ~-2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+          summonOwned(src, "summon ph:prism_weaver_laser ~2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+          summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+          summonOwned(src, "summon ph:prism_weaver_laser ~2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+          summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
         }
       }
     ])
@@ -2942,7 +2986,7 @@ var seiketsu = new WeaponHandler("ph:seiketsu", "seiketsu_atk", [9, 9, 9], [
             showParticles: false
           });
           entities.forEach((entity) => {
-            entity.runCommand("summon lightning_bolt ~~~ ~ 0");
+            summonOwned(src, "summon lightning_bolt ~~~ ~ 0", entity);
             entity.runCommand("particle ph:lightning_sparks ~~~");
             entity.setOnFire(7, false);
           });
@@ -3462,7 +3506,7 @@ system11.afterEvents.scriptEventReceive.subscribe(({ id, message, sourceBlock, s
       for (let i = 0; i < amount; i++) {
         const { x, y, z } = sourceEntity.location;
         const randXRot = Math.floor(Math.random() * 360);
-        sourceEntity.runCommand(`summon ${typeId} ${x} ${y + yOffset} ${z} ${randXRot} 0`);
+        summonOwned(sourceEntity, `summon ${typeId} ${x} ${y + yOffset} ${z} ${randXRot} 0`);
       }
       break;
     case "ph:boss_summon_projectile_with_y_facing":
@@ -3475,7 +3519,7 @@ system11.afterEvents.scriptEventReceive.subscribe(({ id, message, sourceBlock, s
         const { x, y, z } = sourceEntity.location;
         const randXRot = Math.floor(Math.random() * 360);
         const randYRot = Math.floor(-90 + Math.random() * 180);
-        sourceEntity.runCommand(`summon ${typeIdRT} ${x} ${y + yOffsetRT} ${z} ${randXRot} ${randYRot}`);
+        summonOwned(sourceEntity, `summon ${typeIdRT} ${x} ${y + yOffsetRT} ${z} ${randXRot} ${randYRot}`);
       }
       break;
     case "ph:boss_summon":
@@ -3489,9 +3533,9 @@ system11.afterEvents.scriptEventReceive.subscribe(({ id, message, sourceBlock, s
         const offsetX = (Math.random() * 2 - 1) * radius;
         const offsetZ = (Math.random() * 2 - 1) * radius;
         if (spawnEvent) {
-          sourceEntity.runCommand(`summon ${id2} ${x + offsetX} ${y + yAxis} ${z + offsetZ} ${Math.floor(Math.random() * 360)} 0 ${spawnEvent}`);
+          summonOwned(sourceEntity, `summon ${id2} ${x + offsetX} ${y + yAxis} ${z + offsetZ} ${Math.floor(Math.random() * 360)} 0 ${spawnEvent}`);
         } else {
-          sourceEntity.runCommand(`summon ${id2} ${x + offsetX} ${y + yAxis} ${z + offsetZ} ${Math.floor(Math.random() * 360)} 0 `);
+          summonOwned(sourceEntity, `summon ${id2} ${x + offsetX} ${y + yAxis} ${z + offsetZ} ${Math.floor(Math.random() * 360)} 0 `);
         }
       }
       break;
@@ -3730,7 +3774,7 @@ function bossLaserBeam(boss, charge, duration, range, damagePerTick, width) {
 }
 
 // data/scripts/features/blocks/customComponents.ts
-import { system as system14, CommandPermissionLevel, CustomCommandStatus, MolangVariableMap as MolangVariableMap4, ItemStack as ItemStack4 } from "@minecraft/server";
+import { system as system15, CommandPermissionLevel, CustomCommandStatus, CustomCommandParamType, MolangVariableMap as MolangVariableMap5, ItemStack as ItemStack5 } from "@minecraft/server";
 
 // data/scripts/ui/forms/skillUnlock.ts
 import { system as system12 } from "@minecraft/server";
@@ -4209,14 +4253,291 @@ function developer(player) {
 }
 
 // data/scripts/ui/forms/dynamicProperties.ts
-import "@minecraft/server";
+import { ItemStack as ItemStack4 } from "@minecraft/server";
 import { CustomForm, ObservableNumber, ObservableBoolean, ObservableString } from "@minecraft/server-ui";
-var DYNAMIC_PROPERTY_IDS = ["ph:dash_level", "ph:health_level", "ph:plunge_unlock", "ph:guidebook_acquired", "ph:dash_control", "ph:skill_switch_control"];
-function getPropertyType(value) {
-  if (typeof value === "boolean") return "boolean";
-  if (typeof value === "number") return "number";
-  if (typeof value === "string") return "string";
-  return "undefined";
+
+// data/scripts/systems/xeonniteBlessing.ts
+import {
+  world as world9,
+  system as system14,
+  Player as Player13,
+  EasingType,
+  EntityComponentTypes,
+  EntityDamageCause as EntityDamageCause5,
+  InputPermissionCategory,
+  MolangVariableMap as MolangVariableMap4
+} from "@minecraft/server";
+
+// data/scripts/core/camera.ts
+import "@minecraft/server";
+function playerCameraBasis(player, anchorHeight = 1.1) {
+  const { x, y, z } = player.location;
+  const view = player.getViewDirection();
+  const flat = Math.sqrt(view.x * view.x + view.z * view.z) || 1;
+  const forward = { x: view.x / flat, y: 0, z: view.z / flat };
+  return {
+    anchor: { x, y: y + anchorHeight, z },
+    forward,
+    right: { x: -forward.z, y: 0, z: forward.x }
+  };
+}
+function shotLocation(basis, distance, side, height) {
+  const { anchor, forward, right } = basis;
+  return {
+    x: anchor.x + forward.x * distance + right.x * side,
+    y: anchor.y + height,
+    z: anchor.z + forward.z * distance + right.z * side
+  };
+}
+function clearShotLocation(dimension, anchor, desired) {
+  const dx = desired.x - anchor.x;
+  const dy = desired.y - anchor.y;
+  const dz = desired.z - anchor.z;
+  const length = Math.sqrt(dx * dx + dy * dy + dz * dz);
+  if (length < 0.01) return desired;
+  const direction = { x: dx / length, y: dy / length, z: dz / length };
+  try {
+    const hit = dimension.getBlockFromRay(anchor, direction, { maxDistance: length, includePassableBlocks: false });
+    if (!hit) return desired;
+    const { x, y, z } = hit.block.location;
+    const hitDistance = Math.sqrt((x + hit.faceLocation.x - anchor.x) ** 2 + (y + hit.faceLocation.y - anchor.y) ** 2 + (z + hit.faceLocation.z - anchor.z) ** 2);
+    const safe = Math.max(hitDistance - 0.35, 0.6);
+    return { x: anchor.x + direction.x * safe, y: anchor.y + direction.y * safe, z: anchor.z + direction.z * safe };
+  } catch {
+    return desired;
+  }
+}
+
+// data/scripts/systems/xeonniteBlessing.ts
+var BLESSING_PROPERTY = "ph:xeonnite_blessing";
+var CUBE_PROPERTY = "ph:ever_obtained_xeonnite_cube";
+var RIDGE_PROPERTY = "ph:ever_visited_titan_ridge";
+var CUTSCENE_PROPERTY = "ph:xeonnite_cutscene_active";
+var XEONNITE_CUBE = "ph:xeonnite_cube";
+var TITAN_RIDGE_TAG = "ph:titan_ridge";
+var TITAN_RIDGE_FAMILY = "titan_ridge";
+function isBlessed(player) {
+  try {
+    return player.getDynamicProperty(BLESSING_PROPERTY) === true;
+  } catch {
+    return false;
+  }
+}
+function holdsCube(player) {
+  const inventory = player.getComponent(EntityComponentTypes.Inventory)?.container;
+  if (!inventory) return false;
+  for (let slot = 0; slot < inventory.size; slot++) {
+    if (inventory.getItem(slot)?.typeId === XEONNITE_CUBE) return true;
+  }
+  return false;
+}
+function inTitanRidge(player) {
+  return player.dimension.getBiome(player.location).hasTags([TITAN_RIDGE_TAG]);
+}
+system14.runInterval(() => {
+  for (const player of world9.getAllPlayers()) {
+    if (isBlessed(player)) continue;
+    try {
+      if (player.getDynamicProperty(CUBE_PROPERTY) !== true && holdsCube(player)) {
+        player.setDynamicProperty(CUBE_PROPERTY, true);
+      }
+      if (player.getDynamicProperty(RIDGE_PROPERTY) !== true && inTitanRidge(player)) {
+        player.setDynamicProperty(RIDGE_PROPERTY, true);
+      }
+      if (player.getDynamicProperty(CUBE_PROPERTY) !== true || player.getDynamicProperty(RIDGE_PROPERTY) !== true) continue;
+      player.setDynamicProperty(BLESSING_PROPERTY, true);
+      playBlessingCutscene(player);
+    } catch {
+    }
+  }
+}, 20);
+var BURST_TICK = 48;
+var FADE_OUT_TICK = 84;
+var RELEASE_TICK = 90;
+var SHOTS = [
+  { tick: 1, ease: 1.15, easeType: EasingType.InOutSine, distance: 0.6, side: 2.6, height: 0.1 },
+  { tick: 24, ease: 1, easeType: EasingType.InOutSine, distance: -1.3, side: 2.1, height: 0.5 },
+  { tick: BURST_TICK, ease: 0.55, easeType: EasingType.OutCubic, distance: 1.8, side: 4.8, height: 2 },
+  { tick: 59, ease: 1.25, easeType: EasingType.InOutSine, distance: 3.6, side: 3.6, height: 2.6 }
+];
+var OPENING_SHOT = { distance: 2.4, side: 1, height: -0.4 };
+function cameraTo(player, basis, shot, ease) {
+  const location = clearShotLocation(player.dimension, basis.anchor, shotLocation(basis, shot.distance, shot.side, shot.height));
+  player.camera.setCamera("minecraft:free", {
+    location,
+    facingLocation: basis.anchor,
+    easeOptions: ease ? { easeTime: ease.time, easeType: ease.type } : void 0
+  });
+}
+function setLocked(player, locked) {
+  player.inputPermissions.setPermissionCategory(InputPermissionCategory.Movement, !locked);
+  player.inputPermissions.setPermissionCategory(InputPermissionCategory.Camera, !locked);
+}
+var cutsceneRuns = /* @__PURE__ */ new Map();
+function releaseBlessingCutscene(player) {
+  for (const run of cutsceneRuns.get(player.id) ?? []) system14.clearRun(run);
+  cutsceneRuns.delete(player.id);
+  try {
+    setLocked(player, false);
+    player.camera.clear();
+    player.setDynamicProperty(CUTSCENE_PROPERTY, void 0);
+  } catch {
+  }
+}
+function playBlessingCutscene(player) {
+  const basis = playerCameraBasis(player);
+  const dimension = player.dimension;
+  const feet = { ...player.location };
+  const chest = { x: feet.x, y: feet.y + 1.1, z: feet.z };
+  player.setDynamicProperty(CUTSCENE_PROPERTY, true);
+  setLocked(player, true);
+  player.addEffect("resistance", RELEASE_TICK + 10, { amplifier: 4, showParticles: false });
+  player.addEffect("slow_falling", RELEASE_TICK + 10, { showParticles: false });
+  player.camera.fade({ fadeColor: { red: 0, green: 0, blue: 0 }, fadeTime: { fadeInTime: 0, holdTime: 0.1, fadeOutTime: 0.6 } });
+  cameraTo(player, basis, OPENING_SHOT);
+  player.playAnimation("animation.player_extend.xeonnite_blessing", { blendOutTime: 0.25 });
+  player.playSound("beacon.activate", { pitch: 0.8 });
+  dimension.spawnParticle("ph:xeonnite_bless_rune", feet);
+  dimension.spawnParticle("ph:xeonnite_bless_gather", chest);
+  dimension.spawnParticle("ph:xeonnite_bless_motes", feet);
+  const runs = [];
+  cutsceneRuns.set(player.id, runs);
+  const at = (tick, action) => runs.push(system14.runTimeout(() => {
+    if (!player.isValid) return;
+    try {
+      action();
+    } catch {
+    }
+  }, tick));
+  for (const shot of SHOTS) {
+    at(shot.tick, () => cameraTo(player, basis, shot, { time: shot.ease, type: shot.easeType }));
+  }
+  at(24, () => player.playSound("beacon.ambient", { pitch: 1.4 }));
+  at(BURST_TICK, () => {
+    player.camera.fade({ fadeColor: { red: 1, green: 0.75, blue: 0.45 }, fadeTime: { fadeInTime: 0.05, holdTime: 0.05, fadeOutTime: 0.55 } });
+    player.runCommand("camerashake add @s 0.35 0.7 positional");
+    dimension.spawnParticle("ph:xeonnite_bless_flash", chest);
+    dimension.spawnParticle("ph:xeonnite_bless_shards", chest);
+    dimension.spawnParticle("ph:xeonnite_bless_shockwave", feet);
+    dimension.spawnParticle("ph:xeonnite_bless_pillar", feet);
+    dimension.spawnParticle("ph:xeonnite_bless_dust", feet);
+    dimension.playSound("random.totem", feet, { volume: 0.9 });
+    dimension.playSound("random.explode", feet, { volume: 0.5, pitch: 1.3 });
+  });
+  at(BURST_TICK + 2, () => dimension.spawnParticle("ph:xeonnite_bless_motes", feet));
+  at(60, () => player.playSound("random.levelup", { pitch: 0.9 }));
+  at(
+    FADE_OUT_TICK,
+    () => player.camera.fade({ fadeColor: { red: 0, green: 0, blue: 0 }, fadeTime: { fadeInTime: 0.25, holdTime: 0.2, fadeOutTime: 0.5 } })
+  );
+  runs.push(system14.runTimeout(() => {
+    if (!player.isValid) return;
+    releaseBlessingCutscene(player);
+    player.onScreenDisplay.setActionBar("\xA76Xeonnite Blessing \xA77awakened: Titan Ridge foes can now be wounded");
+  }, RELEASE_TICK));
+}
+world9.afterEvents.playerSpawn.subscribe(({ player, initialSpawn }) => {
+  if (!initialSpawn) return;
+  if (player.getDynamicProperty(CUTSCENE_PROPERTY) === true) releaseBlessingCutscene(player);
+});
+function damageDealer(acc) {
+  const { damagingEntity, damagingProjectile, cause } = acc.damageSource;
+  if (damagingEntity ?? damagingProjectile) return damagingEntity ?? damagingProjectile;
+  if (cause !== EntityDamageCause5.lightning) return void 0;
+  const { location, dimension } = acc.hurtEntity;
+  return dimension.getEntities({ type: "minecraft:lightning_bolt", location, maxDistance: 6, closest: 1 })[0];
+}
+var WARD_COOLDOWN_TICKS = 3;
+var lastWard = /* @__PURE__ */ new Map();
+function showWard(hurtEntity, from, player) {
+  const now = system14.currentTick;
+  if ((lastWard.get(hurtEntity.id) ?? -WARD_COOLDOWN_TICKS) + WARD_COOLDOWN_TICKS > now) return;
+  lastWard.set(hurtEntity.id, now);
+  const base = hurtEntity.location;
+  const head = hurtEntity.getHeadLocation();
+  const center = { x: base.x, y: base.y + (head.y - base.y) * 0.65, z: base.z };
+  const dx = from.x - center.x;
+  const dy = from.y - center.y;
+  const dz = from.z - center.z;
+  const length = Math.sqrt(dx * dx + dy * dy + dz * dz) || 1;
+  const dir = { x: dx / length, y: dy / length, z: dz / length };
+  const contact = { x: center.x + dir.x * 0.75, y: center.y + dir.y * 0.75, z: center.z + dir.z * 0.75 };
+  const vars = new MolangVariableMap4();
+  vars.setVector3("variable.dir", dir);
+  const dimension = hurtEntity.dimension;
+  dimension.spawnParticle("ph:xeonnite_ward_ring", contact, vars);
+  dimension.spawnParticle("ph:xeonnite_ward_cross", contact, vars);
+  dimension.spawnParticle("ph:xeonnite_ward_sparks", contact, vars);
+  if (player) {
+    player.playSound("random.anvil_land", { volume: 0.35, pitch: 1.8 });
+    player.onScreenDisplay.setActionBar("\xA77Requires the \xA76Xeonnite Blessing");
+  }
+}
+world9.beforeEvents.entityHurt.subscribe((acc) => {
+  const dealer = damageDealer(acc);
+  if (!dealer) return;
+  const ownerId = getOwnerId(dealer);
+  if (!ownerId) return;
+  const hurtEntity = acc.hurtEntity;
+  try {
+    if (!hurtEntity.getComponent("minecraft:type_family")?.hasTypeFamily(TITAN_RIDGE_FAMILY)) return;
+  } catch {
+    return;
+  }
+  const owner = world9.getEntity(ownerId);
+  const player = owner instanceof Player13 ? owner : void 0;
+  if (player && isBlessed(player)) return;
+  acc.cancel = true;
+  let from;
+  try {
+    from = dealer.getHeadLocation();
+  } catch {
+    from = dealer.location;
+  }
+  system14.run(() => {
+    try {
+      showWard(hurtEntity, from, player);
+    } catch {
+    }
+  });
+});
+world9.afterEvents.entityRemove.subscribe(({ removedEntityId }) => {
+  lastWard.delete(removedEntityId);
+});
+
+// data/scripts/ui/forms/dynamicProperties.ts
+function syncPlayerProperty(player, id) {
+  const value = player.getDynamicProperty(id);
+  switch (id) {
+    case "ph:dash_control":
+    case "ph:skill_switch_control":
+      clearControlState(player);
+      break;
+    case "ph:health_level": {
+      player.removeEffect("health_boost");
+      const level = Number(value ?? 0);
+      if (level > 0) {
+        player.runCommand(`effect @s health_boost infinite ${3 * level} true`);
+        player.addEffect("instant_health", 20, { amplifier: 255, showParticles: false });
+      }
+      break;
+    }
+    case "ph:xeonnite_cutscene_active":
+      if (value !== true) releaseBlessingCutscene(player);
+      break;
+  }
+}
+function resetPlayerProperties(player) {
+  releaseBlessingCutscene(player);
+  const wasNerfed = player.getDynamicProperty("ph:forge_parry_nerf_until") !== void 0;
+  player.clearDynamicProperties();
+  applyPropertyDefaults(player);
+  for (const def of PLAYER_PROPERTIES) syncPlayerProperty(player, def.id);
+  if (wasNerfed) player.removeEffect("weakness");
+  player.dimension.spawnItem(new ItemStack4("ph:guidebook"), player.location);
+}
+function formatValue(value) {
+  return value === void 0 ? "\xA78(unset)" : `\xA7f${value}`;
 }
 function openDynamicPropertyMenu(player) {
   const selectedIndex = new ObservableNumber(0, { clientWritable: true });
@@ -4225,63 +4546,54 @@ function openDynamicPropertyMenu(player) {
   const showToggle = new ObservableBoolean(false);
   const showText = new ObservableBoolean(false);
   const confirmReset = new ObservableBoolean(false, { clientWritable: true });
+  const currentLabel = new ObservableString("");
   const statusMessage = new ObservableString("");
-  let currentType = "undefined";
   function refreshForIndex(index) {
-    const propertyId = DYNAMIC_PROPERTY_IDS[index];
-    const currentValue = player.getDynamicProperty(propertyId);
-    currentType = getPropertyType(currentValue);
-    if (currentType === "boolean") {
-      showToggle.setData(true);
-      showText.setData(false);
-      toggleValue.setData(currentValue);
-    } else {
-      showToggle.setData(false);
-      showText.setData(true);
-      textValue.setData(currentValue !== void 0 ? currentValue.toString() : "");
-    }
+    const def = PLAYER_PROPERTIES[index];
+    const currentValue = player.getDynamicProperty(def.id);
+    currentLabel.setData(`\xA77${def.id}
+\xA77Current: ${formatValue(currentValue)}`);
+    const isBoolean = def.type === "boolean";
+    showToggle.setData(isBoolean);
+    showText.setData(!isBoolean);
+    if (isBoolean) toggleValue.setData(currentValue === true);
+    else textValue.setData(currentValue !== void 0 ? currentValue.toString() : "");
   }
   refreshForIndex(selectedIndex.getData());
   selectedIndex.subscribe((newIndex) => {
     refreshForIndex(newIndex);
     statusMessage.setData("");
   });
-  const dropdownItems = DYNAMIC_PROPERTY_IDS.map((id, i) => ({ label: id, value: i }));
-  new CustomForm(player, "DynamicProperty Manager").label("Choose DynamicProperty to change:").dropdown("Property", selectedIndex, dropdownItems).divider().toggle("Value (boolean)", toggleValue, { visible: showToggle }).textField("Value (number/string)", textValue, {
-    description: "Input text/string value",
+  const dropdownItems = PLAYER_PROPERTIES.map((def, i) => ({ label: `[${def.group}] ${def.label}`, value: i }));
+  new CustomForm(player, "DynamicProperty Manager").label("Choose DynamicProperty to change:").dropdown("Property", selectedIndex, dropdownItems).label(currentLabel).divider().toggle("Value (boolean)", toggleValue, { visible: showToggle }).textField("Value (number)", textValue, {
+    description: "Leave empty to unset",
     visible: showText
   }).spacer().button("Save", () => {
-    const propertyId = DYNAMIC_PROPERTY_IDS[selectedIndex.getData()];
+    const def = PLAYER_PROPERTIES[selectedIndex.getData()];
     try {
-      if (currentType === "boolean") {
-        player.setDynamicProperty(propertyId, toggleValue.getData());
-      } else if (currentType === "number") {
-        const parsed = Number(textValue.getData());
-        if (Number.isNaN(parsed)) {
+      if (def.type === "boolean") {
+        player.setDynamicProperty(def.id, toggleValue.getData());
+      } else {
+        const raw = textValue.getData().trim();
+        const parsed = Number(raw);
+        if (raw !== "" && Number.isNaN(parsed)) {
           statusMessage.setData("\xA7cIncorrect Type, Expected Type : Number!");
           return;
         }
-        if (propertyId === DYNAMIC_PROPERTY_IDS[1]) {
-          player.removeEffect("health_boost");
-          player.runCommand(`effect @s health_boost infinite ${3 * parsed} true`);
-          player.addEffect("instant_health", 20, { amplifier: 255, showParticles: false });
-        }
-        player.setDynamicProperty(propertyId, parsed);
-      } else {
-        player.setDynamicProperty(propertyId, textValue.getData());
+        player.setDynamicProperty(def.id, raw === "" ? void 0 : parsed);
       }
-      statusMessage.setData(`\xA7aSuccessfully changed ${propertyId}!`);
+      syncPlayerProperty(player, def.id);
+      refreshForIndex(selectedIndex.getData());
+      statusMessage.setData(`\xA7aSuccessfully changed ${def.label}!`);
     } catch (e) {
       statusMessage.setData(`\xA7cFailed to change property: ${e}`);
     }
-  }).divider().label("Reset all DynamicProperties in the list:").toggle("Turn on to confirm", confirmReset).button("Reset All Properties", () => {
+  }).divider().label("Reset every Phantasm property to a fresh start (same as /cleardynamicproperties):").toggle("Turn on to confirm", confirmReset).button("Reset All Properties", () => {
     if (!confirmReset.getData()) {
       statusMessage.setData("\xA7eTurn on the toggle before resetting!");
       return;
     }
-    for (const id of DYNAMIC_PROPERTY_IDS) {
-      player.setDynamicProperty(id, void 0);
-    }
+    resetPlayerProperties(player);
     confirmReset.setData(false);
     refreshForIndex(selectedIndex.getData());
     statusMessage.setData("\xA7aAll DynamicProperties are successfully reset!");
@@ -4326,22 +4638,22 @@ function findBossSpawnPoint(dimension, origin, player) {
 }
 var COPPER_RING_COLOR = { red: 1, green: 0.63137, blue: 0, alpha: 1 };
 function coreRing(size, color) {
-  const map = new MolangVariableMap4();
+  const map = new MolangVariableMap5();
   map.setFloat("variable.size", size);
   map.setColorRGBA("variable.rgba", color);
   return map;
 }
 var copperRing = () => coreRing(1, COPPER_RING_COLOR);
-system14.beforeEvents.startup.subscribe((initEvent) => {
+system15.beforeEvents.startup.subscribe((initEvent) => {
   initEvent.itemComponentRegistry.registerCustomComponent("ph:charge_passive", {
     onHitEntity(e) {
       const hitEntity = e.hitEntity;
       const source = e.attackingEntity;
       const itemStack = e.itemStack;
       if (itemStack.typeId === "ph:charged_copper_axe") {
-        system14.runTimeout(() => {
+        system15.runTimeout(() => {
           if (getScore(source, "charged_copper_axe") == 100) {
-            hitEntity.runCommand("summon lightning_bolt");
+            summonOwned(source, "summon lightning_bolt", hitEntity);
           }
           let calculatedDamage = 10 + getScore(source, "charged_copper_axe") / 10;
           hitEntity.applyDamage(calculatedDamage);
@@ -4353,15 +4665,15 @@ system14.beforeEvents.startup.subscribe((initEvent) => {
       const player = e.source;
       player.startItemCooldown("charged_copper_axe", 120);
       applyDurabilityDamage(player, { damage: 36 });
-      system14.run(() => {
+      system15.run(() => {
         player.playAnimation("animation.charged_copper_axe.attack_3", player.location);
-        system14.runTimeout(() => {
+        system15.runTimeout(() => {
           player.dimension.playSound("weapon_slash.slash_heavy", player.location);
           player.dimension.spawnParticle("ph:lightning_flash", player.location);
           player.dimension.spawnParticle("ph:lightning_sparks", player.location);
           player.runCommand(`damage @e[type=!item,family=!inanimate,rm=0.1,r=4] 18 entity_attack entity "${player.name}"`);
-          player.runCommand("summon lightning_bolt ^^^5 ~ 0");
-          player.runCommand("summon lightning_bolt ^^^10 ~ 0");
+          summonOwned(player, "summon lightning_bolt ^^^5 ~ 0");
+          summonOwned(player, "summon lightning_bolt ^^^10 ~ 0");
           player.runCommand("particle ph:lightning_sparks ^^^5");
           player.runCommand("particle ph:lightning_sparks ^^^10");
         }, 8);
@@ -4513,10 +4825,10 @@ system14.beforeEvents.startup.subscribe((initEvent) => {
       const altEvents = {
         oceanic_attack: () => {
           player.startItemCooldown("nature_staff", 50);
-          player.runCommand("summon ph:ocean_crystal_wave ~~~5 0 0");
-          player.runCommand("summon ph:ocean_crystal_wave ~-5~~ 90 0");
-          player.runCommand("summon ph:ocean_crystal_wave ~~~-5 180 0");
-          player.runCommand("summon ph:ocean_crystal_wave ~5~~ 270 0");
+          summonOwned(player, "summon ph:ocean_crystal_wave ~~~5 0 0");
+          summonOwned(player, "summon ph:ocean_crystal_wave ~-5~~ 90 0");
+          summonOwned(player, "summon ph:ocean_crystal_wave ~~~-5 180 0");
+          summonOwned(player, "summon ph:ocean_crystal_wave ~5~~ 270 0");
           player.runCommand(
             `playsound ${soundEffect} @a[r=24] ~~~ 1 1 0.3`
           );
@@ -4582,13 +4894,13 @@ system14.beforeEvents.startup.subscribe((initEvent) => {
         player.runCommand("damage @e[r=10,rm=0.1,family=!inanimate,type=!item] 50 entity_explosion entity @s");
         player.runCommand("execute as @s at @e[r=10,rm=0.1,family=!inanimate,type=!item] run setblock ~~~ fire");
       }
-      system14.run(() => {
+      system15.run(() => {
         player.dimension.spawnParticle("ph:cruxshaper_flung", player.location);
         player.addEffect("levitation", 20, {
           amplifier: 24
         });
         player.dimension.playSound("random.explode", player.location);
-        system14.runTimeout(() => {
+        system15.runTimeout(() => {
           player.dimension.spawnParticle("ph:cruxshaper_flung", player.location);
           player.applyKnockback({ x: 0, z: 0 }, -2.1);
           player.addEffect("slow_falling", 20);
@@ -4596,10 +4908,10 @@ system14.beforeEvents.startup.subscribe((initEvent) => {
             stopExpression: "query.is_on_ground"
           });
           player.dimension.playSound("random.explode", player.location);
-          const intervalRun = system14.runInterval(() => {
+          const intervalRun = system15.runInterval(() => {
             if (!player.isOnGround) return;
-            system14.run(impact);
-            system14.clearRun(intervalRun);
+            system15.run(impact);
+            system15.clearRun(intervalRun);
           }, 2);
         }, 30);
       });
@@ -4607,7 +4919,7 @@ system14.beforeEvents.startup.subscribe((initEvent) => {
     },
     onUseOn(e) {
       const player = e.source;
-      system14.run(() => {
+      system15.run(() => {
         player.sendMessage("Look up while using the skill!");
       });
     }
@@ -4667,7 +4979,7 @@ system14.beforeEvents.startup.subscribe((initEvent) => {
       block.dimension.spawnParticle("ph:auric_communicator_loading", { x: blockLoc.x, y: blockLoc.y + 1, z: blockLoc.z });
       if (auricMode == 1) {
         source.addTag("AURIC_ORBITAL_NUKE");
-        system14.runTimeout(() => {
+        system15.runTimeout(() => {
           block.dimension.playSound("random.explode", blockLoc);
           try {
             block.dimension.runCommand(`damage @e[r=48,tag=!AURIC_ORBITAL_NUKE,type=!item,family=!inanimate,x=${blockLoc.x},y=${blockLoc.y},z=${blockLoc.z}] 50 entity_explosion entity @e[tag=AURIC_ORBITAL_NUKE]`);
@@ -4682,7 +4994,7 @@ system14.beforeEvents.startup.subscribe((initEvent) => {
         return;
       }
       source.addTag("AURIC_ORBITAL_LASER");
-      system14.runTimeout(() => {
+      system15.runTimeout(() => {
         for (let i = 0; i < 381; i += 10) {
           try {
             block.dimension.runCommand(`damage @e[r=10,tag=!AURIC_ORBITAL_LASER,type=!item,family=!inanimate,x=${blockLoc.x},y=${i},z=${blockLoc.z}] 80 entity_explosion entity @e[tag=AURIC_ORBITAL_LASER]`);
@@ -4747,7 +5059,7 @@ system14.beforeEvents.startup.subscribe((initEvent) => {
       source.addTag("parried");
       source.inputPermissions.setPermissionCategory(2, false);
       applyDurabilityDamage(source, { damage: 1 });
-      system14.runTimeout(() => {
+      system15.runTimeout(() => {
         if (source?.hasTag("parried")) source.removeTag("parried");
         source.inputPermissions.setPermissionCategory(2, true);
       }, window_time);
@@ -4765,7 +5077,7 @@ system14.beforeEvents.startup.subscribe((initEvent) => {
       let bargaining_item_amount = block.getComponent("ph:boss_summon").customComponentParameters.params.bargaining_item_amount;
       const message = block.getComponent("ph:boss_summon").customComponentParameters.params.message;
       let transform_into_entity = block.getComponent("ph:boss_summon").customComponentParameters.params.transform_into_entity;
-      const mergedDataItem = new ItemStack4(bargaining_item, bargaining_item_amount);
+      const mergedDataItem = new ItemStack5(bargaining_item, bargaining_item_amount);
       const mainhand = player.getComponent("equippable").getEquipment("Mainhand");
       if (!bargaining_item_amount) bargaining_item_amount = 1;
       if (mainhand?.typeId === bargaining_item && mainhand?.amount >= bargaining_item_amount) {
@@ -4817,7 +5129,7 @@ system14.beforeEvents.startup.subscribe((initEvent) => {
         block.dimension.spawnParticle("ph:auric_beam_small", block.west(2).center());
         block.dimension.playSound("custom_sfx.boss_summoned", block.center());
         const bossSpawnPoint = findBossSpawnPoint(block.dimension, block.center(), player);
-        system14.runTimeout(() => {
+        system15.runTimeout(() => {
           block.dimension.spawnEntity("ph:copper_mechanical_array", bossSpawnPoint);
           block.dimension.playSound("mob.zombie.woodbreak", bossSpawnPoint);
           block.dimension.spawnParticle("ph:auric_beam_small", bossSpawnPoint);
@@ -4873,7 +5185,7 @@ system14.beforeEvents.startup.subscribe((initEvent) => {
       const itemCount = params.item_count ?? 1;
       const playerChargeObjective = params.player_charge_objective ?? "superchargd_copper_axe";
       const chargeMin = params.charge_min ?? 0;
-      const mergedDataItem = new ItemStack4(item, itemCount);
+      const mergedDataItem = new ItemStack5(item, itemCount);
       if (chargeType == "item") {
         if (player.getComponent("equippable")?.getEquipment("Mainhand")?.typeId != item) {
           player.sendMessage({
@@ -4952,7 +5264,7 @@ system14.beforeEvents.startup.subscribe((initEvent) => {
       dimension.setBlockType(loc, "minecraft:air");
       if (dropId) {
         try {
-          dimension.spawnItem(new ItemStack4(dropId, 1), center);
+          dimension.spawnItem(new ItemStack5(dropId, 1), center);
         } catch {
         }
       }
@@ -4968,7 +5280,7 @@ system14.beforeEvents.startup.subscribe((initEvent) => {
       const maxBatteryStack = params.max_battery_stack || 4;
       const soundInput = params.sound_input;
       const soundPickup = params.sound_pickup;
-      const itemData = new ItemStack4(item);
+      const itemData = new ItemStack5(item);
       const batteryCount = block.permutation.getState("ph:battery_count");
       const batteryState = block.permutation.getState("ph:battery_state");
       const mainhand = player.getComponent("equippable").getEquipmentSlot("Mainhand");
@@ -5022,9 +5334,10 @@ system14.beforeEvents.startup.subscribe((initEvent) => {
   }, openForm);
   initEvent.customCommandRegistry.registerCommand({
     name: "ph:cleardynamicproperties",
-    description: "Reset all of your dynamic properties",
+    description: "Reset every Phantasm property (upgrades, blessing, controls) to a fresh start",
     cheatsRequired: true,
-    permissionLevel: CommandPermissionLevel.GameDirectors
+    permissionLevel: CommandPermissionLevel.GameDirectors,
+    optionalParameters: [{ name: "target", type: CustomCommandParamType.PlayerSelector }]
   }, clearDynamicProperty);
   initEvent.customCommandRegistry.registerCommand({
     name: "ph:dynamicproperties",
@@ -5032,7 +5345,7 @@ system14.beforeEvents.startup.subscribe((initEvent) => {
     cheatsRequired: true,
     permissionLevel: CommandPermissionLevel.GameDirectors
   }, (origin) => {
-    system14.run(() => {
+    system15.run(() => {
       openDynamicPropertyMenu(origin.sourceEntity);
     });
   });
@@ -5042,7 +5355,7 @@ system14.beforeEvents.startup.subscribe((initEvent) => {
     cheatsRequired: false,
     permissionLevel: CommandPermissionLevel.Any
   }, (origin) => {
-    system14.run(() => {
+    system15.run(() => {
       mainGuideScreen(origin.sourceEntity);
     });
   });
@@ -5054,7 +5367,7 @@ system14.beforeEvents.startup.subscribe((initEvent) => {
   }, (origin) => {
     const player = origin.sourceEntity;
     if (player?.typeId !== "minecraft:player") return { status: CustomCommandStatus.Failure };
-    system14.run(() => {
+    system15.run(() => {
       openSettings(player);
     });
     return { status: CustomCommandStatus.Success };
@@ -5070,91 +5383,28 @@ system14.beforeEvents.startup.subscribe((initEvent) => {
   });
 });
 function openForm({ sourceEntity: player }) {
-  system14.run(() => {
+  system15.run(() => {
     skillUnlock(player);
   });
   return { status: CustomCommandStatus.Success };
 }
-function clearDynamicProperty({ sourceEntity: player }) {
-  system14.run(() => {
-    player.clearDynamicProperties();
-  });
-  return { status: CustomCommandStatus.Success };
-}
-
-// data/scripts/systems/xeonniteBlessing.ts
-import { world as world9, system as system15, EntityComponentTypes } from "@minecraft/server";
-var BLESSING_PROPERTY = "ph:xeonnite_blessing";
-var CUBE_PROPERTY = "ph:ever_obtained_xeonnite_cube";
-var RIDGE_PROPERTY = "ph:ever_visited_titan_ridge";
-var XEONNITE_CUBE = "ph:xeonnite_cube";
-var TITAN_RIDGE_TAG = "ph:titan_ridge";
-var TITAN_RIDGE_FAMILY = "titan_ridge";
-function isBlessed(player) {
-  try {
-    return player.getDynamicProperty(BLESSING_PROPERTY) === true;
-  } catch {
-    return false;
+function clearDynamicProperty({ sourceEntity }, targets) {
+  const players = targets ?? (sourceEntity?.typeId === "minecraft:player" ? [sourceEntity] : []);
+  if (players.length === 0) {
+    return { status: CustomCommandStatus.Failure, message: "No player to reset. Run it as a player or pass a target." };
   }
-}
-function holdsCube(player) {
-  const inventory = player.getComponent(EntityComponentTypes.Inventory)?.container;
-  if (!inventory) return false;
-  for (let slot = 0; slot < inventory.size; slot++) {
-    if (inventory.getItem(slot)?.typeId === XEONNITE_CUBE) return true;
-  }
-  return false;
-}
-function inTitanRidge(player) {
-  return player.dimension.getBiome(player.location).hasTags([TITAN_RIDGE_TAG]);
-}
-system15.runInterval(() => {
-  for (const player of world9.getAllPlayers()) {
-    if (isBlessed(player)) continue;
-    try {
-      if (player.getDynamicProperty(CUBE_PROPERTY) !== true && holdsCube(player)) {
-        player.setDynamicProperty(CUBE_PROPERTY, true);
-      }
-      if (player.getDynamicProperty(RIDGE_PROPERTY) !== true && inTitanRidge(player)) {
-        player.setDynamicProperty(RIDGE_PROPERTY, true);
-      }
-      if (player.getDynamicProperty(CUBE_PROPERTY) !== true || player.getDynamicProperty(RIDGE_PROPERTY) !== true) continue;
-      player.setDynamicProperty(BLESSING_PROPERTY, true);
-      player.onScreenDisplay.setTitle("\xA7b\xA7lXeonnite Blessing", {
-        subtitle: "\xA77The Forge Troopers can now be wounded",
-        fadeInDuration: 10,
-        stayDuration: 60,
-        fadeOutDuration: 20
-      });
-      player.playSound("random.levelup");
-    } catch {
-    }
-  }
-}, 20);
-world9.beforeEvents.entityHurt.subscribe((acc) => {
-  const attacker = acc.damageSource.damagingEntity;
-  if (attacker?.typeId !== "minecraft:player") return;
-  const hurtEntity = acc.hurtEntity;
-  try {
-    if (!hurtEntity.getComponent("minecraft:type_family")?.hasTypeFamily(TITAN_RIDGE_FAMILY)) return;
-  } catch {
-    return;
-  }
-  const player = attacker;
-  if (isBlessed(player)) return;
-  acc.cancel = true;
   system15.run(() => {
-    try {
-      const { x, y, z } = hurtEntity.location;
-      hurtEntity.dimension.spawnParticle("ph:auric_light_flash", { x, y: y + 1.6, z });
-      player.onScreenDisplay.setActionBar("\xA77Requires the \xA7bXeonnite Blessing");
-    } catch {
+    for (const player of players) {
+      if (!player.isValid) continue;
+      resetPlayerProperties(player);
+      player.sendMessage("\xA7aYour Phantasm progress and settings were reset.");
     }
   });
-});
+  return { status: CustomCommandStatus.Success, message: `Reset ${players.length} player(s).` };
+}
 
 // data/scripts/features/mace/detection.ts
-import { world as world10, system as system16, EquipmentSlot as EquipmentSlot7, EntityDamageCause as EntityDamageCause5 } from "@minecraft/server";
+import { world as world10, system as system16, EquipmentSlot as EquipmentSlot7, EntityDamageCause as EntityDamageCause6 } from "@minecraft/server";
 
 // data/scripts/features/mace/manager.ts
 import { EntityEquippableComponent, EquipmentSlot as EquipmentSlot6 } from "@minecraft/server";
@@ -5190,7 +5440,7 @@ system16.runInterval(() => {
 import {
   world as world11,
   system as system17,
-  EntityDamageCause as EntityDamageCause6
+  EntityDamageCause as EntityDamageCause7
 } from "@minecraft/server";
 var TROOPER_ID = "ph:forge_trooper";
 var NERF_PROPERTY = "ph:forge_parry_nerf_until";
@@ -5202,29 +5452,38 @@ var VARIANT_AMBER = 2;
 var SWEEP_RADIUS = 3.2;
 var SWEEP_DAMAGE = 30;
 var SWEEP_HIT_TICK = 11;
-var SWEEP_COOLDOWN_MS = 6e3;
-var DASH_RANGE_MIN = 10;
-var DASH_RANGE_MAX = 14;
-var DASH_COOLDOWN_MS = 12e3;
 var SWEEP_ANIM_MS = 1250;
-var DASH_AIR_TICKS = 8;
-var DASH_PUSHES = 6;
-var DASH_IMPULSE = 0.35;
+var ATTACK_REACH = SWEEP_RADIUS + 0.8;
+var FLEE_MS = 3e3;
 var states2 = /* @__PURE__ */ new Map();
 function getState2(trooper) {
   let st = states2.get(trooper.id);
   if (!st) {
-    st = { sweepCd: 0, dashCd: 0, sweepingUntil: 0, dashPhase: 0 };
+    st = { phase: "chase", phaseUntil: 0 };
     states2.set(trooper.id, st);
-    return st;
+    setPhase(trooper, st, "chase", 0);
   }
   return st;
+}
+function setPhase(trooper, st, phase, durationMs) {
+  st.phase = phase;
+  st.phaseUntil = Date.now() + durationMs;
+  try {
+    trooper.triggerEvent(`ph:state_${phase}`);
+  } catch {
+  }
 }
 function forgetState(key) {
   states2.delete(key);
 }
 function variantOf(trooper) {
   return trooper.getComponent("minecraft:variant")?.value ?? 0;
+}
+var VARIANT_FX = ["gold", "plasma", "amber"];
+function playMove(trooper, move) {
+  trooper.playAnimation(`animation.forge_trooper.${move}`);
+  const variant = VARIANT_FX[variantOf(trooper)] ?? VARIANT_FX[VARIANT_GOLD];
+  trooper.playAnimation(`animation.forge_trooper.${move}_fx_${variant}`, { controller: "ph:forge_trooper_fx" });
 }
 function isNerfed(player) {
   try {
@@ -5277,7 +5536,7 @@ world11.beforeEvents.entityHurt.subscribe((acc) => {
     const trooper = hurtEntity;
     system17.run(() => {
       try {
-        trooper.playAnimation("animation.forge_trooper.parry");
+        playMove(trooper, "parry");
         const dim = trooper.dimension;
         dim.spawnParticle("ph:parry_prepare", {
           x: trooper.location.x,
@@ -5298,14 +5557,13 @@ world11.beforeEvents.entityHurt.subscribe((acc) => {
   }
 });
 function startSweep(trooper, st) {
-  st.sweepingUntil = Date.now() + SWEEP_ANIM_MS;
-  st.sweepCd = Date.now() + SWEEP_COOLDOWN_MS;
+  setPhase(trooper, st, "attack", SWEEP_ANIM_MS);
   try {
     trooper.clearVelocity();
     trooper.addEffect("slowness", Math.ceil(SWEEP_ANIM_MS / 50), { amplifier: 10, showParticles: false });
   } catch {
   }
-  trooper.playAnimation("animation.forge_trooper.sweep");
+  playMove(trooper, "sweep");
   const variant = variantOf(trooper);
   const radius = variant === VARIANT_PLASMA ? SWEEP_RADIUS + 1 : SWEEP_RADIUS;
   const damage = variant === VARIANT_AMBER ? SWEEP_DAMAGE + 3 : SWEEP_DAMAGE;
@@ -5320,58 +5578,12 @@ function startSweep(trooper, st) {
     for (const target of targets) {
       if (target.id === trooper.id || !isValidTarget2(target)) continue;
       target.applyDamage(damage, {
-        cause: EntityDamageCause6.entityAttack,
+        cause: EntityDamageCause7.entityAttack,
         damagingEntity: trooper
       });
     }
     trooper.dimension.playSound("weapon_slash.slash_heavy", location);
   }, SWEEP_HIT_TICK);
-}
-function startDash(trooper, st) {
-  st.dashCd = Date.now() + DASH_COOLDOWN_MS;
-  st.dashPhase = 1;
-  try {
-    trooper.playAnimation("animation.forge_trooper.dash");
-    trooper.applyImpulse({ x: 0, y: 0.9, z: 0 });
-  } catch {
-    st.dashPhase = 0;
-    return;
-  }
-  system17.runTimeout(() => {
-    if (!trooper.isValid) return;
-    st.dashPhase = 2;
-    let pushes = DASH_PUSHES;
-    const push = system17.runInterval(() => {
-      if (!trooper.isValid || pushes <= 0) {
-        system17.clearRun(push);
-        if (trooper.isValid) st.dashPhase = 0;
-        return;
-      }
-      const target = nearestTarget(trooper);
-      if (target === void 0) {
-        system17.clearRun(push);
-        st.dashPhase = 0;
-        return;
-      }
-      if (distanceBetween(trooper, target) <= SWEEP_RADIUS + 1.5) {
-        system17.clearRun(push);
-        st.dashPhase = 0;
-        startSweep(trooper, st);
-        return;
-      }
-      const dx = target.location.x - trooper.location.x;
-      const dz = target.location.z - trooper.location.z;
-      const flat = Math.sqrt(dx * dx + dz * dz) || 1;
-      try {
-        trooper.applyImpulse({ x: dx / flat * DASH_IMPULSE, y: 0, z: dz / flat * DASH_IMPULSE });
-      } catch {
-        system17.clearRun(push);
-        st.dashPhase = 0;
-        return;
-      }
-      pushes--;
-    }, 2);
-  }, DASH_AIR_TICKS);
 }
 system17.runInterval(() => {
   const now = Date.now();
@@ -5392,30 +5604,23 @@ system17.runInterval(() => {
   for (const trooper of troopers.values()) {
     if (!trooper.isValid) continue;
     const st = getState2(trooper);
-    if (now < st.sweepingUntil) continue;
-    const target = nearestTarget(trooper);
-    if (target === void 0) continue;
-    const dist = distanceBetween(trooper, target);
-    if (now < st.sweepCd && dist < 2.2 && dist > 0.01) {
-      const away = 0.08 / dist;
-      try {
-        trooper.applyImpulse({
-          x: (trooper.location.x - target.location.x) * away,
-          y: 0,
-          z: (trooper.location.z - target.location.z) * away
-        });
-      } catch {
+    switch (st.phase) {
+      case "chase": {
+        const target = nearestTarget(trooper);
+        if (target !== void 0 && distanceBetween(trooper, target) <= ATTACK_REACH) {
+          startSweep(trooper, st);
+        }
+        break;
       }
-    }
-    if (variantOf(trooper) === VARIANT_GOLD && st.dashPhase === 0 && now >= st.dashCd && dist >= DASH_RANGE_MIN && dist <= DASH_RANGE_MAX) {
-      startDash(trooper, st);
-      continue;
-    }
-    if (st.dashPhase === 0 && dist <= SWEEP_RADIUS + 0.8 && now >= st.sweepCd) {
-      startSweep(trooper, st);
+      case "attack":
+        if (now >= st.phaseUntil) setPhase(trooper, st, "flee", FLEE_MS);
+        break;
+      case "flee":
+        if (now >= st.phaseUntil) setPhase(trooper, st, "chase", 0);
+        break;
     }
   }
-}, 10);
+}, 4);
 world11.afterEvents.entityDie.subscribe(({ deadEntity, damageSource }) => {
   if (deadEntity?.typeId !== TROOPER_ID) return;
   forgetState(deadEntity.id);

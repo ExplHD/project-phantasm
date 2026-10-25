@@ -1,6 +1,7 @@
 import { world, system, ItemStack } from '@minecraft/server'
 import { addScore } from '../core/scoreboard'
 import { getAccessoryItems } from '../core/player'
+import { summonOwned } from '../core/summons'
 import * as Phantasm from '../core/constants'
 
 const ARMOUR_SLOTS = ["Head", "Chest", "Legs", "Feet", "Offhand"];
@@ -39,7 +40,7 @@ const accessoryRegistry: Record<string, Record<string, (player: any, event: any,
                 const randomChance = Math.floor(Math.random() * 101);
                 const { x, y, z } = player.location;
                 if (randomChance < 26) {
-                    player.runCommand(`summon ph:crimson_laser ${x + -15 + Math.floor(Math.random() * 30)} ~ ${z + -15 + Math.floor(Math.random() * 30)} facing @n`);
+                    summonOwned(player, `summon ph:crimson_laser ${x + -15 + Math.floor(Math.random() * 30)} ~ ${z + -15 + Math.floor(Math.random() * 30)} facing @n`);
                 }
             })
         },
@@ -47,7 +48,7 @@ const accessoryRegistry: Record<string, Record<string, (player: any, event: any,
             const randomChance = Math.floor(Math.random() * 101);
             const { x, y, z } = hitTarget.location;
             if (randomChance < 26) {
-                hitTarget.runCommand(`summon ph:crimson_laser ${x + -15 + Math.floor(Math.random() * 30)} ~ ${z + -15 + Math.floor(Math.random() * 30)} facing @n`);
+                summonOwned(player, `summon ph:crimson_laser ${x + -15 + Math.floor(Math.random() * 30)} ~ ${z + -15 + Math.floor(Math.random() * 30)} facing @n`, hitTarget);
             }
         }
     },

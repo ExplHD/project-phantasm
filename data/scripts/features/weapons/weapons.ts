@@ -2,6 +2,7 @@ import { WeaponHandler, SkillSwitcher, CommandHandler, applyCustomDamage } from 
 /* [UNUSED] import { weaponSkills } from './weaponSkills' — weapon skills are wired
    directly in events/index.ts (itemUse), not here. */
 import { addScore, getScore, removeScore } from '../../core/scoreboard'
+import { summonOwned } from '../../core/summons'
 
 /* --------------------------------------------------------------------------------------------------------------------------------------------------------
             Weapons Runtime
@@ -14,7 +15,7 @@ const solarisVerdant = new WeaponHandler("ph:solaris_verdant", "solaris_verdant_
         delay: 8, damage: 23, radius: 3.9, animation: "animation.solaris_verdant.attack_3", sound: "weapon_slash.slash_heavy", action: new CommandHandler([
             {
                 delay: 8, action: (src) => {
-                    src.runCommand("summon ph:solaris_slash ^^3^5.5 ~ 0");
+                    summonOwned(src, "summon ph:solaris_slash ^^3^5.5 ~ 0");
                     if (getScore(src, "solaris_verdant_s3") > 2) {
                         removeScore(src, "solaris_verdant_s3", 3);
                     }
@@ -45,8 +46,8 @@ const superchargedCopperAxe = new WeaponHandler("ph:supercharged_copper_axe", "s
                     src.dimension.spawnParticle("ph:lightning_flash", src.location);
                     src.dimension.spawnParticle("ph:lightning_sparks", src.location);
                     applyCustomDamage(src, 31, 4.5);
-                    src.runCommand('summon lightning_bolt ~~~5 ~ 0');
-                    src.runCommand('summon lightning_bolt ~~~-5 ~ 0');
+                    summonOwned(src, 'summon lightning_bolt ~~~5 ~ 0');
+                    summonOwned(src, 'summon lightning_bolt ~~~-5 ~ 0');
                     src.runCommand('particle ph:lightning_sparks ~~~5');
                     src.runCommand('particle ph:lightning_sparks ~~~-5');
                 }
@@ -55,8 +56,8 @@ const superchargedCopperAxe = new WeaponHandler("ph:supercharged_copper_axe", "s
                 delay: 2, action: (src) => {
                     src.dimension.playSound("weapon_slash.slash_heavy", src.location);
                     applyCustomDamage(src, 31, 4.5);
-                    src.runCommand('summon lightning_bolt ~5~~ ~ 0');
-                    src.runCommand('summon lightning_bolt ~-5~~ ~ 0');
+                    summonOwned(src, 'summon lightning_bolt ~5~~ ~ 0');
+                    summonOwned(src, 'summon lightning_bolt ~-5~~ ~ 0');
                     src.runCommand('particle ph:lightning_sparks ~5~~');
                     src.runCommand('particle ph:lightning_sparks ~-5~~');
                     WeaponHandler.addScore(src, "supercharged_copper_axe_s3", 1);
@@ -79,7 +80,7 @@ const prismWeaver = new WeaponHandler("ph:prism_weaver", "prism_weaver_atk", [20
         delay: 4, damage: 17, radius: 2, animation: "animation.prism_weaver.attack_1", sound: "weapon_slash.magic_staff", action: new CommandHandler([
             {
                 delay: 0, action: (src) => {
-                    src.runCommand("summon ph:prism_weaver_laser ~-2~1~ facing @e[c=1,rm=2.5,family=!inanimate,type=!item]")
+                    summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~ facing @e[c=1,rm=2.5,family=!inanimate,type=!item]")
                 }
             }
         ])
@@ -88,7 +89,7 @@ const prismWeaver = new WeaponHandler("ph:prism_weaver", "prism_weaver_atk", [20
         delay: 8, damage: 17, radius: 2, animation: "animation.prism_weaver.attack_2", sound: "weapon_slash.magic_staff", action: new CommandHandler([
             {
                 delay: 0, action: (src) => {
-                    src.runCommand("summon ph:prism_weaver_laser ~2~1~ facing @e[c=1,rm=2.5,family=!inanimate,type=!item]")
+                    summonOwned(src, "summon ph:prism_weaver_laser ~2~1~ facing @e[c=1,rm=2.5,family=!inanimate,type=!item]")
                 }
             }
         ])
@@ -97,10 +98,10 @@ const prismWeaver = new WeaponHandler("ph:prism_weaver", "prism_weaver_atk", [20
         delay: 8, damage: 18, radius: 6, animation: "animation.prism_weaver.attack_3", sound: "weapon_slash.magic_staff", action: new CommandHandler([
             {
                 delay: 0, action: (src) => {
-                    src.runCommand("summon ph:prism_weaver_laser ~2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    src.runCommand("summon ph:prism_weaver_laser ~-2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    src.runCommand("summon ph:prism_weaver_laser ~2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    src.runCommand("summon ph:prism_weaver_laser ~-2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+                    summonOwned(src, "summon ph:prism_weaver_laser ~2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+                    summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+                    summonOwned(src, "summon ph:prism_weaver_laser ~2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+                    summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
                 }
             }
         ])
@@ -179,7 +180,7 @@ const seiketsu = new WeaponHandler("ph:seiketsu", "seiketsu_atk", [9, 9, 9], [
                     })
 
                     entities.forEach(entity => {
-                        entity.runCommand('summon lightning_bolt ~~~ ~ 0');
+                        summonOwned(src, 'summon lightning_bolt ~~~ ~ 0', entity);
                         entity.runCommand('particle ph:lightning_sparks ~~~');
                         entity.setOnFire(7, false);
                     })

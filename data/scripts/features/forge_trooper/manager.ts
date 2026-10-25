@@ -11,8 +11,10 @@ import { isBlessed } from "../../systems/xeonniteBlessing";
 // ======================================== Forge Trooper ========================================
 // Close-range mob with a codex: every blessed player hit risks a parry (unblessed
 // players cannot damage it at all, see systems/xeonniteBlessing.ts), and it fights
-// with a grounded 360-degree sweep. Gold variants additionally leap-dash toward far
-// targets and re-sweep on landing.
+// with a grounded 360-degree sweep.
+// Loop: chase the target -> sweep once in reach -> flee for 3s -> chase again.
+// The script owns the phase; the BP component groups (ph:chase / ph:attack / ph:flee)
+// own the movement, so the two never fight over where the mob walks.
 // It hunts players and every other mob, but never its own Titan Ridge faction.
 
 const TROOPER_ID = "ph:forge_trooper";
@@ -28,25 +30,17 @@ const VARIANT_AMBER = 2;
 const SWEEP_RADIUS = 3.2;
 const SWEEP_DAMAGE = 30;
 const SWEEP_HIT_TICK = 11; // the blade crosses the front of the spin at ~0.55s into the 1.25s animation
-const SWEEP_COOLDOWN_MS = 6000;
-
-const DASH_RANGE_MIN = 10;
-const DASH_RANGE_MAX = 14;
-const DASH_COOLDOWN_MS = 12000;
-
 const SWEEP_ANIM_MS = 1250;
-const DASH_AIR_TICKS = 8; // rise time after the jump impulse before pushing forward
-const DASH_PUSHES = 6; // forward re-impulses, one every 2 ticks
-const DASH_IMPULSE = 0.35;
+const ATTACK_REACH = SWEEP_RADIUS + 0.8; // start swinging slightly before the target is inside the blade
+
+const FLEE_MS = 3000;
+
+type Phase = "chase" | "attack" | "flee";
 
 interface TrooperState {
-	/** Armed cooldowns, compared against Date.now(). */
-	sweepCd: number;
-	dashCd: number;
-	/** Active sweep animation window; no new decisions while it plays. */
-	sweepingUntil: number;
-	/** Dash phase: 0 idle, 1 rising, 2 pushing forward. */
-	dashPhase: number;
+	phase: Phase;
+	/** When the current attack or flee phase ends, compared against Date.now(). */
+	phaseUntil: number;
 }
 
 const states = new Map<string, TrooperState>();
@@ -54,11 +48,23 @@ const states = new Map<string, TrooperState>();
 function getState(trooper: Entity): TrooperState {
 	let st = states.get(trooper.id);
 	if (!st) {
-		st = { sweepCd: 0, dashCd: 0, sweepingUntil: 0, dashPhase: 0 };
+		st = { phase: "chase", phaseUntil: 0 };
 		states.set(trooper.id, st);
-		return st;
+		// Fresh state after a reload or for a trooper spawned before the loop existed:
+		// force the BP groups to match instead of trusting whatever was saved.
+		setPhase(trooper, st, "chase", 0);
 	}
 	return st;
+}
+
+function setPhase(trooper: Entity, st: TrooperState, phase: Phase, durationMs: number): void {
+	st.phase = phase;
+	st.phaseUntil = Date.now() + durationMs;
+	try {
+		trooper.triggerEvent(`ph:state_${phase}`);
+	} catch {
+		// The trooper can unload between the decision and the event.
+	}
 }
 
 function forgetState(key: string): void {
@@ -67,6 +73,17 @@ function forgetState(key: string): void {
 
 function variantOf(trooper: Entity): number {
 	return trooper.getComponent("minecraft:variant")?.value ?? 0;
+}
+
+const VARIANT_FX = ["gold", "plasma", "amber"];
+
+// Plays a move with its variant-coloured particles. The particles live in a separate
+// *_fx_<variant> animation on its own controller so both run side by side; particles
+// can't read q.variant themselves, so the script picks the coloured set.
+function playMove(trooper: Entity, move: string): void {
+	trooper.playAnimation(`animation.forge_trooper.${move}`);
+	const variant = VARIANT_FX[variantOf(trooper)] ?? VARIANT_FX[VARIANT_GOLD];
+	trooper.playAnimation(`animation.forge_trooper.${move}_fx_${variant}`, { controller: "ph:forge_trooper_fx" });
 }
 
 // The parry debuff: while active, everything the player touches takes zero damage.
@@ -139,7 +156,7 @@ world.beforeEvents.entityHurt.subscribe((acc: EntityHurtBeforeEvent) => {
 		const trooper = hurtEntity;
 		system.run(() => {
 			try {
-				trooper.playAnimation("animation.forge_trooper.parry");
+				playMove(trooper, "parry");
 				const dim = trooper.dimension;
 				dim.spawnParticle("ph:parry_prepare", {
 					x: trooper.location.x,
@@ -163,10 +180,9 @@ world.beforeEvents.entityHurt.subscribe((acc: EntityHurtBeforeEvent) => {
 	// Scaling acc.damage here as well would stack it to 36%.
 });
 
-// The sweep: stop motion, play the spin, then pulse the AoE at the hit frame.
+// The sweep: plant the feet, play the spin, then pulse the AoE at the hit frame.
 function startSweep(trooper: Entity, st: TrooperState): void {
-	st.sweepingUntil = Date.now() + SWEEP_ANIM_MS;
-	st.sweepCd = Date.now() + SWEEP_COOLDOWN_MS;
+	setPhase(trooper, st, "attack", SWEEP_ANIM_MS);
 
 	try {
 		trooper.clearVelocity();
@@ -175,7 +191,7 @@ function startSweep(trooper: Entity, st: TrooperState): void {
 	} catch {
 		// clearVelocity can throw right before dimension swaps.
 	}
-	trooper.playAnimation("animation.forge_trooper.sweep");
+	playMove(trooper, "sweep");
 
 	const variant = variantOf(trooper);
 	const radius = variant === VARIANT_PLASMA ? SWEEP_RADIUS + 1 : SWEEP_RADIUS;
@@ -203,65 +219,7 @@ function startSweep(trooper: Entity, st: TrooperState): void {
 	}, SWEEP_HIT_TICK);
 }
 
-// Gold-only approach: leap toward the target, then a short ground-parallel dash,
-// then the sweep. The dash keeps horizontal impulses small and frequent so the
-// arc stays readable instead of launching the trooper like a missile.
-function startDash(trooper: Entity, st: TrooperState): void {
-	st.dashCd = Date.now() + DASH_COOLDOWN_MS;
-	st.dashPhase = 1;
-
-	try {
-		trooper.playAnimation("animation.forge_trooper.dash");
-		trooper.applyImpulse({ x: 0, y: 0.9, z: 0 });
-	} catch {
-		st.dashPhase = 0;
-		return;
-	}
-
-	system.runTimeout(() => {
-		if (!trooper.isValid) return;
-		st.dashPhase = 2;
-
-		let pushes = DASH_PUSHES;
-		const push = system.runInterval(() => {
-			if (!trooper.isValid || pushes <= 0) {
-				system.clearRun(push);
-				if (trooper.isValid) st.dashPhase = 0;
-				return;
-			}
-
-			const target = nearestTarget(trooper);
-			if (target === undefined) {
-				system.clearRun(push);
-				st.dashPhase = 0;
-				return;
-			}
-
-			// A player inside sweep reach from the dash: finish the combo now.
-			if (distanceBetween(trooper, target) <= SWEEP_RADIUS + 1.5) {
-				system.clearRun(push);
-				st.dashPhase = 0;
-				startSweep(trooper, st);
-				return;
-			}
-
-			const dx = target.location.x - trooper.location.x;
-			const dz = target.location.z - trooper.location.z;
-			const flat = Math.sqrt(dx * dx + dz * dz) || 1;
-			try {
-				trooper.applyImpulse({ x: (dx / flat) * DASH_IMPULSE, y: 0, z: (dz / flat) * DASH_IMPULSE });
-			} catch {
-				system.clearRun(push);
-				st.dashPhase = 0;
-				return;
-			}
-
-			pushes--;
-		}, 2);
-	}, DASH_AIR_TICKS);
-}
-
-// Driver tick: 0.5s cadence is enough for approach decisions and cooldowns.
+// Driver tick: 4-tick cadence so the sweep starts as soon as the target is in reach.
 // Troopers are gathered around players so only loaded, relevant ones run.
 system.runInterval(() => {
 	const now = Date.now();
@@ -283,47 +241,26 @@ system.runInterval(() => {
 
 	for (const trooper of troopers.values()) {
 		if (!trooper.isValid) continue;
-
 		const st = getState(trooper);
-		if (now < st.sweepingUntil) continue;
 
-		const target = nearestTarget(trooper);
-		if (target === undefined) continue;
-		const dist = distanceBetween(trooper, target);
-
-		// Backing off while the sweep is on cooldown keeps the mob out of
-		// shove range without a stop-and-stare cooldown stand.
-		if (now < st.sweepCd && dist < 2.2 && dist > 0.01) {
-			const away = 0.08 / dist;
-			try {
-				trooper.applyImpulse({
-					x: (trooper.location.x - target.location.x) * away,
-					y: 0,
-					z: (trooper.location.z - target.location.z) * away
-				});
-			} catch {
-				// Pushing is best effort.
+		switch (st.phase) {
+			case "chase": {
+				// BP melee_box_attack does the pathing; the script only decides when to swing.
+				const target = nearestTarget(trooper);
+				if (target !== undefined && distanceBetween(trooper, target) <= ATTACK_REACH) {
+					startSweep(trooper, st);
+				}
+				break;
 			}
-		}
-
-		// Gold variant leap-dash at 10-14 blocks; ends in a sweep.
-		if (
-			variantOf(trooper) === VARIANT_GOLD &&
-			st.dashPhase === 0 &&
-			now >= st.dashCd &&
-			dist >= DASH_RANGE_MIN &&
-			dist <= DASH_RANGE_MAX
-		) {
-			startDash(trooper, st);
-			continue;
-		}
-
-		// Close enough: sweep (never mid-dash; the dash triggers its own).
-		if (st.dashPhase === 0 && dist <= SWEEP_RADIUS + 0.8 && now >= st.sweepCd) {
-			startSweep(trooper, st);
+			case "attack":
+				if (now >= st.phaseUntil) setPhase(trooper, st, "flee", FLEE_MS);
+				break;
+			case "flee":
+				if (now >= st.phaseUntil) setPhase(trooper, st, "chase", 0);
+				break;
 		}
 	}
-}, 10);
+}, 4);
 
 world.afterEvents.entityDie.subscribe(({ deadEntity, damageSource }) => {
 	if (deadEntity?.typeId !== TROOPER_ID) return;

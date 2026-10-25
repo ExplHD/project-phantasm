@@ -1,11 +1,12 @@
-import { /* [UNUSED] world */ system, CommandPermissionLevel, CustomCommandStatus, MolangVariableMap, ItemStack } from '@minecraft/server'
+import { /* [UNUSED] world */ system, CommandPermissionLevel, CustomCommandStatus, CustomCommandParamType, MolangVariableMap, ItemStack, Player } from '@minecraft/server'
 import { setScore, getScore, addScore, removeScore } from '../../core/scoreboard'
 import { unstuckPlayer } from '../../core/player'
 import { applyDurabilityDamage } from '../../core/items'
+import { summonOwned } from '../../core/summons'
 import { skillUnlock, propertiesCheck } from '../../ui/forms/skillUnlock'
 import { openSettings } from '../../ui/forms/settingsForm'
 import { mainGuideScreen } from '../../ui/guide/main_guide'
-import openDynamicPropertyMenu from '../../ui/forms/dynamicProperties'
+import openDynamicPropertyMenu, { resetPlayerProperties } from '../../ui/forms/dynamicProperties'
 
 // ======================================== Boss Spawn Placement ========================================
 // The Copper Mechanical Array is 1x3.6 and the Ancient Copper Core is a 5x5 ritual ring with
@@ -84,7 +85,7 @@ system.beforeEvents.startup.subscribe((initEvent: any) => {
             if (itemStack.typeId === "ph:charged_copper_axe") {
                 system.runTimeout(() => {
                     if (getScore(source, "charged_copper_axe") == 100) {
-                        hitEntity.runCommand('summon lightning_bolt')
+                        summonOwned(source, 'summon lightning_bolt', hitEntity)
                     } let calculatedDamage = 10 + (getScore(source, "charged_copper_axe") / 10)
                     hitEntity.applyDamage(calculatedDamage)
                     setScore(source, "charged_copper_axe", 0)
@@ -102,8 +103,8 @@ system.beforeEvents.startup.subscribe((initEvent: any) => {
                     player.dimension.spawnParticle("ph:lightning_flash", player.location);
                     player.dimension.spawnParticle("ph:lightning_sparks", player.location);
                     player.runCommand(`damage @e[type=!item,family=!inanimate,rm=0.1,r=4] 18 entity_attack entity "${player.name}"`);
-                    player.runCommand('summon lightning_bolt ^^^5 ~ 0');
-                    player.runCommand('summon lightning_bolt ^^^10 ~ 0');
+                    summonOwned(player, 'summon lightning_bolt ^^^5 ~ 0');
+                    summonOwned(player, 'summon lightning_bolt ^^^10 ~ 0');
                     player.runCommand('particle ph:lightning_sparks ^^^5');
                     player.runCommand('particle ph:lightning_sparks ^^^10');
                 }, 8)
@@ -274,10 +275,10 @@ system.beforeEvents.startup.subscribe((initEvent: any) => {
                 oceanic_attack: () => {
                     player.startItemCooldown("nature_staff", 50);
 
-                    player.runCommand("summon ph:ocean_crystal_wave ~~~5 0 0");
-                    player.runCommand("summon ph:ocean_crystal_wave ~-5~~ 90 0");
-                    player.runCommand("summon ph:ocean_crystal_wave ~~~-5 180 0");
-                    player.runCommand("summon ph:ocean_crystal_wave ~5~~ 270 0");
+                    summonOwned(player, "summon ph:ocean_crystal_wave ~~~5 0 0");
+                    summonOwned(player, "summon ph:ocean_crystal_wave ~-5~~ 90 0");
+                    summonOwned(player, "summon ph:ocean_crystal_wave ~~~-5 180 0");
+                    summonOwned(player, "summon ph:ocean_crystal_wave ~5~~ 270 0");
 
                     player.runCommand(
                         `playsound ${soundEffect} @a[r=24] ~~~ 1 1 0.3`
@@ -847,9 +848,10 @@ system.beforeEvents.startup.subscribe((initEvent: any) => {
 
 	initEvent.customCommandRegistry.registerCommand({
 		name: "ph:cleardynamicproperties",
-		description: "Reset all of your dynamic properties",
+		description: "Reset every Phantasm property (upgrades, blessing, controls) to a fresh start",
 		cheatsRequired: true,
-		permissionLevel: CommandPermissionLevel.GameDirectors
+		permissionLevel: CommandPermissionLevel.GameDirectors,
+		optionalParameters: [{ name: "target", type: CustomCommandParamType.PlayerSelector }]
 	}, clearDynamicProperty);
 
 	initEvent.customCommandRegistry.registerCommand({
@@ -916,9 +918,18 @@ function openProperties({ sourceEntity: player }: any) {
     return { status: CustomCommandStatus.Success };
 }
 
-function clearDynamicProperty({ sourceEntity: player }: any) {
+// Defaults to the player running it; the optional target also makes it usable from the console.
+function clearDynamicProperty({ sourceEntity }: any, targets?: Player[]) {
+    const players = targets ?? (sourceEntity?.typeId === "minecraft:player" ? [sourceEntity as Player] : []);
+    if (players.length === 0) {
+        return { status: CustomCommandStatus.Failure, message: "No player to reset. Run it as a player or pass a target." };
+    }
     system.run(() => {
-        player.clearDynamicProperties()
+        for (const player of players) {
+            if (!player.isValid) continue;
+            resetPlayerProperties(player);
+            player.sendMessage("§aYour Phantasm progress and settings were reset.");
+        }
     })
-    return { status: CustomCommandStatus.Success };
+    return { status: CustomCommandStatus.Success, message: `Reset ${players.length} player(s).` };
 }
