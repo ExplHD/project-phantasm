@@ -21,6 +21,54 @@
 					]
 				}
 			},
+			// Behavior loop, driven by features/forge_trooper/manager.ts:
+			// chase -> attack (sweep) -> flee for 3s -> chase. Exactly one of these groups is active.
+			"ph:chase": {
+				// Pathfinding chase only. The real hit is the scripted sweep, which fires well
+				// outside melee reach, so the vanilla swing is zeroed and given no extra reach.
+				"minecraft:attack": {
+					"damage": 0
+				},
+				"minecraft:behavior.melee_box_attack": {
+					"priority": 3,
+					"speed_multiplier": 1.15,
+					"track_target": true,
+					"horizontal_reach": 0
+				}
+			},
+			"ph:attack": {
+				// Planted for the sweep: no movement goal at all while it swings.
+				"minecraft:behavior.look_at_target": {
+					"priority": 3,
+					"look_distance": 10.0
+				}
+			},
+			"ph:flee": {
+				"minecraft:behavior.avoid_mob_type": {
+					"priority": 1,
+					"max_dist": 14,
+					"max_flee": 14,
+					"walk_speed_multiplier": 1.2,
+					"sprint_speed_multiplier": 1.35,
+					"ignore_visibility": true,
+					"entity_types": [
+						{
+							"filters": {
+								"any_of": [
+									{ "test": "is_family", "subject": "other", "value": "player" },
+									{
+										"all_of": [
+											{ "test": "is_family", "subject": "other", "value": "mob" },
+											{ "test": "is_family", "subject": "other", "operator": "!=", "value": "titan_ridge" }
+										]
+									}
+								]
+							},
+							"max_dist": 14
+						}
+					]
+				}
+			},
 			"ph:variant_gold": {
 				"minecraft:variant": {
 					"value": 0
@@ -76,9 +124,10 @@
 			"minecraft:movement.basic": {
 				"max_turn": 30
 			},
-			// 8-block leap. jump_power 1 ≈ 7-8 blocks up (vanilla baseline is 0.42 ≈ 1.25 blocks).
+			// Plain step-up jump. The old 8-block leap (jump_power 1) fired on every pathing
+			// jump and kept throwing the trooper into the air.
 			"minecraft:jump.static": {
-				"jump_power": 1
+				"jump_power": 0.5
 			},
 			"minecraft:physics": {
 				"has_gravity": true,
@@ -164,10 +213,6 @@
 					"filters": { "test": "is_family", "subject": "other", "operator": "!=", "value": "titan_ridge" }
 				}
 			},
-			"minecraft:behavior.move_towards_target": {
-				"priority": 3,
-				"speed_multiplier": 1.0
-			},
 			"minecraft:behavior.look_at_target": {
 				"priority": 4,
 				"look_distance": 10.0
@@ -204,10 +249,23 @@
 					}
 				]
 			},
+			"ph:state_chase": {
+				"remove": { "component_groups": ["ph:attack", "ph:flee"] },
+				"add": { "component_groups": ["ph:chase"] }
+			},
+			"ph:state_attack": {
+				"remove": { "component_groups": ["ph:chase", "ph:flee"] },
+				"add": { "component_groups": ["ph:attack"] }
+			},
+			"ph:state_flee": {
+				"remove": { "component_groups": ["ph:chase", "ph:attack"] },
+				"add": { "component_groups": ["ph:flee"] }
+			},
 			"ph:spawn_gold": {
 				"add": {
 					"component_groups": [
 						"ph:base_state",
+						"ph:chase",
 						"ph:variant_gold"
 					]
 				}
@@ -216,6 +274,7 @@
 				"add": {
 					"component_groups": [
 						"ph:base_state",
+						"ph:chase",
 						"ph:variant_plasma"
 					]
 				}
@@ -224,6 +283,7 @@
 				"add": {
 					"component_groups": [
 						"ph:base_state",
+						"ph:chase",
 						"ph:variant_amber"
 					]
 				}

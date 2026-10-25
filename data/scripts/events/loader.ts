@@ -1,6 +1,7 @@
 import { world, system, ItemStack, Player } from '@minecraft/server'
 import { addScore, setScore } from '../core/scoreboard'
 import { runUntilMoved, unstuckPlayer } from '../core/player'
+import { applyPropertyDefaults } from '../core/playerProperties'
 
 const objectives: string[] = [
     // System Scoreboard
@@ -102,26 +103,10 @@ export function onPlayerSpawn(player: Player, initialSpawn: boolean): void {
     if (playerInput == "Touch") {
         player.sendMessage("§eTouch controls? Joystick + Crosshair with the Action Button enabled makes weapons easier to use");
     }
-    const properties: string[] = [
-        "ph:dash_level",
-        "ph:health_level",
-		"ph:plunge_unlock",
-        "ph:guidebook_acquired",
-        "ph:dash_control",
-        "ph:skill_switch_control"
-    ]
-    for (const property of properties) {
-        if (player.getDynamicProperty(property) === undefined) {
-            system.runTimeout(() => {
-                player.setDynamicProperty("ph:dash_level", 0);
-                player.setDynamicProperty("ph:health_level", 0);
-				player.setDynamicProperty("ph:plunge_unlock", false);
-				player.setDynamicProperty("ph:guidebook_acquired", true);
-				player.setDynamicProperty("ph:dash_control", 0);
-				player.setDynamicProperty("ph:skill_switch_control", 0);
-            }, 20)
-        }
-    }
+    // Only fills in what's missing; existing progress is never overwritten.
+    system.runTimeout(() => {
+        if (player.isValid) applyPropertyDefaults(player);
+    }, 20)
     for (const objective of objectives) {
         addScore(player, objective, 0)
     }

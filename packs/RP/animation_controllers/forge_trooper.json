@@ -5,40 +5,274 @@
 			"initial_state": "default",
 			"states": {
 				"default": {
-					"animations": ["idle"],
+					"animations": [
+						"idle"
+					],
+					"blend_transition": 0.2,
 					"transitions": [
-						{ "walk": "q.is_moving && q.is_on_ground" },
-						{ "air_takeoff": "!q.is_on_ground && q.vertical_speed >= 0" },
-						{ "air_descent": "!q.is_on_ground && q.vertical_speed < 0" }
+						{
+							"walk": "q.is_moving && q.is_on_ground"
+						},
+						{
+							"air_takeoff": "!q.is_on_ground && q.vertical_speed >= 0"
+						},
+						{
+							"air_descent": "!q.is_on_ground && q.vertical_speed < 0"
+						}
 					]
 				},
 				"walk": {
-					"animations": ["walk"],
+					"animations": [
+						"walk"
+					],
+					"blend_transition": 0.2,
 					"transitions": [
-						{ "default": "!q.is_moving && q.is_on_ground" },
-						{ "air_takeoff": "!q.is_on_ground && q.vertical_speed >= 0" },
-						{ "air_descent": "!q.is_on_ground && q.vertical_speed < 0" }
+						{
+							"default": "!q.is_moving && q.is_on_ground"
+						},
+						{
+							"air_takeoff": "!q.is_on_ground && q.vertical_speed >= 0"
+						},
+						{
+							"air_descent": "!q.is_on_ground && q.vertical_speed < 0"
+						}
 					]
 				},
 				"air_takeoff": {
-					"animations": ["jump"],
-					"particle_effects": [
-						{ "effect": "forge_thruster_jet", "locator": "leftThruster" },
-						{ "effect": "forge_thruster_jet", "locator": "rightThruster" }
+					"animations": [
+						"jump"
 					],
+					"blend_transition": 0.1,
 					"transitions": [
-						{ "air_descent": "q.vertical_speed < 0" },
-						{ "default": "q.is_on_ground" }
+						{
+							"air_descent": "q.vertical_speed < 0"
+						},
+						{
+							"default": "q.is_on_ground"
+						}
 					]
 				},
 				"air_descent": {
-					"animations": ["slow_landing"],
-					"particle_effects": [
-						{ "effect": "forge_thruster_jet", "locator": "leftThruster" },
-						{ "effect": "forge_thruster_jet", "locator": "rightThruster" }
+					"animations": [
+						"slow_landing"
+					],
+					"blend_transition": 0.3,
+					"transitions": [
+						{
+							"land": "q.is_on_ground"
+						}
+					]
+				},
+				"land": {
+					"animations": [
+						"land"
 					],
 					"transitions": [
-						{ "default": "q.is_on_ground" }
+						{
+							"air_takeoff": "!q.is_on_ground && q.vertical_speed > 0"
+						},
+						{
+							"walk": "q.all_animations_finished && q.is_moving"
+						},
+						{
+							"default": "q.all_animations_finished"
+						}
+					]
+				}
+			}
+		},
+		"controller.animation.forge_trooper.jets": {
+			"initial_state": "ground_gold",
+			"states": {
+				"ground_gold": {
+					"transitions": [
+						{
+							"ground_plasma": "q.variant == 1"
+						},
+						{
+							"ground_amber": "q.variant == 2"
+						},
+						{
+							"air_gold": "!q.is_on_ground"
+						}
+					]
+				},
+				"air_gold": {
+					"particle_effects": [
+						{
+							"effect": "forge_thruster_gold",
+							"locator": "left_thruster"
+						},
+						{
+							"effect": "forge_thruster_gold",
+							"locator": "right_thruster"
+						},
+						{
+							"effect": "forge_thruster_jet_gold",
+							"locator": "left_thruster"
+						},
+						{
+							"effect": "forge_thruster_jet_gold",
+							"locator": "right_thruster"
+						},
+						{
+							"effect": "forge_thruster_smoke",
+							"locator": "left_thruster"
+						},
+						{
+							"effect": "forge_thruster_smoke",
+							"locator": "right_thruster"
+						}
+					],
+					"transitions": [
+						{
+							"ground_gold": "q.is_on_ground"
+						}
+					]
+				},
+				"ground_plasma": {
+					"transitions": [
+						{
+							"ground_gold": "q.variant != 1 && q.variant != 2"
+						},
+						{
+							"ground_amber": "q.variant == 2"
+						},
+						{
+							"air_plasma": "!q.is_on_ground"
+						}
+					]
+				},
+				"air_plasma": {
+					"particle_effects": [
+						{
+							"effect": "forge_thruster_plasma",
+							"locator": "left_thruster"
+						},
+						{
+							"effect": "forge_thruster_plasma",
+							"locator": "right_thruster"
+						},
+						{
+							"effect": "forge_thruster_jet_plasma",
+							"locator": "left_thruster"
+						},
+						{
+							"effect": "forge_thruster_jet_plasma",
+							"locator": "right_thruster"
+						},
+						{
+							"effect": "forge_thruster_smoke",
+							"locator": "left_thruster"
+						},
+						{
+							"effect": "forge_thruster_smoke",
+							"locator": "right_thruster"
+						}
+					],
+					"transitions": [
+						{
+							"ground_plasma": "q.is_on_ground"
+						}
+					]
+				},
+				"ground_amber": {
+					"transitions": [
+						{
+							"ground_gold": "q.variant != 1 && q.variant != 2"
+						},
+						{
+							"ground_plasma": "q.variant == 1"
+						},
+						{
+							"air_amber": "!q.is_on_ground"
+						}
+					]
+				},
+				"air_amber": {
+					"particle_effects": [
+						{
+							"effect": "forge_thruster_amber",
+							"locator": "left_thruster"
+						},
+						{
+							"effect": "forge_thruster_amber",
+							"locator": "right_thruster"
+						},
+						{
+							"effect": "forge_thruster_jet_amber",
+							"locator": "left_thruster"
+						},
+						{
+							"effect": "forge_thruster_jet_amber",
+							"locator": "right_thruster"
+						},
+						{
+							"effect": "forge_thruster_smoke",
+							"locator": "left_thruster"
+						},
+						{
+							"effect": "forge_thruster_smoke",
+							"locator": "right_thruster"
+						}
+					],
+					"transitions": [
+						{
+							"ground_amber": "q.is_on_ground"
+						}
+					]
+				}
+			}
+		},
+		"controller.animation.forge_trooper.core": {
+			"initial_state": "gold",
+			"states": {
+				"gold": {
+					"particle_effects": [
+						{
+							"effect": "forge_reactor_glow_gold",
+							"locator": "reactor_core"
+						}
+					],
+					"transitions": [
+						{
+							"plasma": "q.variant == 1"
+						},
+						{
+							"amber": "q.variant == 2"
+						}
+					]
+				},
+				"plasma": {
+					"particle_effects": [
+						{
+							"effect": "forge_reactor_glow_plasma",
+							"locator": "reactor_core"
+						}
+					],
+					"transitions": [
+						{
+							"gold": "q.variant != 1 && q.variant != 2"
+						},
+						{
+							"amber": "q.variant == 2"
+						}
+					]
+				},
+				"amber": {
+					"particle_effects": [
+						{
+							"effect": "forge_reactor_glow_amber",
+							"locator": "reactor_core"
+						}
+					],
+					"transitions": [
+						{
+							"gold": "q.variant != 1 && q.variant != 2"
+						},
+						{
+							"plasma": "q.variant == 1"
+						}
 					]
 				}
 			}

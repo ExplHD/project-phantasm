@@ -15,7 +15,7 @@
 					"name": "root",
 					"pivot": [0, 0, 0],
 					"locators": {
-						"slashCenter": [0, 16, 0]
+						"slash_center": [0, 16, 0]
 					}
 				},
 				{
@@ -147,7 +147,10 @@
 								"down": {"uv": [67, 53], "uv_size": [-2, -1]}
 							}
 						}
-					]
+					],
+					"locators": {
+						"reactor_core": [0, 24, -4.2]
+					}
 				},
 				{
 					"name": "head",
@@ -283,8 +286,8 @@
 						}
 					],
 					"locators": {
-						"sweepBladeTip": [-7.5, 15.5, -25],
-						"parryGuard": [-7.5, 15.5, -12]
+						"sweep_blade_tip": [-7.5, 15.5, -25],
+						"parry_guard": [-7.5, 15.5, -12]
 					}
 				},
 				{
@@ -303,7 +306,7 @@
 						{"origin": [0, 0, -2.5], "size": [5, 14, 5], "uv": [31, 21]}
 					],
 					"locators": {
-						"leftThruster": [2.5, 0, 0]
+						"left_thruster": [2.5, 0, 0]
 					}
 				},
 				{
@@ -314,7 +317,7 @@
 						{"origin": [-5, 0, -2.5], "size": [5, 14, 5], "uv": [0, 41]}
 					],
 					"locators": {
-						"rightThruster": [-2.5, 0, 0]
+						"right_thruster": [-2.5, 0, 0]
 					}
 				}
 			]

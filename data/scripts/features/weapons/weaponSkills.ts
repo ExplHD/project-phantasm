@@ -1,4 +1,5 @@
 import { addScore, setScore } from '../../core/scoreboard'
+import { summonOwned } from '../../core/summons'
 import { CommandHandler, SkillHandler, applyCustomDamage } from './weaponHandler'
 import { MolangVariableMap, system, Player, Entity, EntityDamageCause } from '@minecraft/server';
 
@@ -29,10 +30,10 @@ solarisverdantSkill.addSkill(1, {
                     src.runCommand('particle ph:solaris_verdant_summon ~~1~-7');
                     src.runCommand('particle ph:solaris_verdant_summon ~7~1~');
                     src.runCommand('particle ph:solaris_verdant_summon ~-7~1~');
-                    src.runCommand('summon ph:animirra_summon ~~1~7 ~~');
-                    src.runCommand('summon ph:animirra_summon ~~1~-7 ~~');
-                    src.runCommand('summon ph:animirra_summon ~7~1~ ~~');
-                    src.runCommand('summon ph:animirra_summon ~-7~1~ ~~');
+                    summonOwned(src, 'summon ph:animirra_summon ~~1~7 ~~');
+                    summonOwned(src, 'summon ph:animirra_summon ~~1~-7 ~~');
+                    summonOwned(src, 'summon ph:animirra_summon ~7~1~ ~~');
+                    summonOwned(src, 'summon ph:animirra_summon ~-7~1~ ~~');
                     src.dimension.playSound("custom_sfx.animirra_summon", src.location);
                     source.runCommand('inputpermission set @s movement enabled');
                 }
@@ -54,9 +55,9 @@ solarisverdantSkill.addSkill(2, {
             {
                 delay: 10, action: (src: Player) => {
                     src.dimension.playSound("weapon_slash.slash_heavy", src.location);
-                    src.runCommand("summon ph:solaris_slash ^^3^5 ~ 0");
-                    src.runCommand("summon ph:solaris_slash ^^3^5 ~-45 0");
-                    src.runCommand("summon ph:solaris_slash ^^3^5 ~45 0");
+                    summonOwned(src, "summon ph:solaris_slash ^^3^5 ~ 0");
+                    summonOwned(src, "summon ph:solaris_slash ^^3^5 ~-45 0");
+                    summonOwned(src, "summon ph:solaris_slash ^^3^5 ~45 0");
                     source.runCommand('inputpermission set @s movement enabled');
                 }
             }
@@ -84,19 +85,19 @@ solarisverdantSkill.addSkill(3, {
                     src.runCommand('particle ph:solaris_verdant_summon ~~1~-7');
                     src.runCommand('particle ph:solaris_verdant_summon ~7~1~');
                     src.runCommand('particle ph:solaris_verdant_summon ~-7~1~');
-                    src.runCommand('summon ph:animirra_summon_ultimate ~~1~7 ~~');
-                    src.runCommand('summon ph:animirra_summon_ultimate ~~1~-7 ~~');
-                    src.runCommand('summon ph:animirra_summon_ultimate ~7~1~ ~~');
-					src.runCommand('summon ph:animirra_summon_ultimate ~-7~1~ ~~');
+                    summonOwned(src, 'summon ph:animirra_summon_ultimate ~~1~7 ~~');
+                    summonOwned(src, 'summon ph:animirra_summon_ultimate ~~1~-7 ~~');
+                    summonOwned(src, 'summon ph:animirra_summon_ultimate ~7~1~ ~~');
+					summonOwned(src, 'summon ph:animirra_summon_ultimate ~-7~1~ ~~');
                 }
             },
             {
                 delay: 10, action: (src: Player) => {
 					src.runCommand(`scriptevent ph:boss_summon 24, 20, 24, ph:animirra_meteor, custom_sfx.animirra_summon`);
-					src.runCommand('summon ph:animirra_summon_ultimate ~~1~14 ~~');
-                    src.runCommand('summon ph:animirra_summon_ultimate ~~1~-14 ~~');
-                    src.runCommand('summon ph:animirra_summon_ultimate ~14~1~ ~~');
-                    src.runCommand('summon ph:animirra_summon_ultimate ~-14~1~ ~~');
+					summonOwned(src, 'summon ph:animirra_summon_ultimate ~~1~14 ~~');
+                    summonOwned(src, 'summon ph:animirra_summon_ultimate ~~1~-14 ~~');
+                    summonOwned(src, 'summon ph:animirra_summon_ultimate ~14~1~ ~~');
+                    summonOwned(src, 'summon ph:animirra_summon_ultimate ~-14~1~ ~~');
                     source.runCommand('inputpermission set @s movement enabled');
                 }
             }
@@ -159,24 +160,24 @@ superchargedCopperAxeSkill.addSkill(3, {
         const discharge = new CommandHandler([
             {
                 delay: 3, action: (src: Player) => {
-                    src.runCommand('summon ph:charged_copper_laser ~~~ 90 0');
-                    src.runCommand('summon ph:charged_copper_laser ~~~ 270 0');
+                    summonOwned(src, 'summon ph:charged_copper_laser ~~~ 90 0');
+                    summonOwned(src, 'summon ph:charged_copper_laser ~~~ 270 0');
                     src.dimension.playSound("custom_sfx.high_voltage_spark", src.location);
                 }
             },
             {
                 delay: 2, action: (src: Player) => {
-                    src.runCommand('summon ph:charged_copper_laser ~~~ 45 0');
-                    src.runCommand('summon ph:charged_copper_laser ~~~ 135 0');
-                    src.runCommand('summon ph:charged_copper_laser ~~~ 215 0');
-                    src.runCommand('summon ph:charged_copper_laser ~~~ 315 0');
+                    summonOwned(src, 'summon ph:charged_copper_laser ~~~ 45 0');
+                    summonOwned(src, 'summon ph:charged_copper_laser ~~~ 135 0');
+                    summonOwned(src, 'summon ph:charged_copper_laser ~~~ 215 0');
+                    summonOwned(src, 'summon ph:charged_copper_laser ~~~ 315 0');
                     src.dimension.playSound("custom_sfx.high_voltage_spark", src.location);
                 }
             },
             {
                 delay: 2, action: (src: Player) => {
-                    src.runCommand('summon ph:charged_copper_laser ~~~ 0 0');
-                    src.runCommand('summon ph:charged_copper_laser ~~~ 180 0');
+                    summonOwned(src, 'summon ph:charged_copper_laser ~~~ 0 0');
+                    summonOwned(src, 'summon ph:charged_copper_laser ~~~ 180 0');
                     src.dimension.playSound("custom_sfx.high_voltage_spark", src.location);
                 }
             }
@@ -201,49 +202,49 @@ superchargedCopperAxeSkill.addSkill(4, {
         const discharge = new CommandHandler([
             {
                 delay: 3, action: (src: Player) => {
-                    src.runCommand('summon ph:charged_copper_laser ~~~ 90 0');
-                    src.runCommand('summon ph:charged_copper_laser ~~~ 270 0');
-                    src.runCommand('summon lightning_bolt ~5~~ ');
-                    src.runCommand('summon lightning_bolt ~-5~~ ');
+                    summonOwned(src, 'summon ph:charged_copper_laser ~~~ 90 0');
+                    summonOwned(src, 'summon ph:charged_copper_laser ~~~ 270 0');
+                    summonOwned(src, 'summon lightning_bolt ~5~~ ');
+                    summonOwned(src, 'summon lightning_bolt ~-5~~ ');
                     src.dimension.playSound("custom_sfx.high_voltage_spark", src.location);
                 }
             },
             {
                 delay: 2, action: (src: Player) => {
-                    src.runCommand('summon ph:charged_copper_laser ~~~ 45 0');
-                    src.runCommand('summon ph:charged_copper_laser ~~~ 135 0');
-                    src.runCommand('summon ph:charged_copper_laser ~~~ 215 0');
-                    src.runCommand('summon ph:charged_copper_laser ~~~ 315 0');
-                    src.runCommand('summon lightning_bolt ~5~~5 ');
-                    src.runCommand('summon lightning_bolt ~-5~~5 ');
-                    src.runCommand('summon lightning_bolt ~5~~-5 ');
-                    src.runCommand('summon lightning_bolt ~-5~~-5 ');
+                    summonOwned(src, 'summon ph:charged_copper_laser ~~~ 45 0');
+                    summonOwned(src, 'summon ph:charged_copper_laser ~~~ 135 0');
+                    summonOwned(src, 'summon ph:charged_copper_laser ~~~ 215 0');
+                    summonOwned(src, 'summon ph:charged_copper_laser ~~~ 315 0');
+                    summonOwned(src, 'summon lightning_bolt ~5~~5 ');
+                    summonOwned(src, 'summon lightning_bolt ~-5~~5 ');
+                    summonOwned(src, 'summon lightning_bolt ~5~~-5 ');
+                    summonOwned(src, 'summon lightning_bolt ~-5~~-5 ');
                     src.dimension.playSound("custom_sfx.high_voltage_spark", src.location);
                 }
             },
             {
                 delay: 2, action: (src: Player) => {
-                    src.runCommand('summon ph:charged_copper_laser ~~~ 0 0');
-                    src.runCommand('summon ph:charged_copper_laser ~~~ 180 0');
-                    src.runCommand('summon lightning_bolt ~~~5 ');
-                    src.runCommand('summon lightning_bolt ~~~-5');
-                    src.runCommand('summon lightning_bolt ~10~~ ');
-                    src.runCommand('summon lightning_bolt ~-10~~ ');
+                    summonOwned(src, 'summon ph:charged_copper_laser ~~~ 0 0');
+                    summonOwned(src, 'summon ph:charged_copper_laser ~~~ 180 0');
+                    summonOwned(src, 'summon lightning_bolt ~~~5 ');
+                    summonOwned(src, 'summon lightning_bolt ~~~-5');
+                    summonOwned(src, 'summon lightning_bolt ~10~~ ');
+                    summonOwned(src, 'summon lightning_bolt ~-10~~ ');
                     src.dimension.playSound("custom_sfx.high_voltage_spark", src.location);
                 }
             },
             {
                 delay: 5, action: (src: Player) => {
-                    src.runCommand('summon lightning_bolt ~10~~10 ');
-                    src.runCommand('summon lightning_bolt ~-10~~10 ');
-                    src.runCommand('summon lightning_bolt ~10~~-10 ');
-                    src.runCommand('summon lightning_bolt ~-10~~-10 ');
+                    summonOwned(src, 'summon lightning_bolt ~10~~10 ');
+                    summonOwned(src, 'summon lightning_bolt ~-10~~10 ');
+                    summonOwned(src, 'summon lightning_bolt ~10~~-10 ');
+                    summonOwned(src, 'summon lightning_bolt ~-10~~-10 ');
                 }
             },
             {
                 delay: 5, action: (src: Player) => {
-                    src.runCommand('summon lightning_bolt ~~~10 ');
-                    src.runCommand('summon lightning_bolt ~~~-10');
+                    summonOwned(src, 'summon lightning_bolt ~~~10 ');
+                    summonOwned(src, 'summon lightning_bolt ~~~-10');
                     src.runCommand('inputpermission set @s camera enabled');
                     src.runCommand('inputpermission set @s movement enabled');
                 }
@@ -266,55 +267,55 @@ prismWeaverSkill.addSkill(1, {
         const command = new CommandHandler([
             {
                 delay: 7, action: (src: Player) => {
-                    src.runCommand("summon ph:prism_weaver_laser ~2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    src.runCommand("summon ph:prism_weaver_laser ~-2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    src.runCommand("summon ph:prism_weaver_laser ~2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    src.runCommand("summon ph:prism_weaver_laser ~-2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+                    summonOwned(src, "summon ph:prism_weaver_laser ~2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+                    summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+                    summonOwned(src, "summon ph:prism_weaver_laser ~2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+                    summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
                     src.dimension.playSound("custom_sfx.animirra_summon", src.location);
                 }
             },
             {
                 delay: 7, action: (src: Player) => {
-                    src.runCommand("summon ph:prism_weaver_laser ~2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    src.runCommand("summon ph:prism_weaver_laser ~-2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    src.runCommand("summon ph:prism_weaver_laser ~2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    src.runCommand("summon ph:prism_weaver_laser ~-2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+                    summonOwned(src, "summon ph:prism_weaver_laser ~2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+                    summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+                    summonOwned(src, "summon ph:prism_weaver_laser ~2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+                    summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
                     src.dimension.playSound("custom_sfx.animirra_summon", src.location);
                 }
             },
             {
                 delay: 7, action: (src: Player) => {
-                    src.runCommand("summon ph:prism_weaver_laser ~2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    src.runCommand("summon ph:prism_weaver_laser ~-2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    src.runCommand("summon ph:prism_weaver_laser ~2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    src.runCommand("summon ph:prism_weaver_laser ~-2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+                    summonOwned(src, "summon ph:prism_weaver_laser ~2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+                    summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+                    summonOwned(src, "summon ph:prism_weaver_laser ~2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+                    summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
                     src.dimension.playSound("custom_sfx.animirra_summon", src.location);
                 }
             },
             {
                 delay: 7, action: (src: Player) => {
-                    src.runCommand("summon ph:prism_weaver_laser ~2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    src.runCommand("summon ph:prism_weaver_laser ~-2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    src.runCommand("summon ph:prism_weaver_laser ~2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    src.runCommand("summon ph:prism_weaver_laser ~-2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+                    summonOwned(src, "summon ph:prism_weaver_laser ~2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+                    summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+                    summonOwned(src, "summon ph:prism_weaver_laser ~2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+                    summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
                     src.dimension.playSound("custom_sfx.animirra_summon", src.location);
                 }
             },
             {
                 delay: 7, action: (src: Player) => {
-                    src.runCommand("summon ph:prism_weaver_laser ~2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    src.runCommand("summon ph:prism_weaver_laser ~-2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    src.runCommand("summon ph:prism_weaver_laser ~2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    src.runCommand("summon ph:prism_weaver_laser ~-2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+                    summonOwned(src, "summon ph:prism_weaver_laser ~2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+                    summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+                    summonOwned(src, "summon ph:prism_weaver_laser ~2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+                    summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
                     src.dimension.playSound("custom_sfx.animirra_summon", src.location);
                 }
             },
             {
                 delay: 7, action: (src: Player) => {
-                    src.runCommand("summon ph:prism_weaver_laser ~2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    src.runCommand("summon ph:prism_weaver_laser ~-2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    src.runCommand("summon ph:prism_weaver_laser ~2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    src.runCommand("summon ph:prism_weaver_laser ~-2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+                    summonOwned(src, "summon ph:prism_weaver_laser ~2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+                    summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+                    summonOwned(src, "summon ph:prism_weaver_laser ~2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
+                    summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
                     src.dimension.playSound("custom_sfx.animirra_summon", src.location);
                     src.runCommand('inputpermission set @s movement enabled');
                 }
@@ -336,11 +337,11 @@ prismWeaverSkill.addSkill(2, {
         const command = new CommandHandler([
             {
                 delay: 10, action: (src: Player) => {
-                    source.runCommand("summon ph:water_wall ^^^4 ~ 0");
-                    source.runCommand("summon ph:water_wall ^-2^^3 ~ 0");
-                    source.runCommand("summon ph:water_wall ^2^^3 ~ 0");
-                    source.runCommand("summon ph:water_wall ^-4^^2 ~ 0");
-                    source.runCommand("summon ph:water_wall ^4^^2 ~ 0");
+                    summonOwned(source, "summon ph:water_wall ^^^4 ~ 0");
+                    summonOwned(source, "summon ph:water_wall ^-2^^3 ~ 0");
+                    summonOwned(source, "summon ph:water_wall ^2^^3 ~ 0");
+                    summonOwned(source, "summon ph:water_wall ^-4^^2 ~ 0");
+                    summonOwned(source, "summon ph:water_wall ^4^^2 ~ 0");
                     source.dimension.playSound("custom_sfx.prism_fire", source.location);
                     src.runCommand('inputpermission set @s movement enabled');
                 }
@@ -498,7 +499,7 @@ auricPhotonizerSkill.addSkill(2, {
         source.addTag("BACKLEAP");
         source.playAnimation("animation.auric_photonizer.skill_2");
         source.applyKnockback({ x: source.getViewDirection().x * -2, z: source.getViewDirection().z * -2 }, 1.1);
-        source.runCommand(`summon armor_stand ~~~ 0 0 a BACKLEAP`);
+        summonOwned(source, `summon armor_stand ~~~ 0 0 a BACKLEAP`);
         source.runCommand(`effect @e[name=BACKLEAP] invisibility infinite 0 true`);
         source.playSound("mob.enderdragon.flap");
         const command = new CommandHandler([
