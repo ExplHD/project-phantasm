@@ -1,57 +1,81 @@
 {
     "format_version": "1.10.0",
     "animation_controllers": {
+        // Shell model only while dormant/awakening/ball/roll; active and unrolling use the normal body.
         "controller.animation.ph.sentinel.state": {
             "initial_state": "unrolled",
             "states": {
                 "unrolled": {
-                    "animations": [],
-                    "blend_transition": 0.25,
+                    "blend_transition": 0.2,
                     "transitions": [
                         { "dormant": "variable.is_dormant" },
-                        { "awakening": "variable.is_awakening" },
-                        { "ball": "variable.is_ball" },
-                        { "roll": "variable.is_roll" },
+                        { "roll_up": "variable.is_rolled_up" },
                         { "unrolling": "variable.is_unrolling" }
+                    ]
+                },
+                "roll_up": {
+                    "animations": ["roll_up"],
+                    "blend_transition": 0.2,
+                    "transitions": [
+                        { "dormant": "variable.is_dormant" },
+                        { "awakening": "variable.is_awakening && query.any_animation_finished" },
+                        { "ball": "variable.is_ball && query.any_animation_finished" },
+                        { "roll": "variable.is_roll && query.any_animation_finished" },
+                        { "unrolling": "variable.is_unrolling" },
+                        { "unroll_fast": "!variable.is_rolled_up" }
                     ]
                 },
                 "dormant": {
                     "animations": ["rolled_up"],
-                    "blend_transition": 0.25,
+                    "blend_transition": 0.2,
                     "transitions": [
                         { "awakening": "variable.is_awakening" },
-                        { "unrolled": "!variable.is_dormant" }
+                        { "unrolling": "variable.is_unrolling" },
+                        { "unroll_fast": "!variable.is_rolled_up" }
                     ]
                 },
                 "awakening": {
                     "animations": ["rolled_up", "struggle"],
-                    "blend_transition": 0.25,
+                    "blend_transition": 0.2,
                     "transitions": [
                         { "dormant": "variable.is_dormant" },
-                        { "unrolled": "!variable.is_rolled_up" }
+                        { "ball": "variable.is_ball" },
+                        { "roll": "variable.is_roll" },
+                        { "unrolling": "variable.is_unrolling" },
+                        { "unroll_fast": "!variable.is_rolled_up" }
                     ]
                 },
                 "ball": {
                     "animations": ["rolled_up"],
-                    "blend_transition": 0.25,
+                    "blend_transition": 0.2,
                     "transitions": [
+                        { "roll": "variable.is_roll" },
                         { "unrolling": "variable.is_unrolling" },
-                        { "unrolled": "!variable.is_rolled_up" }
+                        { "unroll_fast": "!variable.is_rolled_up" }
                     ]
                 },
                 "roll": {
-                    "animations": ["roll_spin"],
+                    "animations": ["rolled_up", "roll_spin"],
                     "blend_transition": 0.2,
                     "transitions": [
+                        { "ball": "variable.is_ball" },
                         { "unrolling": "variable.is_unrolling" },
-                        { "unrolled": "!variable.is_rolled_up" }
+                        { "unroll_fast": "!variable.is_rolled_up" }
                     ]
                 },
                 "unrolling": {
-                    "animations": ["unroll"],
-                    "blend_transition": 0.15,
+                    "animations": ["unroll_fast"],
+                    "blend_transition": 0.2,
                     "transitions": [
+                        { "roll_up": "variable.is_rolled_up" },
                         { "unrolled": "!variable.is_unrolling" }
+                    ]
+                },
+                "unroll_fast": {
+                    "animations": ["unroll_fast"],
+                    "blend_transition": 0.2,
+                    "transitions": [
+                        { "unrolled": "query.any_animation_finished" }
                     ]
                 }
             }

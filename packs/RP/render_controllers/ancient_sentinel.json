@@ -13,10 +13,16 @@
             ],
             "part_visibility": [
                 { "body": "!variable.use_rolled_up_model" },
+                { "head": "!variable.hide_head" },
+                { "left_ear": "!variable.hide_head" },
+                { "right_ear": "!variable.hide_head" },
                 { "tail": "!variable.use_rolled_up_model" },
                 { "left_hind_leg": "!variable.use_rolled_up_model" },
                 { "right_hind_leg": "!variable.use_rolled_up_model" },
-                { "body_rolled_up": "variable.use_rolled_up_model" }
+                { "body_rolled_up": "variable.use_rolled_up_model" },
+                { "roll_axis": "variable.use_rolled_up_model" },
+                { "roll_wheel": "variable.use_rolled_up_model" },
+                { "roll_shell": "variable.use_rolled_up_model" }
             ]
         }
     }

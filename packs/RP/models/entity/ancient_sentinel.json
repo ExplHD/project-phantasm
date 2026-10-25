@@ -88,6 +88,21 @@
 				},
 				{
 					"name": "body_rolled_up",
+					"pivot": [0, 11, 0.8]
+				},
+				{
+					"name": "roll_axis",
+					"parent": "body_rolled_up",
+					"pivot": [0, 11, 0.8]
+				},
+				{
+					"name": "roll_wheel",
+					"parent": "roll_axis",
+					"pivot": [0, 11, 0.8]
+				},
+				{
+					"name": "roll_shell",
+					"parent": "roll_wheel",
 					"pivot": [0, 11, 0.8],
 					"cubes": [
 						{"origin": [-11, 0, -10.4], "size": [22, 22, 22], "uv": [0, 0]},
