@@ -61,7 +61,20 @@
                 "the_bleeding_spire_dash": "ph:the_bleeding_spire_dash",
                 "the_bleeding_spire_marker": "ph:the_bleeding_spire_marker",
                 "peacemaker_oath_flash": "ph:peacemaker_oath_flash",
-                "flame_marker": "ph:flame_marker"
+                "flame_marker": "ph:flame_marker",
+                "solaris_verdant_trail": "ph:solaris_verdant_trail",
+                "solaris_verdant_sparks": "ph:solaris_verdant_sparks",
+                "supercharged_copper_axe_trail": "ph:supercharged_copper_axe_trail",
+                "supercharged_copper_axe_sparks": "ph:supercharged_copper_axe_sparks",
+                "prism_weaver_trail": "ph:prism_weaver_trail",
+                "prism_weaver_sparks": "ph:prism_bolt_impact",
+                "auric_photonizer_trail": "ph:auric_photonizer_trail",
+                "auric_photonizer_sparks": "ph:auric_photonizer_sparks",
+                "the_bleeding_spire_trail": "ph:the_bleeding_spire_trail",
+                "the_bleeding_spire_blood": "ph:the_bleeding_spire_blood",
+                "seiketsu_trail": "ph:seiketsu_trail",
+                "seiketsu_embers": "ph:seiketsu_embers",
+                "weapon_slam_dust": "ph:weapon_slam_dust"
             },
             "scripts": {
                 "scale": "0.9375",

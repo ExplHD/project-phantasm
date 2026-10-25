@@ -153,7 +153,7 @@ function animitta(player: Player) {
 function prismWeaver(player: Player) {
 	const form = new ActionFormData()
 		.title(guideTitle("Prism Weaver"))
-		.label("One of the first Legendary weapons you can get, alongside the Animitta. It fights at long range with lower damage than other Legendary weapons. It has 3 skills:")
+		.label("One of the first Legendary weapons you can get, alongside the Animitta. It fights at long range with lower damage than other Legendary weapons. Attacks fire prism bolts at your crosshair that curve slightly onto the target you aim at; every third attack fans out three piercing bolts. It has 3 skills:")
 		.label("Bubble Barrage :\nFires a burst of bubble projectiles in one attack.")
 		.label("Prism Wave Wall :\nCasts a Prism Wall that deals massive damage on touch.")
 		.label("Vortex Prism :\nPulls targets in a large radius toward you, then repels them with massive damage.")

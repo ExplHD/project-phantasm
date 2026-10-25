@@ -3,6 +3,7 @@ import { WeaponHandler, SkillSwitcher, CommandHandler, applyCustomDamage } from 
    directly in events/index.ts (itemUse), not here. */
 import { addScore, getScore, removeScore } from '../../core/scoreboard'
 import { summonOwned } from '../../core/summons'
+import { prismBolt, PRISM_FAN } from './prismWeaver'
 
 /* --------------------------------------------------------------------------------------------------------------------------------------------------------
             Weapons Runtime
@@ -75,37 +76,12 @@ const superchargedCopperAxeSS = new SkillSwitcher("ph:supercharged_copper_axe", 
     { skillSMessage: "Ultimate Discharge" }
 ])
 
+// Native ranged: every hit fires script-driven bolts (projectile.ts) instead of summoning
+// stationary ph:prism_weaver_laser damage orbs next to the player.
 const prismWeaver = new WeaponHandler("ph:prism_weaver", "prism_weaver_atk", [20, 15, 15], [
-    {
-        delay: 4, damage: 17, radius: 2, animation: "animation.prism_weaver.attack_1", sound: "weapon_slash.magic_staff", action: new CommandHandler([
-            {
-                delay: 0, action: (src) => {
-                    summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~ facing @e[c=1,rm=2.5,family=!inanimate,type=!item]")
-                }
-            }
-        ])
-    },
-    {
-        delay: 8, damage: 17, radius: 2, animation: "animation.prism_weaver.attack_2", sound: "weapon_slash.magic_staff", action: new CommandHandler([
-            {
-                delay: 0, action: (src) => {
-                    summonOwned(src, "summon ph:prism_weaver_laser ~2~1~ facing @e[c=1,rm=2.5,family=!inanimate,type=!item]")
-                }
-            }
-        ])
-    },
-    {
-        delay: 8, damage: 18, radius: 6, animation: "animation.prism_weaver.attack_3", sound: "weapon_slash.magic_staff", action: new CommandHandler([
-            {
-                delay: 0, action: (src) => {
-                    summonOwned(src, "summon ph:prism_weaver_laser ~2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    summonOwned(src, "summon ph:prism_weaver_laser ~2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                }
-            }
-        ])
-    }
+    { delay: 6, damage: 17, radius: 0, animation: "animation.prism_weaver.attack_1", sound: "weapon_slash.magic_staff", projectile: prismBolt(-0.35) },
+    { delay: 10, damage: 17, radius: 0, animation: "animation.prism_weaver.attack_2", sound: "weapon_slash.magic_staff", projectile: prismBolt(0.35) },
+    { delay: 10, damage: 12, radius: 0, animation: "animation.prism_weaver.attack_3", sound: "weapon_slash.magic_staff", projectile: PRISM_FAN }
 ])
 
 const prismWeaverSS = new SkillSwitcher("ph:prism_weaver", "prism_weaver", [
