@@ -1,0 +1,52 @@
+{
+	"format_version": "1.10.0",
+	"particle_effect": {
+		"description": {
+			"identifier": "ph:forge_trooper_sweep_trail",
+			"basic_render_parameters": {
+				"material": "particles_add",
+				"texture": "textures/particle/particles"
+			}
+		},
+		"components": {
+			"minecraft:emitter_rate_steady": {
+				"spawn_rate": 30,
+				"max_particles": 60
+			},
+			"minecraft:emitter_lifetime_once": {
+				"active_time": 0.65
+			},
+			"minecraft:emitter_shape_point": {},
+			"minecraft:particle_lifetime_expression": {
+				"max_lifetime": 0.35
+			},
+			"minecraft:particle_initial_spin": {
+				"rotation": "math.random(0,180)",
+				"rotation_rate": "math.random(-240,240)"
+			},
+			"minecraft:particle_initial_speed": "math.random(0.2,0.6)",
+			"minecraft:particle_motion_dynamic": {
+				"linear_drag_coefficient": 3
+			},
+			"minecraft:particle_appearance_billboard": {
+				"size": ["0.55-v.particle_age", "0.55-v.particle_age"],
+				"facing_camera_mode": "rotate_xyz",
+				"uv": {
+					"texture_width": 16,
+					"texture_height": 16,
+					"uv": [4, 2],
+					"uv_size": [4, 4]
+				}
+			},
+			"minecraft:particle_appearance_tinting": {
+				"color": {
+					"interpolant": "v.particle_age / v.particle_lifetime",
+					"gradient": {
+						"0.0": "#FFFFC040",
+						"1.0": "#FF702800"
+					}
+				}
+			}
+		}
+	}
+}

@@ -1,5 +1,5 @@
 // data/scripts/events/index.ts
-import { world as world6, system as system9, ItemStack as ItemStack3, MolangVariableMap as MolangVariableMap3, EquipmentSlot as EquipmentSlot5, EntityDamageCause as EntityDamageCause3 } from "@minecraft/server";
+import { world as world7, system as system10, ItemStack as ItemStack3, MolangVariableMap as MolangVariableMap3, EquipmentSlot as EquipmentSlot5, EntityDamageCause as EntityDamageCause3 } from "@minecraft/server";
 
 // data/scripts/core/scoreboard.ts
 import { world } from "@minecraft/server";
@@ -332,8 +332,16 @@ function applyCustomDamage(source, damage, radius) {
       dz = 1;
     }
     const kbStrength = 1 + knockback * 1;
-    entity.applyKnockback({ x: dx * kbStrength, z: dz * kbStrength }, 0.4);
-    if (fireAspect > 0) entity.setOnFire(fireAspect * 4 - 1);
+    try {
+      entity.applyKnockback({ x: dx * kbStrength, z: dz * kbStrength }, 0.4);
+    } catch {
+    }
+    if (fireAspect > 0) {
+      try {
+        entity.setOnFire(fireAspect * 4 - 1);
+      } catch {
+      }
+    }
   });
 }
 
@@ -1504,8 +1512,162 @@ function onDummyHurt(event) {
   addDamage(dummy, event.damage);
 }
 
+// data/scripts/features/titan_core/manager.ts
+import { world as world5, system as system7 } from "@minecraft/server";
+var CORE_ID = "ph:titan_core";
+var MINION_TAG = "core_minion";
+var MINION_TYPES = ["ph:plasmoid_drone", "ph:rupture_drone"];
+var FINAL_DEFENSE_COUNT = 30;
+var FALLBACK_DIFFICULTY = "normal";
+var WAVE_COUNTS = {
+  easy: 10,
+  normal: 17,
+  hard: 22
+};
+var POLL_INTERVAL = 40;
+var WAVE_POLLS_MAX = 120;
+var MINION_RANGE = 48;
+var fights = /* @__PURE__ */ new Map();
+function getFight(core) {
+  let fight = fights.get(core.id);
+  if (fight) return fight;
+  fight = { phase: 0, shielded: false, watcherPolls: 0 };
+  fights.set(core.id, fight);
+  return fight;
+}
+function waveCount() {
+  try {
+    return WAVE_COUNTS[world5.getDifficulty()] ?? WAVE_COUNTS[FALLBACK_DIFFICULTY];
+  } catch {
+    return WAVE_COUNTS[FALLBACK_DIFFICULTY];
+  }
+}
+function announce(dimension, location, message) {
+  try {
+    for (const player of dimension.getPlayers({ location, maxDistance: 56 })) {
+      player.onScreenDisplay.setActionBar(message);
+    }
+  } catch {
+  }
+}
+function summonWave(core, count) {
+  const origin = core.location;
+  const dimension = core.dimension;
+  for (let i = 0; i < count; i++) {
+    const angle = i / count * Math.PI * 2 + Math.random() * 0.5;
+    const radius = 4 + Math.random() * 3;
+    const typeId = i % 2 === 0 ? MINION_TYPES[0] : MINION_TYPES[1];
+    const position = {
+      x: origin.x + Math.cos(angle) * radius,
+      y: origin.y + 1 + i % 3,
+      z: origin.z + Math.sin(angle) * radius
+    };
+    try {
+      const minion = dimension.spawnEntity(typeId, position);
+      minion.addTag(MINION_TAG);
+      minion.triggerEvent("ph:core_minion");
+    } catch (err) {
+      console.warn(`[ph] titan core minion spawn failed: ${err}`);
+    }
+  }
+  announce(
+    dimension,
+    origin,
+    count === FINAL_DEFENSE_COUNT ? "\xA7cThe Titan Core unleashes its FINAL DEFENSE!" : "\xA7cThe Titan Core summons its defenders!"
+  );
+}
+function countMinions(core) {
+  let alive = 0;
+  for (const typeId of MINION_TYPES) {
+    try {
+      alive += core.dimension.getEntities({
+        type: typeId,
+        tags: [MINION_TAG],
+        location: core.location,
+        maxDistance: MINION_RANGE
+      }).length;
+    } catch {
+    }
+  }
+  return alive;
+}
+function endWave(core, fight) {
+  if (fight.watcher !== void 0) {
+    system7.clearRun(fight.watcher);
+    fight.watcher = void 0;
+  }
+  fight.shielded = false;
+  try {
+    core.setProperty("ph:shielded", false);
+    core.triggerEvent("ph:unshield");
+  } catch (err) {
+    console.warn(`[ph] titan core unshield failed: ${err}`);
+  }
+  announce(core.dimension, core.location, "\xA7aThe Titan Core shield has collapsed!");
+}
+function watchWave(core, fight) {
+  fight.watcherPolls = 0;
+  const interval = system7.runInterval(() => {
+    if (!core.isValid) {
+      system7.clearRun(interval);
+      if (fight.watcher === interval) fight.watcher = void 0;
+      fights.delete(core.id);
+      return;
+    }
+    fight.watcherPolls++;
+    const remaining = countMinions(core);
+    if (remaining === 0 || fight.watcherPolls >= WAVE_POLLS_MAX) {
+      endWave(core, fight);
+    }
+  }, POLL_INTERVAL);
+  fight.watcher = interval;
+}
+function beginShieldPhase(core, fight, phase) {
+  fight.phase = phase;
+  fight.shielded = true;
+  try {
+    core.setProperty("ph:shielded", true);
+    core.triggerEvent("ph:shield");
+  } catch (err) {
+    console.warn(`[ph] titan core shield failed: ${err}`);
+  }
+  summonWave(core, waveCount());
+  watchWave(core, fight);
+}
+function onTitanCoreHurt(event) {
+  const core = event.hurtEntity;
+  if (core.typeId !== CORE_ID) return;
+  if (!core.isValid) return;
+  const fight = getFight(core);
+  if (fight.shielded) return;
+  const healthComp = core.getComponent("minecraft:health");
+  if (!healthComp) return;
+  const health = healthComp.currentValue;
+  if (health <= 200 && fight.phase < 2) {
+    beginShieldPhase(core, fight, 2);
+  } else if (health <= 400 && fight.phase < 1) {
+    beginShieldPhase(core, fight, 1);
+  }
+}
+function onTitanCoreDie(core) {
+  const fight = fights.get(core.id);
+  if (fight) {
+    if (fight.watcher !== void 0) {
+      system7.clearRun(fight.watcher);
+      fight.watcher = void 0;
+    }
+    fights.delete(core.id);
+  }
+  try {
+    core.dimension.spawnParticle("minecraft:huge_explosion_emitter", core.location);
+    core.dimension.playSound("beacon.deactivate", core.location, { pitch: 0.6, volume: 1 });
+  } catch {
+  }
+  summonWave(core, FINAL_DEFENSE_COUNT);
+}
+
 // data/scripts/systems/lighting.ts
-import { system as system7, BlockPermutation } from "@minecraft/server";
+import { system as system8, BlockPermutation } from "@minecraft/server";
 var lightLevelMap = {
   "minecraft:beacon": 15,
   "minecraft:conduit": 15,
@@ -1580,7 +1742,7 @@ function clearPlayerLighting(player) {
   }
   if (state.interval !== -1) {
     try {
-      system7.clearRun(state.interval);
+      system8.clearRun(state.interval);
     } catch (e) {
     }
   }
@@ -1602,7 +1764,7 @@ function onDynamicLighting(player) {
   if (existing && existing.maxLight === maxLight) return;
   if (existing) {
     if (existing.interval !== -1) {
-      system7.clearRun(existing.interval);
+      system8.clearRun(existing.interval);
     }
     player.removeTag(existing.tag);
     clearPlacedLight(existing);
@@ -1638,13 +1800,13 @@ function onDynamicLighting(player) {
     }
   };
   updateLight();
-  state.interval = system7.runInterval(updateLight, 4);
+  state.interval = system8.runInterval(updateLight, 4);
 }
 
 // data/scripts/systems/movement.ts
-import { world as world5, system as system8, EquipmentSlot as EquipmentSlot3 } from "@minecraft/server";
+import { world as world6, system as system9, EquipmentSlot as EquipmentSlot3 } from "@minecraft/server";
 function dashRuntime(player, requireFalling = true) {
-  const scoreboard_dash = world5.scoreboard.getObjective("dash_cd");
+  const scoreboard_dash = world6.scoreboard.getObjective("dash_cd");
   if (!scoreboard_dash || (scoreboard_dash.getScore(player) ?? 0) > 0) return;
   if (player.getDynamicProperty("ph:dash_unlock") == 0) return;
   const dashLevel = player.getDynamicProperty("ph:dash_level");
@@ -1706,10 +1868,10 @@ function windPlungeRuntime(player) {
       player.removeTag("windPlunge");
     }
   }
-  const runInterval = system8.runInterval(() => {
+  const runInterval = system9.runInterval(() => {
     if (!player.isOnGround) return;
-    system8.run(impact);
-    system8.clearRun(runInterval);
+    system9.run(impact);
+    system9.clearRun(runInterval);
   }, 2);
   player.applyKnockback({ x: 0, z: 0 }, -2);
   player.dimension.spawnParticle("minecraft:wind_explosion_emitter", player.location);
@@ -1728,7 +1890,7 @@ function vanillaBlockInteractFix(player, item, block) {
   const tags = block.getTags();
   const typeId = block.typeId;
   if (item.hasTag("minecraft:is_axe")) {
-    system8.runTimeout(() => {
+    system9.runTimeout(() => {
       if (typeId.includes("stripped") || !block.typeId.includes("stripped")) return;
       let materialSound = "";
       if (typeId === "minecraft:cherry_log") materialSound = "step.cherry_wood";
@@ -1740,7 +1902,7 @@ function vanillaBlockInteractFix(player, item, block) {
       applyDurabilityDamage(player);
     }, 1);
   } else if (item.hasTag("minecraft:is_hoe")) {
-    system8.runTimeout(() => {
+    system9.runTimeout(() => {
       const isTillable = tags.includes("grass") || typeId === "minecraft:dirt_with_roots";
       const hasBlockAbove = block.above()?.typeId !== "minecraft:air";
       if (!isTillable || hasBlockAbove) return;
@@ -1758,7 +1920,7 @@ function vanillaBlockInteractFix(player, item, block) {
     const isCoarsable = dirtPathable.includes(block.typeId) || block.typeId === "minecraft:grass_block";
     const hasBlockAbove = block.above()?.typeId !== "minecraft:air";
     if (!isCoarsable || hasBlockAbove) return;
-    system8.run(() => {
+    system9.run(() => {
       player.dimension.playSound("use.grass", block.center(), { volume: 1, pitch: 0.8 });
       applyDurabilityDamage(player);
     });
@@ -1783,7 +1945,7 @@ function parryRuntime(source, itemStack) {
   source.addTag("parried");
   source.inputPermissions.setPermissionCategory(2, false);
   applyDurabilityDamage(source, { damage: 1 });
-  system8.runTimeout(() => {
+  system9.runTimeout(() => {
     if (source?.hasTag("parried")) source.removeTag("parried");
     source.inputPermissions.setPermissionCategory(2, true);
   }, 6);
@@ -1795,14 +1957,14 @@ function startBetterMending(source, itemStack) {
   if (itemStack.hasTag("minecraft:is_tools") || itemStack.hasTag("minecraft:is_armor")) return;
   if (!enchantment) return;
   source.playSound("random.anvil_use");
-  const runBetterMending2 = system8.runInterval(() => {
+  const runBetterMending2 = system9.runInterval(() => {
     try {
       const equippable = source.getComponent("minecraft:equippable");
       const currentItem = equippable?.getEquipment(EquipmentSlot3.Mainhand);
       const durability = currentItem?.getComponent("minecraft:durability");
       const experience = source.getTotalXp();
       if (!currentItem || !durability || durability.damage <= 0 || experience <= 0) {
-        system8.clearRun(runBetterMending2);
+        system9.clearRun(runBetterMending2);
         return;
       }
       const repairAmount = Math.min(durability.damage, 1);
@@ -1819,7 +1981,7 @@ function startBetterMending(source, itemStack) {
       });
     } catch (error) {
       console.warn(`betterMending error untuk ${source.name}: ${error}`);
-      system8.clearRun(runBetterMending2);
+      system9.clearRun(runBetterMending2);
     }
   }, 1);
 }
@@ -1855,7 +2017,7 @@ function javaSaturationRegen(player) {
 function healthBarDisplay(player, health, totalArmor, maxHealth) {
   let scaled = health.currentValue / maxHealth * 100;
   player.onScreenDisplay.setTitle(
-    `bar0:${Math.min(100, Math.max(0, Math.floor(scaled)))}% healthind:${Math.floor(health.currentValue)}/${maxHealth} ${totalArmor}`,
+    `bar0:${Math.min(100, Math.max(0, Math.floor(scaled)))}%% healthind:${Math.floor(health.currentValue)}/${maxHealth}  \uE101${totalArmor}`,
     { fadeInDuration: 10, stayDuration: 70, fadeOutDuration: 20 }
   );
 }
@@ -2253,7 +2415,7 @@ function onControlSwingInput(player, swingSource) {
 }
 
 // data/scripts/events/index.ts
-world6.beforeEvents.entityHurt.subscribe((acc) => {
+world7.beforeEvents.entityHurt.subscribe((acc) => {
   const hurtEntity = acc.hurtEntity;
   if (hurtEntity?.typeId !== "minecraft:player") return;
   const damagingEntity = acc.damageSource.damagingEntity;
@@ -2262,7 +2424,7 @@ world6.beforeEvents.entityHurt.subscribe((acc) => {
   handleAccessory(player, "onHurt", acc, void 0, accessories2);
   if (hurtEntity.hasTag("parried")) {
     acc.cancel = true;
-    system9.run(() => {
+    system10.run(() => {
       const mainItem = hurtEntity?.getComponent("equippable")?.getEquipment(EquipmentSlot5.Mainhand);
       const head = hurtEntity.getHeadLocation();
       const view = hurtEntity.getViewDirection();
@@ -2289,12 +2451,12 @@ world6.beforeEvents.entityHurt.subscribe((acc) => {
     if (damagingEntity?.typeId === "ph:crimson_laser") acc.cancel = true;
   }
 });
-world6.beforeEvents.playerBreakBlock.subscribe((acc) => {
+world7.beforeEvents.playerBreakBlock.subscribe((acc) => {
   const block = acc.block;
   const player = acc.player;
   handleAccessory(player, "onBreakBlock", acc, block);
 });
-world6.beforeEvents.entityHurt.subscribe((data) => {
+world7.beforeEvents.entityHurt.subscribe((data) => {
   const player = data.hurtEntity;
   const cause = data?.damageSource?.cause;
   if (cause === "fall" || cause === "magic" || cause == "none" || cause == "selfDestruct") return;
@@ -2325,15 +2487,15 @@ world6.beforeEvents.entityHurt.subscribe((data) => {
   const finalDamage = data.damage * (1 - reductionFraction);
   data.damage -= finalDamage;
 });
-world6.beforeEvents.playerBreakBlock.subscribe((e) => {
+world7.beforeEvents.playerBreakBlock.subscribe((e) => {
   if (!e.block.typeId.includes("ore")) return;
   if (Math.floor(Math.random() * 100) !== 1) return;
   if (e.player.getGameMode() === "Creative") return;
-  system9.run(() => {
+  system10.run(() => {
     e.dimension.spawnItem(new ItemStack3("ph:rust_coin", 1), e.block.location);
   });
 });
-world6.beforeEvents.playerBreakBlock.subscribe((e) => {
+world7.beforeEvents.playerBreakBlock.subscribe((e) => {
   if (e.block.typeId !== "minecraft:prismarine") return;
   const player = e.player;
   const itemStack = e.itemStack;
@@ -2343,12 +2505,12 @@ world6.beforeEvents.playerBreakBlock.subscribe((e) => {
   if (itemStack?.getComponent("enchantable")?.getEnchantment("silk_touch")) return;
   if (!itemStack?.getTags().includes("minecraft:is_pickaxe")) return;
   e.cancel = true;
-  system9.run(() => {
+  system10.run(() => {
     dimension.setBlockType(block.location, "minecraft:air");
     dimension.spawnItem(new ItemStack3("minecraft:prismarine_shard", Math.floor(Math.random() * 3 + 4)), block.location);
   });
 });
-world6.beforeEvents.playerInteractWithBlock.subscribe((event) => {
+world7.beforeEvents.playerInteractWithBlock.subscribe((event) => {
   const { player, itemStack: item, block } = event;
   vanillaBlockInteractFix(player, item, block);
 });
@@ -2415,7 +2577,7 @@ function popCrystallIfFloating(block, drop = true) {
   }
   return true;
 }
-world6.afterEvents.playerBreakBlock.subscribe((e) => {
+world7.afterEvents.playerBreakBlock.subscribe((e) => {
   const loc = e.block.location;
   const dimension = e.dimension;
   let drop = true;
@@ -2423,7 +2585,7 @@ world6.afterEvents.playerBreakBlock.subscribe((e) => {
     drop = e.player?.getGameMode?.() !== "Creative";
   } catch {
   }
-  system9.run(() => {
+  system10.run(() => {
     for (const off of faceOffsets) {
       try {
         const neighbor = dimension.getBlock({ x: loc.x + off.x, y: loc.y + off.y, z: loc.z + off.z });
@@ -2433,14 +2595,15 @@ world6.afterEvents.playerBreakBlock.subscribe((e) => {
     }
   });
 });
-world6.afterEvents.entityHitEntity.subscribe((acc) => {
+world7.afterEvents.entityHitEntity.subscribe((acc) => {
   const damagingEntity = acc.damagingEntity;
   const hitEntity = acc.hitEntity;
   handleAccessory(damagingEntity, "onHitEntity", acc, hitEntity);
 });
-world6.afterEvents.entityHurt.subscribe(onDamageIndicator);
-world6.afterEvents.entityHurt.subscribe(onDummyHurt);
-world6.afterEvents.playerInventoryItemChange.subscribe(({ player, itemStack, beforeItemStack }) => {
+world7.afterEvents.entityHurt.subscribe(onDamageIndicator);
+world7.afterEvents.entityHurt.subscribe(onDummyHurt);
+world7.afterEvents.entityHurt.subscribe(onTitanCoreHurt);
+world7.afterEvents.playerInventoryItemChange.subscribe(({ player, itemStack, beforeItemStack }) => {
   onDynamicLighting(player);
   const container = player.getComponent("inventory")?.container;
   if (container) {
@@ -2474,14 +2637,14 @@ world6.afterEvents.playerInventoryItemChange.subscribe(({ player, itemStack, bef
   }
   healthBarRuntime(player, "inventoryItemChanged", beforeItemStack, itemStack);
 });
-world6.afterEvents.worldLoad.subscribe(() => {
+world7.afterEvents.worldLoad.subscribe(() => {
   loadScoreboards();
 });
-world6.afterEvents.playerSpawn.subscribe(({ player, initialSpawn }) => {
+world7.afterEvents.playerSpawn.subscribe(({ player, initialSpawn }) => {
   onPlayerSpawn(player, initialSpawn);
   onDynamicLighting(player);
 });
-world6.afterEvents.playerSwingStart.subscribe(({ player, heldItemStack, swingSource }) => {
+world7.afterEvents.playerSwingStart.subscribe(({ player, heldItemStack, swingSource }) => {
   onControlSwingInput(player, swingSource);
   for (const weapon of weapons) {
     if (heldItemStack?.typeId === weapon.itemId) {
@@ -2490,14 +2653,14 @@ world6.afterEvents.playerSwingStart.subscribe(({ player, heldItemStack, swingSou
     }
   }
 });
-world6.afterEvents.playerButtonInput.subscribe(({ player: source, button, newButtonState }) => {
+world7.afterEvents.playerButtonInput.subscribe(({ player: source, button, newButtonState }) => {
   if (newButtonState != "Pressed") return;
   if (button == "Sneak") {
     windPlungeRuntime(source);
   }
   onControlButtonInput(source, button);
 });
-world6.afterEvents.itemUse.subscribe(({ source, itemStack }) => {
+world7.afterEvents.itemUse.subscribe(({ source, itemStack }) => {
   if (!itemStack) return;
   parryRuntime(source, itemStack);
   startBetterMending(source, itemStack);
@@ -2507,13 +2670,16 @@ world6.afterEvents.itemUse.subscribe(({ source, itemStack }) => {
     }
   }
 });
-world6.afterEvents.entityDie.subscribe(({ damageSource, deadEntity }) => {
+world7.afterEvents.entityDie.subscribe(({ damageSource, deadEntity }) => {
   const killer = damageSource?.damagingEntity;
   if (deadEntity?.typeId === "minecraft:player") {
     try {
       clearPlayerLighting(deadEntity);
     } catch (e) {
     }
+  }
+  if (deadEntity?.typeId === "ph:titan_core") {
+    onTitanCoreDie(deadEntity);
   }
   if (!killer?.isValid) return;
   const mainhand = killer?.getComponent("equippable")?.getEquipment(EquipmentSlot5.Mainhand);
@@ -2522,20 +2688,20 @@ world6.afterEvents.entityDie.subscribe(({ damageSource, deadEntity }) => {
     deadEntity.dimension.spawnEntity("minecraft:lightning_bolt", deadEntity.location);
   }
 });
-world6.afterEvents.entityHealthChanged.subscribe(({ entity }) => {
+world7.afterEvents.entityHealthChanged.subscribe(({ entity }) => {
   if (!entity.isValid) return;
   healthBarRuntime(entity, "healthChanged");
 });
-world6.afterEvents.playerDimensionChange.subscribe(({ player }) => {
+world7.afterEvents.playerDimensionChange.subscribe(({ player }) => {
   healthBarRuntime(player, "dimensionChanged");
 });
-world6.afterEvents.playerGameModeChange.subscribe(({ player, toGameMode }) => {
+world7.afterEvents.playerGameModeChange.subscribe(({ player, toGameMode }) => {
   healthBarRuntime(player, "gamemodeChanged");
 });
 var animatedTpSpeeds = new Map(
   specifiedFamilityAndSpeed.map((data) => [data.type_family, data.speed])
 );
-world6.afterEvents.entitySpawn.subscribe(({ entity, cause }) => {
+world7.afterEvents.entitySpawn.subscribe(({ entity, cause }) => {
   if (cause != "Spawned") return;
   if (!entity.isValid) return;
   const family = entity?.getComponent("minecraft:type_family")?.getTypeFamilies();
@@ -2553,9 +2719,9 @@ world6.afterEvents.entitySpawn.subscribe(({ entity, cause }) => {
   const dx = dir.x;
   const dy = dir.y;
   const dz = dir.z;
-  const interval = system9.runInterval(() => {
+  const interval = system10.runInterval(() => {
     if (!entity?.isValid) {
-      system9.clearRun(interval);
+      system10.clearRun(interval);
       return;
     }
     entity?.teleport({
@@ -2565,17 +2731,17 @@ world6.afterEvents.entitySpawn.subscribe(({ entity, cause }) => {
     });
   }, 1);
 });
-world6.beforeEvents.playerLeave.subscribe(({ player }) => {
+world7.beforeEvents.playerLeave.subscribe(({ player }) => {
   clearPlayerLighting(player);
   clearControlState(player);
 });
-system9.runInterval(() => {
-  for (const player of world6.getPlayers()) {
+system10.runInterval(() => {
+  for (const player of world7.getPlayers()) {
     javaSaturationRegen(player);
   }
 }, 6);
-system9.runInterval(() => {
-  for (const player of world6.getPlayers()) {
+system10.runInterval(() => {
+  for (const player of world7.getPlayers()) {
     try {
       const base = player.location;
       const dimension = player.dimension;
@@ -2603,12 +2769,12 @@ system9.runInterval(() => {
     }
   }
 }, 40);
-system9.afterEvents.scriptEventReceive.subscribe(({ id, message, sourceBlock, sourceEntity }) => {
+system10.afterEvents.scriptEventReceive.subscribe(({ id, message, sourceBlock, sourceEntity }) => {
   const parseMessage = (message2) => message2.split(",").map((v) => v.trim());
   switch (id) {
     case "ph:remove_target_lock":
       if (!sourceEntity) return;
-      system9.runTimeout(() => {
+      system10.runTimeout(() => {
         sourceEntity.removeTag("locked");
       }, 5);
       break;
@@ -2704,7 +2870,7 @@ system9.afterEvents.scriptEventReceive.subscribe(({ id, message, sourceBlock, so
       sourceEntity.dimension.spawnParticle("ph:cruxshaper_charge_arc", sourceEntity.location, molang);
       break;
     case "ph:particle_custom":
-      system9.run(() => {
+      system10.run(() => {
         const particleMolang = new MolangVariableMap3();
         particleMolang.setFloat("variable.spawn_rate", Number(message));
         if (sourceBlock) {
@@ -2748,9 +2914,9 @@ function beginCollisionCheck(dasher, duration, damage, collisionRadius, spareFam
   let tick = 0;
   let prevPos = { ...dasher.location };
   const hitEntities = /* @__PURE__ */ new Set();
-  const interval = system9.runInterval(() => {
+  const interval = system10.runInterval(() => {
     if (!dasher || !dasher.isValid) {
-      system9.clearRun(interval);
+      system10.clearRun(interval);
       return;
     }
     tick++;
@@ -2781,7 +2947,7 @@ function beginCollisionCheck(dasher, duration, damage, collisionRadius, spareFam
     }
     prevPos = { ...currentPos };
     if (tick >= duration) {
-      system9.clearRun(interval);
+      system10.clearRun(interval);
     }
   });
 }
@@ -2817,9 +2983,9 @@ function fireLaserOnce(shooter, range, damage, width) {
 function bossLaserBeam(boss, charge, duration, range, damagePerTick, width) {
   let tick = 0;
   let chargeTime = charge;
-  const chargeInterval = system9.runInterval(() => {
+  const chargeInterval = system10.runInterval(() => {
     if (!boss || !boss.isValid) {
-      system9.clearRun(chargeInterval);
+      system10.clearRun(chargeInterval);
       return;
     }
     const start = boss.location;
@@ -2834,14 +3000,14 @@ function bossLaserBeam(boss, charge, duration, range, damagePerTick, width) {
     }
     chargeTime--;
     if (chargeTime <= 0) {
-      system9.clearRun(chargeInterval);
+      system10.clearRun(chargeInterval);
       startLaser();
     }
   });
   function startLaser() {
-    const interval = system9.runInterval(() => {
+    const interval = system10.runInterval(() => {
       if (!boss || !boss.isValid) {
-        system9.clearRun(interval);
+        system10.clearRun(interval);
         return;
       }
       tick++;
@@ -2882,17 +3048,17 @@ function bossLaserBeam(boss, charge, duration, range, damagePerTick, width) {
         }
       }
       if (tick >= duration) {
-        system9.clearRun(interval);
+        system10.clearRun(interval);
       }
     });
   }
 }
 
 // data/scripts/features/blocks/customComponents.ts
-import { system as system12, CommandPermissionLevel, CustomCommandStatus, MolangVariableMap as MolangVariableMap4, ItemStack as ItemStack4 } from "@minecraft/server";
+import { system as system13, CommandPermissionLevel, CustomCommandStatus, MolangVariableMap as MolangVariableMap4, ItemStack as ItemStack4 } from "@minecraft/server";
 
 // data/scripts/ui/forms/skillUnlock.ts
-import { system as system10 } from "@minecraft/server";
+import { system as system11 } from "@minecraft/server";
 import { ActionFormData, MessageFormData } from "@minecraft/server-ui";
 function skillUnlock(player) {
   let dashLevelStatus = player.getDynamicProperty("ph:dash_level") ?? 0;
@@ -2902,7 +3068,7 @@ function skillUnlock(player) {
 \xA72Level : ${dashLevelStatus}`).button(`Extra Health
 \xA72Level : ${healthLevelStatus}`).button(`Wind Plunge
 ${plungeUnlockStatus}`).show(player).then((r) => {
-    if (r.cancelationReason == "UserBusy") system10.run(() => skillUnlock(player));
+    if (r.cancelationReason == "UserBusy") system11.run(() => skillUnlock(player));
     if (r.selection == 0) dashUnlock(player);
     if (r.selection == 1) healthUpgrade(player);
     if (r.selection == 2) plungeUnlock(player);
@@ -2992,7 +3158,7 @@ Required Level : 30`).button1("Confirm").button2("Cancel").show(player).then((r)
 }
 
 // data/scripts/ui/forms/settingsForm.ts
-import { system as system11 } from "@minecraft/server";
+import { system as system12 } from "@minecraft/server";
 import { ActionFormData as ActionFormData2 } from "@minecraft/server-ui";
 function openSettings(player) {
   const dashControl = getDashControl(player);
@@ -3000,7 +3166,7 @@ function openSettings(player) {
   const form = new ActionFormData2().title("Phantasm Settings").body("Pick the controls you want for Phantasm mechanics. Every setting is saved to you only.").button(`Passive Dash
 \xA77Currently: \xA7f${DASH_CONTROL_NAMES[dashControl]}`).button(`Legendary Weapon Skills
 \xA77Currently: \xA7f${SKILL_SWITCH_CONTROL_NAMES[skillSwitchControl]}`).button("Reset To Defaults").button("Close").show(player).then((r) => {
-    if (r.cancelationReason == "UserBusy") system11.run(() => openSettings(player));
+    if (r.cancelationReason == "UserBusy") system12.run(() => openSettings(player));
     if (r.selection == 0) dashControlMenu(player);
     if (r.selection == 1) skillSwitchControlMenu(player);
     if (r.selection == 2) resetSettings(player);
@@ -3491,14 +3657,14 @@ function coreRing(size, color) {
   return map;
 }
 var copperRing = () => coreRing(1, COPPER_RING_COLOR);
-system12.beforeEvents.startup.subscribe((initEvent) => {
+system13.beforeEvents.startup.subscribe((initEvent) => {
   initEvent.itemComponentRegistry.registerCustomComponent("ph:charge_passive", {
     onHitEntity(e) {
       const hitEntity = e.hitEntity;
       const source = e.attackingEntity;
       const itemStack = e.itemStack;
       if (itemStack.typeId === "ph:charged_copper_axe") {
-        system12.runTimeout(() => {
+        system13.runTimeout(() => {
           if (getScore(source, "charged_copper_axe") == 100) {
             hitEntity.runCommand("summon lightning_bolt");
           }
@@ -3512,9 +3678,9 @@ system12.beforeEvents.startup.subscribe((initEvent) => {
       const player = e.source;
       player.startItemCooldown("charged_copper_axe", 120);
       applyDurabilityDamage(player, { damage: 36 });
-      system12.run(() => {
+      system13.run(() => {
         player.playAnimation("animation.charged_copper_axe.attack_3", player.location);
-        system12.runTimeout(() => {
+        system13.runTimeout(() => {
           player.dimension.playSound("weapon_slash.slash_heavy", player.location);
           player.dimension.spawnParticle("ph:lightning_flash", player.location);
           player.dimension.spawnParticle("ph:lightning_sparks", player.location);
@@ -3741,13 +3907,13 @@ system12.beforeEvents.startup.subscribe((initEvent) => {
         player.runCommand("damage @e[r=10,rm=0.1,family=!inanimate,type=!item] 50 entity_explosion entity @s");
         player.runCommand("execute as @s at @e[r=10,rm=0.1,family=!inanimate,type=!item] run setblock ~~~ fire");
       }
-      system12.run(() => {
+      system13.run(() => {
         player.dimension.spawnParticle("ph:cruxshaper_flung", player.location);
         player.addEffect("levitation", 20, {
           amplifier: 24
         });
         player.dimension.playSound("random.explode", player.location);
-        system12.runTimeout(() => {
+        system13.runTimeout(() => {
           player.dimension.spawnParticle("ph:cruxshaper_flung", player.location);
           player.applyKnockback({ x: 0, z: 0 }, -2.1);
           player.addEffect("slow_falling", 20);
@@ -3755,10 +3921,10 @@ system12.beforeEvents.startup.subscribe((initEvent) => {
             stopExpression: "query.is_on_ground"
           });
           player.dimension.playSound("random.explode", player.location);
-          const intervalRun = system12.runInterval(() => {
+          const intervalRun = system13.runInterval(() => {
             if (!player.isOnGround) return;
-            system12.run(impact);
-            system12.clearRun(intervalRun);
+            system13.run(impact);
+            system13.clearRun(intervalRun);
           }, 2);
         }, 30);
       });
@@ -3766,7 +3932,7 @@ system12.beforeEvents.startup.subscribe((initEvent) => {
     },
     onUseOn(e) {
       const player = e.source;
-      system12.run(() => {
+      system13.run(() => {
         player.sendMessage("Look up while using the skill!");
       });
     }
@@ -3826,7 +3992,7 @@ system12.beforeEvents.startup.subscribe((initEvent) => {
       block.dimension.spawnParticle("ph:auric_communicator_loading", { x: blockLoc.x, y: blockLoc.y + 1, z: blockLoc.z });
       if (auricMode == 1) {
         source.addTag("AURIC_ORBITAL_NUKE");
-        system12.runTimeout(() => {
+        system13.runTimeout(() => {
           block.dimension.playSound("random.explode", blockLoc);
           try {
             block.dimension.runCommand(`damage @e[r=48,tag=!AURIC_ORBITAL_NUKE,type=!item,family=!inanimate,x=${blockLoc.x},y=${blockLoc.y},z=${blockLoc.z}] 50 entity_explosion entity @e[tag=AURIC_ORBITAL_NUKE]`);
@@ -3841,7 +4007,7 @@ system12.beforeEvents.startup.subscribe((initEvent) => {
         return;
       }
       source.addTag("AURIC_ORBITAL_LASER");
-      system12.runTimeout(() => {
+      system13.runTimeout(() => {
         for (let i = 0; i < 381; i += 10) {
           try {
             block.dimension.runCommand(`damage @e[r=10,tag=!AURIC_ORBITAL_LASER,type=!item,family=!inanimate,x=${blockLoc.x},y=${i},z=${blockLoc.z}] 80 entity_explosion entity @e[tag=AURIC_ORBITAL_LASER]`);
@@ -3906,7 +4072,7 @@ system12.beforeEvents.startup.subscribe((initEvent) => {
       source.addTag("parried");
       source.inputPermissions.setPermissionCategory(2, false);
       applyDurabilityDamage(source, { damage: 1 });
-      system12.runTimeout(() => {
+      system13.runTimeout(() => {
         if (source?.hasTag("parried")) source.removeTag("parried");
         source.inputPermissions.setPermissionCategory(2, true);
       }, window_time);
@@ -3976,7 +4142,7 @@ system12.beforeEvents.startup.subscribe((initEvent) => {
         block.dimension.spawnParticle("ph:auric_beam_small", block.west(2).center());
         block.dimension.playSound("custom_sfx.boss_summoned", block.center());
         const bossSpawnPoint = findBossSpawnPoint(block.dimension, block.center(), player);
-        system12.runTimeout(() => {
+        system13.runTimeout(() => {
           block.dimension.spawnEntity("ph:copper_mechanical_array", bossSpawnPoint);
           block.dimension.playSound("mob.zombie.woodbreak", bossSpawnPoint);
           block.dimension.spawnParticle("ph:auric_beam_small", bossSpawnPoint);
@@ -4191,7 +4357,7 @@ system12.beforeEvents.startup.subscribe((initEvent) => {
     cheatsRequired: true,
     permissionLevel: CommandPermissionLevel.GameDirectors
   }, (origin) => {
-    system12.run(() => {
+    system13.run(() => {
       openDynamicPropertyMenu(origin.sourceEntity);
     });
   });
@@ -4201,7 +4367,7 @@ system12.beforeEvents.startup.subscribe((initEvent) => {
     cheatsRequired: false,
     permissionLevel: CommandPermissionLevel.Any
   }, (origin) => {
-    system12.run(() => {
+    system13.run(() => {
       mainGuideScreen(origin.sourceEntity);
     });
   });
@@ -4213,7 +4379,7 @@ system12.beforeEvents.startup.subscribe((initEvent) => {
   }, (origin) => {
     const player = origin.sourceEntity;
     if (player?.typeId !== "minecraft:player") return { status: CustomCommandStatus.Failure };
-    system12.run(() => {
+    system13.run(() => {
       openSettings(player);
     });
     return { status: CustomCommandStatus.Success };
@@ -4229,20 +4395,91 @@ system12.beforeEvents.startup.subscribe((initEvent) => {
   });
 });
 function openForm({ sourceEntity: player }) {
-  system12.run(() => {
+  system13.run(() => {
     skillUnlock(player);
   });
   return { status: CustomCommandStatus.Success };
 }
 function clearDynamicProperty({ sourceEntity: player }) {
-  system12.run(() => {
+  system13.run(() => {
     player.clearDynamicProperties();
   });
   return { status: CustomCommandStatus.Success };
 }
 
+// data/scripts/systems/xeonniteBlessing.ts
+import { world as world8, system as system14, EntityComponentTypes } from "@minecraft/server";
+var BLESSING_PROPERTY = "ph:xeonnite_blessing";
+var CUBE_PROPERTY = "ph:ever_obtained_xeonnite_cube";
+var RIDGE_PROPERTY = "ph:ever_visited_titan_ridge";
+var XEONNITE_CUBE = "ph:xeonnite_cube";
+var TITAN_RIDGE_TAG = "ph:titan_ridge";
+var TITAN_RIDGE_FAMILY = "titan_ridge";
+function isBlessed(player) {
+  try {
+    return player.getDynamicProperty(BLESSING_PROPERTY) === true;
+  } catch {
+    return false;
+  }
+}
+function holdsCube(player) {
+  const inventory = player.getComponent(EntityComponentTypes.Inventory)?.container;
+  if (!inventory) return false;
+  for (let slot = 0; slot < inventory.size; slot++) {
+    if (inventory.getItem(slot)?.typeId === XEONNITE_CUBE) return true;
+  }
+  return false;
+}
+function inTitanRidge(player) {
+  return player.dimension.getBiome(player.location).hasTags([TITAN_RIDGE_TAG]);
+}
+system14.runInterval(() => {
+  for (const player of world8.getAllPlayers()) {
+    if (isBlessed(player)) continue;
+    try {
+      if (player.getDynamicProperty(CUBE_PROPERTY) !== true && holdsCube(player)) {
+        player.setDynamicProperty(CUBE_PROPERTY, true);
+      }
+      if (player.getDynamicProperty(RIDGE_PROPERTY) !== true && inTitanRidge(player)) {
+        player.setDynamicProperty(RIDGE_PROPERTY, true);
+      }
+      if (player.getDynamicProperty(CUBE_PROPERTY) !== true || player.getDynamicProperty(RIDGE_PROPERTY) !== true) continue;
+      player.setDynamicProperty(BLESSING_PROPERTY, true);
+      player.onScreenDisplay.setTitle("\xA7b\xA7lXeonnite Blessing", {
+        subtitle: "\xA77The Forge Troopers can now be wounded",
+        fadeInDuration: 10,
+        stayDuration: 60,
+        fadeOutDuration: 20
+      });
+      player.playSound("random.levelup");
+    } catch {
+    }
+  }
+}, 20);
+world8.beforeEvents.entityHurt.subscribe((acc) => {
+  const attacker = acc.damageSource.damagingEntity;
+  if (attacker?.typeId !== "minecraft:player") return;
+  const hurtEntity = acc.hurtEntity;
+  try {
+    if (!hurtEntity.getComponent("minecraft:type_family")?.hasTypeFamily(TITAN_RIDGE_FAMILY)) return;
+  } catch {
+    return;
+  }
+  const player = attacker;
+  if (isBlessed(player)) return;
+  acc.cancel = true;
+  system14.run(() => {
+    try {
+      const { x, y, z } = hurtEntity.location;
+      hurtEntity.dimension.spawnParticle("ph:auric_light_flash", { x, y: y + 1.6, z });
+      player.onScreenDisplay.setActionBar("\xA77Requires the \xA7bXeonnite Blessing");
+    } catch {
+    }
+  });
+});
+
 // data/scripts/features/mace/detection.ts
-import { world as world7, system as system13, EquipmentSlot as EquipmentSlot7, EntityDamageCause as EntityDamageCause4 } from "@minecraft/server";
+import { world as world9, system as system15, EquipmentSlot as EquipmentSlot7, EntityDamageCause as EntityDamageCause4 } from "@minecraft/server";
 
 // data/scripts/features/mace/manager.ts
 import { EntityEquippableComponent, EquipmentSlot as EquipmentSlot6 } from "@minecraft/server";
@@ -4255,8 +4492,8 @@ function isCustomMace(item) {
   return !!item && CustomMaceItems.has(item?.typeId);
 }
 var playerFallData = /* @__PURE__ */ new Map();
-system13.runInterval(() => {
-  for (const player of world7.getAllPlayers()) {
+system15.runInterval(() => {
+  for (const player of world9.getAllPlayers()) {
     const item = player.getComponent("minecraft:equippable")?.getEquipment(EquipmentSlot7.Mainhand);
     const isFallingWithMace = isCustomMace(item) && !player.isOnGround && !player.isInWater && !player.isClimbing && !player.isGliding && !player.isFlying && !player.getEffect("minecraft:slow_falling") && !player.getEffect("minecraft:levitation");
     if (isFallingWithMace && player.dimension?.getBlock(player.location)?.typeId === "minecraft:web") {
@@ -4273,6 +4510,262 @@ system13.runInterval(() => {
     }
   }
 }, 1);
+
+// data/scripts/features/forge_trooper/manager.ts
+import {
+  world as world10,
+  system as system16,
+  EntityDamageCause as EntityDamageCause5
+} from "@minecraft/server";
+var TROOPER_ID = "ph:forge_trooper";
+var NERF_PROPERTY = "ph:forge_parry_nerf_until";
+var FRIENDLY_FAMILIES = ["titan_ridge", "inanimate"];
+var TARGET_RANGE = 24;
+var VARIANT_GOLD = 0;
+var VARIANT_PLASMA = 1;
+var VARIANT_AMBER = 2;
+var SWEEP_RADIUS = 3.2;
+var SWEEP_DAMAGE = 30;
+var SWEEP_HIT_TICK = 11;
+var SWEEP_COOLDOWN_MS = 6e3;
+var DASH_RANGE_MIN = 10;
+var DASH_RANGE_MAX = 14;
+var DASH_COOLDOWN_MS = 12e3;
+var SWEEP_ANIM_MS = 1250;
+var DASH_AIR_TICKS = 8;
+var DASH_PUSHES = 6;
+var DASH_IMPULSE = 0.35;
+var states2 = /* @__PURE__ */ new Map();
+function getState2(trooper) {
+  let st = states2.get(trooper.id);
+  if (!st) {
+    st = { sweepCd: 0, dashCd: 0, sweepingUntil: 0, dashPhase: 0 };
+    states2.set(trooper.id, st);
+    return st;
+  }
+  return st;
+}
+function forgetState(key) {
+  states2.delete(key);
+}
+function variantOf(trooper) {
+  return trooper.getComponent("minecraft:variant")?.value ?? 0;
+}
+function isNerfed(player) {
+  try {
+    const until = player.getDynamicProperty(NERF_PROPERTY);
+    return typeof until === "number" && Date.now() < until;
+  } catch {
+    return false;
+  }
+}
+function isValidTarget2(target) {
+  try {
+    if (!target.isValid || target.typeId === TROOPER_ID) return false;
+    if (target.typeId === "minecraft:player") {
+      const mode = target.getGameMode();
+      return mode !== "Creative" && mode !== "Spectator";
+    }
+    if (!target.getComponent("minecraft:health")) return false;
+    const family = target.getComponent("minecraft:type_family");
+    return !FRIENDLY_FAMILIES.some((f) => family?.hasTypeFamily(f));
+  } catch {
+    return false;
+  }
+}
+function distanceBetween(a, b) {
+  const dx = a.location.x - b.location.x;
+  const dy = a.location.y - b.location.y;
+  const dz = a.location.z - b.location.z;
+  return Math.sqrt(dx * dx + dy * dy + dz * dz);
+}
+function nearestTarget(trooper) {
+  try {
+    return trooper.dimension.getEntities({ location: trooper.location, maxDistance: TARGET_RANGE, excludeFamilies: FRIENDLY_FAMILIES }).find(isValidTarget2);
+  } catch {
+    return void 0;
+  }
+}
+world10.beforeEvents.entityHurt.subscribe((acc) => {
+  const hurtEntity = acc.hurtEntity;
+  const attacker = acc.damageSource.damagingEntity;
+  if (attacker?.typeId === "minecraft:player" && isNerfed(attacker)) {
+    acc.cancel = true;
+    return;
+  }
+  if (hurtEntity?.typeId !== TROOPER_ID) return;
+  if (attacker?.typeId !== "minecraft:player") return;
+  const player = attacker;
+  if (!isBlessed(player)) return;
+  if (Math.random() < 0.2) {
+    acc.cancel = true;
+    const trooper = hurtEntity;
+    system16.run(() => {
+      try {
+        trooper.playAnimation("animation.forge_trooper.parry");
+        const dim = trooper.dimension;
+        dim.spawnParticle("ph:parry_prepare", {
+          x: trooper.location.x,
+          y: trooper.location.y + 1.2,
+          z: trooper.location.z
+        });
+        dim.playSound("weapon_slash.slash_clash", trooper.location);
+        player.addEffect("weakness", 40, {
+          amplifier: 255,
+          showParticles: true
+        });
+        player.setDynamicProperty(NERF_PROPERTY, Date.now() + 2e3);
+        player.onScreenDisplay.setActionBar("\xA7c\xA7lPARRIED! \xA77Damage output nullified");
+      } catch {
+      }
+    });
+    return;
+  }
+});
+function startSweep(trooper, st) {
+  st.sweepingUntil = Date.now() + SWEEP_ANIM_MS;
+  st.sweepCd = Date.now() + SWEEP_COOLDOWN_MS;
+  try {
+    trooper.clearVelocity();
+    trooper.addEffect("slowness", Math.ceil(SWEEP_ANIM_MS / 50), { amplifier: 10, showParticles: false });
+  } catch {
+  }
+  trooper.playAnimation("animation.forge_trooper.sweep");
+  const variant = variantOf(trooper);
+  const radius = variant === VARIANT_PLASMA ? SWEEP_RADIUS + 1 : SWEEP_RADIUS;
+  const damage = variant === VARIANT_AMBER ? SWEEP_DAMAGE + 3 : SWEEP_DAMAGE;
+  system16.runTimeout(() => {
+    if (!trooper.isValid) return;
+    const location = trooper.location;
+    const targets = trooper.dimension.getEntities({
+      location,
+      maxDistance: radius,
+      excludeFamilies: FRIENDLY_FAMILIES
+    });
+    for (const target of targets) {
+      if (target.id === trooper.id || !isValidTarget2(target)) continue;
+      target.applyDamage(damage, {
+        cause: EntityDamageCause5.entityAttack,
+        damagingEntity: trooper
+      });
+    }
+    trooper.dimension.playSound("weapon_slash.slash_heavy", location);
+  }, SWEEP_HIT_TICK);
+}
+function startDash(trooper, st) {
+  st.dashCd = Date.now() + DASH_COOLDOWN_MS;
+  st.dashPhase = 1;
+  try {
+    trooper.playAnimation("animation.forge_trooper.dash");
+    trooper.applyImpulse({ x: 0, y: 0.9, z: 0 });
+  } catch {
+    st.dashPhase = 0;
+    return;
+  }
+  system16.runTimeout(() => {
+    if (!trooper.isValid) return;
+    st.dashPhase = 2;
+    let pushes = DASH_PUSHES;
+    const push = system16.runInterval(() => {
+      if (!trooper.isValid || pushes <= 0) {
+        system16.clearRun(push);
+        if (trooper.isValid) st.dashPhase = 0;
+        return;
+      }
+      const target = nearestTarget(trooper);
+      if (target === void 0) {
+        system16.clearRun(push);
+        st.dashPhase = 0;
+        return;
+      }
+      if (distanceBetween(trooper, target) <= SWEEP_RADIUS + 1.5) {
+        system16.clearRun(push);
+        st.dashPhase = 0;
+        startSweep(trooper, st);
+        return;
+      }
+      const dx = target.location.x - trooper.location.x;
+      const dz = target.location.z - trooper.location.z;
+      const flat = Math.sqrt(dx * dx + dz * dz) || 1;
+      try {
+        trooper.applyImpulse({ x: dx / flat * DASH_IMPULSE, y: 0, z: dz / flat * DASH_IMPULSE });
+      } catch {
+        system16.clearRun(push);
+        st.dashPhase = 0;
+        return;
+      }
+      pushes--;
+    }, 2);
+  }, DASH_AIR_TICKS);
+}
+system16.runInterval(() => {
+  const now = Date.now();
+  const troopers = /* @__PURE__ */ new Map();
+  for (const player of world10.getAllPlayers()) {
+    try {
+      for (const trooper of player.dimension.getEntities({
+        type: TROOPER_ID,
+        location: player.location,
+        maxDistance: 48
+      })) {
+        troopers.set(trooper.id, trooper);
+      }
+    } catch {
+      continue;
+    }
+  }
+  for (const trooper of troopers.values()) {
+    if (!trooper.isValid) continue;
+    const st = getState2(trooper);
+    if (now < st.sweepingUntil) continue;
+    const target = nearestTarget(trooper);
+    if (target === void 0) continue;
+    const dist = distanceBetween(trooper, target);
+    if (now < st.sweepCd && dist < 2.2 && dist > 0.01) {
+      const away = 0.08 / dist;
+      try {
+        trooper.applyImpulse({
+          x: (trooper.location.x - target.location.x) * away,
+          y: 0,
+          z: (trooper.location.z - target.location.z) * away
+        });
+      } catch {
+      }
+    }
+    if (variantOf(trooper) === VARIANT_GOLD && st.dashPhase === 0 && now >= st.dashCd && dist >= DASH_RANGE_MIN && dist <= DASH_RANGE_MAX) {
+      startDash(trooper, st);
+      continue;
+    }
+    if (st.dashPhase === 0 && dist <= SWEEP_RADIUS + 0.8 && now >= st.sweepCd) {
+      startSweep(trooper, st);
+    }
+  }
+}, 10);
+world10.afterEvents.entityDie.subscribe(({ deadEntity, damageSource }) => {
+  if (deadEntity?.typeId !== TROOPER_ID) return;
+  forgetState(deadEntity.id);
+  const killer = damageSource?.damagingEntity;
+  if (!killer || killer.typeId !== "minecraft:player") return;
+  const player = killer;
+  if (Math.random() >= 0.3) return;
+  try {
+    switch (variantOf(deadEntity)) {
+      case VARIANT_GOLD:
+        player.addEffect("speed", 400, { amplifier: 0 });
+        break;
+      case VARIANT_PLASMA:
+        player.addEffect("instant_health", 1, { amplifier: 0 });
+        break;
+      case VARIANT_AMBER:
+        player.addEffect("resistance", 400, { amplifier: 0 });
+        break;
+    }
+  } catch {
+  }
+});
+world10.afterEvents.entityRemove.subscribe(({ removedEntityId, typeId }) => {
+  if (typeId === TROOPER_ID) forgetState(removedEntityId);
+});
 
 // data/scripts/main.ts
 console.warn("\xA7a\xA7lPhantasm 1.5.2 Activated!");

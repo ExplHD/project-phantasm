@@ -159,6 +159,12 @@
 		"ph_xeonnite_shard": {
 			"textures": "textures/items/xeonnite_shard"
 		},
+		"ph_plasmoid_scrap": {
+			"textures": "textures/items/plasmoid_scrap"
+		},
+		"ph_rupture_cell": {
+			"textures": "textures/items/rupture_cell"
+		},
 		"ph_small_crystall_bud_item": {
 			"textures": "textures/blocks/small_crystall_bud"
 		},

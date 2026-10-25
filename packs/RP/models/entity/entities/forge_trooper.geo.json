@@ -13,7 +13,10 @@
 			"bones": [
 				{
 					"name": "root",
-					"pivot": [0, 0, 0]
+					"pivot": [0, 0, 0],
+					"locators": {
+						"slashCenter": [0, 16, 0]
+					}
 				},
 				{
 					"name": "waist",
@@ -278,7 +281,11 @@
 								"down": {"uv": [13, 68], "uv_size": [-1, -1]}
 							}
 						}
-					]
+					],
+					"locators": {
+						"sweepBladeTip": [-7.5, 15.5, -25],
+						"parryGuard": [-7.5, 15.5, -12]
+					}
 				},
 				{
 					"name": "leftArm",
