@@ -21,6 +21,7 @@ import {
 
 const SENTINEL_ID = "ph:ancient_sentinel";
 const STATE_PROP = "ph:sentinel_state";
+const ROLL_YAW_PROP = "ph:roll_yaw";
 const TAG_RAGED = "ph:sentinel_enraged";
 const TAG_KNOCKED = "parried"; // shared project tag: scripted attacks respect parry state
 
@@ -42,6 +43,7 @@ const BALL_CD_NORMAL = 8000;
 const BALL_CD_ENRAGED = 5000;
 const ROLL_CD_NORMAL = 9500;
 const ROLL_CD_ENRAGED = 6500;
+const SPECIAL_GAP_MS = 5000;   // breather after any special before the next one may start
 
 const SLAM_BIG_RADIUS = 6;
 const SLAM_BIG_DAMAGE = 16;
@@ -62,6 +64,8 @@ interface SentinelFight {
     lastSpecial: "ball" | "roll" | "";
     ballCd: number;
     rollCd: number;
+    /** Epoch ms before which no special may start (shared gap between Skyfall and Mirror Charge). */
+    specialGapUntil: number;
     enraged: boolean;
 
     // Skyfall Slam machine
@@ -82,7 +86,7 @@ interface SentinelFight {
 const fights = new Map<string, SentinelFight>();
 
 function makeFight(): SentinelFight {
-    return { state: "dormant", lastSpecial: "", ballCd: 0, rollCd: 0, enraged: false };
+    return { state: "dormant", lastSpecial: "", ballCd: 0, rollCd: 0, specialGapUntil: 0, enraged: false };
 }
 
 function getFight(entity: Entity): SentinelFight {
@@ -228,6 +232,12 @@ function faceRollDirection(entity: Entity, fight: SentinelFight): void {
     } catch {
         // Some entity contexts refuse rotation; the spin hides most of it anyway.
     }
+    try {
+        // The RP spins the ball around this yaw, so the tumble follows every bounce and bat.
+        entity.setProperty(ROLL_YAW_PROP, Math.atan2(-dir.x, dir.z) * (180 / Math.PI));
+    } catch {
+        // Cosmetic only.
+    }
 }
 
 // ======================================== think loop ========================================
@@ -259,6 +269,7 @@ function combatCycle(entity: Entity, fight: SentinelFight): void {
 
     const distance = horizontalDistance(entity.location, target.location);
     const now = Date.now();
+    if (now < fight.specialGapUntil) return;
 
     const ballReady = now >= fight.ballCd && distance >= BALL_TRIGGER_MIN && distance <= BALL_TRIGGER_MAX;
     const rollReady = now >= fight.rollCd && distance >= ROLL_TRIGGER_MIN;
@@ -709,6 +720,7 @@ function resumeCombat(entity: Entity, fight: SentinelFight, withUnroll: boolean)
 
     if (!entity.isValid || !withUnroll) {
         fight.state = "active";
+        fight.specialGapUntil = Date.now() + SPECIAL_GAP_MS;
         return;
     }
 
@@ -718,6 +730,7 @@ function resumeCombat(entity: Entity, fight: SentinelFight, withUnroll: boolean)
         setSentinelState(entity, "unrolling");
     } catch {
         fight.state = "active";
+        fight.specialGapUntil = Date.now() + SPECIAL_GAP_MS;
         return;
     }
 
@@ -730,6 +743,7 @@ function resumeCombat(entity: Entity, fight: SentinelFight, withUnroll: boolean)
         if (fight.state !== "unrolling" || !health || health.currentValue <= 0) return;
 
         fight.state = "active";
+        fight.specialGapUntil = Date.now() + SPECIAL_GAP_MS;
         try {
             entity.triggerEvent("ph:end_unroll");
             setSentinelState(entity, "active");

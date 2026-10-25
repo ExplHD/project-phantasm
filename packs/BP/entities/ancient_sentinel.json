@@ -19,6 +19,13 @@
           ],
           "default": "dormant",
           "client_sync": true
+        },
+        // World yaw of the current Mirror Charge direction, drives the RP roll axis.
+        "ph:roll_yaw": {
+          "type": "float",
+          "range": [-180.0, 180.0],
+          "default": 0.0,
+          "client_sync": true
         }
       }
     },
@@ -42,8 +49,11 @@
         "value": 0.24
       },
       "minecraft:health": {
-        "value": 400,
-        "max": 400
+        "value": 900,
+        "max": 900
+      },
+      "minecraft:scale": {
+        "value": 2
       },
       "minecraft:attack": {
         "damage": 14

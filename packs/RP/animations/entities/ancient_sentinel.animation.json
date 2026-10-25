@@ -10,12 +10,19 @@
 				}
 			}
 		},
-		// Continuous forward tumble while charging in a straight line.
+		// Tumble around whatever horizontal axis the ball is travelling along (diagonals included).
+		// roll_axis yaws the spin axis onto the travel direction, roll_shell yaws it back so the shell itself doesn't turn.
 		"animation.ph.sentinel.roll_spin": {
 			"loop": true,
 			"bones": {
-				"body_rolled_up": {
-					"rotation": ["query.modified_distance_moved * 83", 0, 0]
+				"roll_axis": {
+					"rotation": [0, "variable.roll_local_yaw", 0]
+				},
+				"roll_wheel": {
+					"rotation": ["variable.roll_angle", 0, 0]
+				},
+				"roll_shell": {
+					"rotation": [0, "-variable.roll_local_yaw", 0]
 				}
 			}
 		},
