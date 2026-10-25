@@ -1,5 +1,7 @@
-import { world, system, Player, Entity, EquipmentSlot, EntityDamageCause } from "@minecraft/server";
-import { addScore, removeScore, setScore, getScore } from "../../core/scoreboard";
+import { world, system, Player } from "@minecraft/server";
+import { addScore, setScore, getScore } from "../../core/scoreboard";
+import { applyCustomDamage } from "./damage";
+import { type ProjectileConfig, fireProjectile } from "./projectile";
 
 interface AttackPattern {
 	delay: number;
@@ -8,6 +10,8 @@ interface AttackPattern {
 	animation: string;
 	sound: string;
 	action?: CommandHandler;
+	/** Ranged pattern: fires this after `delay` instead of the melee sweep (`radius` is then ignored). */
+	projectile?: ProjectileConfig;
 }
 
 interface SkillConfig {
@@ -91,7 +95,7 @@ class WeaponHandler {
 
 			if (getScore(source, "delayatk") > 0 && getScore(source, "delayatk") < delay) return;
 
-			triggerAttack(source, pattern.delay, pattern.damage, pattern.radius, pattern.animation, pattern.sound);
+			triggerAttack(source, pattern.delay, pattern.damage, pattern.radius, pattern.animation, pattern.sound, pattern.projectile);
 
 			if (currentStep < this.attackPatterns.length - 1) {
 				addScore(source, this.objective, 1);
@@ -234,7 +238,13 @@ class CommandHandler {
 			totalDelay += cmd.delay;
 
 			system.runTimeout(() => {
-				cmd.action(source);
+				// The wielder can leave or change dimension mid-combo.
+				if (!source.isValid) return;
+				try {
+					cmd.action(source);
+				} catch (e) {
+					console.warn(`Weapon command failed: ${e}`);
+				}
 			}, totalDelay);
 		}
 	}
@@ -242,68 +252,20 @@ class CommandHandler {
 
 export { WeaponHandler, SkillSwitcher, SkillHandler, CommandHandler };
 
-export function triggerAttack(source: Player, delay: number, damage: number, radius: number, animation: string, sound: string): void {
+export { applyCustomDamage };
+
+export function triggerAttack(source: Player, delay: number, damage: number, radius: number, animation: string, sound: string, projectile?: ProjectileConfig): void {
 	if (!source) return console.error("No Players found!");
 	if (!delay && !damage) return console.error("Specify Damage and Delay before Damage Value");
-	if (!radius) return console.error("Specify Radius Value");
+	if (!radius && !projectile) return console.error("Specify Radius Value");
 	if (!animation) return;
 
 	source.playAnimation(animation);
 	system.runTimeout(() => {
-		applyCustomDamage(source, damage, radius);
+		if (!source.isValid) return;
+		if (projectile) fireProjectile(source, projectile);
+		else applyCustomDamage(source, damage, radius);
 		if (!sound) return;
 		source.dimension.playSound(sound, source.location);
 	}, delay);
-}
-
-export function applyCustomDamage(source: Player, damage: number, radius: number): void {
-	const strengthLevel = (source.getEffect("strength")?.amplifier ?? -1) + 1;
-	const strengthFormula = 1 + strengthLevel * 0.45;
-	const weaknessLevel = (source.getEffect("weakness")?.amplifier ?? -1) + 1;
-	const weaknessFormula = Math.max(0, 1 - weaknessLevel * 0.24);
-	const item = source?.getComponent("equippable")?.getEquipment(EquipmentSlot.Mainhand);
-	const sharpnessLevel = item?.getComponent("enchantable")?.getEnchantment("sharpness")?.level ?? 0;
-	const sharpnessDamage = sharpnessLevel * 1.25;
-	const calculatedDamage = (damage + sharpnessDamage) * strengthFormula * weaknessFormula;
-	const fireAspect = item?.getComponent("enchantable")?.getEnchantment("fire_aspect")?.level ?? 0;
-	const knockback = item?.getComponent("enchantable")?.getEnchantment("knockback")?.level ?? 0;
-
-	const entities = source.dimension.getEntities({
-		location: source.location,
-		minDistance: 0.1,
-		maxDistance: radius,
-		excludeTypes: ["minecraft:item", "minecraft:lightning_bolt", "minecraft:xp_orb"],
-		excludeFamilies: ["inanimate", "invulnerable"],
-	});
-
-	entities.forEach((entity: Entity) => {
-		entity.applyDamage(calculatedDamage, {
-			cause: EntityDamageCause.entityAttack,
-			damagingEntity: source,
-		});
-
-		let dx = entity.location.x - source.location.x;
-		let dz = entity.location.z - source.location.z;
-		const dist = Math.sqrt(dx * dx + dz * dz);
-		if (dist > 0) {
-			dx /= dist;
-			dz /= dist;
-		} else {
-			dx = 0;
-			dz = 1;
-		}
-
-		const kbStrength = 1 + knockback * 1;
-		try {
-			entity.applyKnockback({ x: dx * kbStrength, z: dz * kbStrength }, 0.4);
-		} catch {
-			// Knockback is unsupported for some entities (frozen in place / hovering /
-			// physics-free like the Titan Core); damage still applies.
-		}
-		if (fireAspect > 0) {
-			try {
-				entity.setOnFire(fireAspect * 4 - 1);
-			} catch { }
-		}
-	});
 }

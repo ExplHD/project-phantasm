@@ -1,6 +1,8 @@
 import { addScore, setScore } from '../../core/scoreboard'
 import { summonOwned } from '../../core/summons'
 import { CommandHandler, SkillHandler, applyCustomDamage } from './weaponHandler'
+import { fireProjectile } from './projectile'
+import { prismBubble } from './prismWeaver'
 import { MolangVariableMap, system, Player, Entity, EntityDamageCause } from '@minecraft/server';
 
 function setAxisDelta(map: MolangVariableMap, a: { x: number; y: number; z: number }, b: { x: number; y: number; z: number }): void {
@@ -20,7 +22,7 @@ solarisverdantSkill.addSkill(1, {
     action: (source: Player) => {
         const location = { x: source.location.x, y: source.location.y + 1, z: source.location.z };
         source.addTag('animirra');
-        source.playAnimation("animation.solaris_verdant.attack_3");
+        source.playAnimation("animation.solaris_verdant.skill_1");
         source.dimension.spawnParticle("ph:solaris_verdant_animirra", location);
         source.runCommand('inputpermission set @s movement disabled');
         const animirra = new CommandHandler([
@@ -49,7 +51,7 @@ solarisverdantSkill.addSkill(2, {
     cooldown: 20,
     charge: false,
     action: (source: Player) => {
-        source.playAnimation("animation.solaris_verdant.attack_3");
+        source.playAnimation("animation.solaris_verdant.skill_2");
         source.runCommand('inputpermission set @s movement disabled');
         const solarisSlash = new CommandHandler([
             {
@@ -74,7 +76,7 @@ solarisverdantSkill.addSkill(3, {
     action: (source: Player) => {
         const location = { x: source.location.x, y: source.location.y + 1, z: source.location.z };
         source.addTag('animirra');
-        source.playAnimation("animation.solaris_verdant.attack_3");
+        source.playAnimation("animation.solaris_verdant.skill_3");
         source.dimension.spawnParticle("ph:solaris_verdant_animirra", location);
         source.runCommand('inputpermission set @s movement disabled');
         const animirra = new CommandHandler([
@@ -114,6 +116,7 @@ superchargedCopperAxeSkill.addSkill(1, {
     cooldown: 15,
     charge: false,
     action: (source: Player) => {
+        source.playAnimation("animation.charged_copper_axe.skill_1");
         source.dimension.spawnParticle("ph:lightning_flash", source.location);
         source.dimension.spawnParticle("ph:lightning_sparks", source.location);
         source.addEffect("strength", 300, {
@@ -133,6 +136,7 @@ superchargedCopperAxeSkill.addSkill(2, {
     cooldown: 10,
     charge: false,
     action: (source: Player) => {
+        source.playAnimation("animation.charged_copper_axe.skill_2");
         source.dimension.spawnParticle("ph:lightning_flash", source.location);
         source.dimension.spawnParticle("ph:copper_mech_explosion", source.location);
         source.applyKnockback({ x: source.getViewDirection().x * 2, z: source.getViewDirection().z * 2 }, 1.2);
@@ -156,7 +160,7 @@ superchargedCopperAxeSkill.addSkill(3, {
     action: (source: Player) => {
         source.dimension.spawnParticle("ph:lightning_flash", source.location);
         source.dimension.spawnParticle("ph:lightning_sparks", source.location);
-        source.playAnimation("animation.charged_copper_axe.attack_4");
+        source.playAnimation("animation.charged_copper_axe.skill_3");
         const discharge = new CommandHandler([
             {
                 delay: 3, action: (src: Player) => {
@@ -196,7 +200,7 @@ superchargedCopperAxeSkill.addSkill(4, {
     action: (source: Player) => {
         source.dimension.spawnParticle("ph:lightning_flash", source.location);
         source.dimension.spawnParticle("ph:lightning_sparks", source.location);
-        source.playAnimation("animation.charged_copper_axe.attack_4");
+        source.playAnimation("animation.charged_copper_axe.skill_4");
         source.runCommand('inputpermission set @s camera disabled');
         source.runCommand('inputpermission set @s movement disabled');
         const discharge = new CommandHandler([
@@ -264,59 +268,20 @@ prismWeaverSkill.addSkill(1, {
     action: (source: Player) => {
         source.runCommand('inputpermission set @s movement disabled');
         source.playAnimation("animation.prism_weaver.skill_1");
+        // Six volleys, one every 7 ticks, of four bubbles from around the player towards the crosshair.
+        const volley = (src: Player) => {
+            for (const [side, up] of [[-1.1, 0.5], [1.1, 0.5], [-0.7, -0.3], [0.7, -0.3]]) fireProjectile(src, prismBubble(side, up));
+            src.dimension.playSound("custom_sfx.animirra_summon", src.location);
+        };
         const command = new CommandHandler([
+            { delay: 7, action: volley },
+            { delay: 7, action: volley },
+            { delay: 7, action: volley },
+            { delay: 7, action: volley },
+            { delay: 7, action: volley },
             {
                 delay: 7, action: (src: Player) => {
-                    summonOwned(src, "summon ph:prism_weaver_laser ~2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    summonOwned(src, "summon ph:prism_weaver_laser ~2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    src.dimension.playSound("custom_sfx.animirra_summon", src.location);
-                }
-            },
-            {
-                delay: 7, action: (src: Player) => {
-                    summonOwned(src, "summon ph:prism_weaver_laser ~2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    summonOwned(src, "summon ph:prism_weaver_laser ~2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    src.dimension.playSound("custom_sfx.animirra_summon", src.location);
-                }
-            },
-            {
-                delay: 7, action: (src: Player) => {
-                    summonOwned(src, "summon ph:prism_weaver_laser ~2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    summonOwned(src, "summon ph:prism_weaver_laser ~2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    src.dimension.playSound("custom_sfx.animirra_summon", src.location);
-                }
-            },
-            {
-                delay: 7, action: (src: Player) => {
-                    summonOwned(src, "summon ph:prism_weaver_laser ~2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    summonOwned(src, "summon ph:prism_weaver_laser ~2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    src.dimension.playSound("custom_sfx.animirra_summon", src.location);
-                }
-            },
-            {
-                delay: 7, action: (src: Player) => {
-                    summonOwned(src, "summon ph:prism_weaver_laser ~2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    summonOwned(src, "summon ph:prism_weaver_laser ~2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    src.dimension.playSound("custom_sfx.animirra_summon", src.location);
-                }
-            },
-            {
-                delay: 7, action: (src: Player) => {
-                    summonOwned(src, "summon ph:prism_weaver_laser ~2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    summonOwned(src, "summon ph:prism_weaver_laser ~2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-                    src.dimension.playSound("custom_sfx.animirra_summon", src.location);
+                    volley(src);
                     src.runCommand('inputpermission set @s movement enabled');
                 }
             }
@@ -333,7 +298,7 @@ prismWeaverSkill.addSkill(2, {
     charge: false,
     action: (source: Player) => {
         source.runCommand('inputpermission set @s movement disabled');
-        source.playAnimation("animation.prism_weaver.attack_2");
+        source.playAnimation("animation.prism_weaver.skill_2");
         const command = new CommandHandler([
             {
                 delay: 10, action: (src: Player) => {
@@ -407,15 +372,10 @@ prismWeaverSkill.addSkill(3, {
         applyCustomDamage(source, 40, 32);
         source.dimension.spawnParticle("ph:vortex_prism", source.location);
         source.dimension.playSound("custom_sfx.vortex_beam", source.location);
-        source.playAnimation("animation.prism_weaver.attack_2");
+        source.playAnimation("animation.prism_weaver.skill_3");
         const command = new CommandHandler([
             {
-                delay: 50, action: (src: Player) => {
-                    src.playAnimation("animation.prism_weaver.attack_3")
-                }
-            },
-            {
-                delay: 10, action: (src: Player) => {
+                delay: 60, action: (src: Player) => {
                     const entities = src.dimension.getEntities({
                         location: src.location,
                         maxDistance: 32,
@@ -526,6 +486,7 @@ auricPhotonizerSkill.addSkill(3, {
     charge: false,
     action: (source: Player) => {
         source.addTag("BBARRAGE");
+        source.playAnimation("animation.auric_photonizer.skill_3");
         source.runCommand(`scriptevent ph:boss_summon 5, 0.6, 26, ph:copper_mech_double_blade, custom_sfx.prism_fire`);
         const command = new CommandHandler([
             {
@@ -546,6 +507,7 @@ auricPhotonizerSkill.addSkill(4, {
     charge: false,
     action: (source: Player) => {
         source.addTag("SWORDIMMUNE");
+        source.playAnimation("animation.auric_photonizer.skill_4");
         source.runCommand(`scriptevent ph:boss_summon 32, 1, 24, ph:copper_mech_sword, custom_sfx.animirra_summon`);
         const command = new CommandHandler([
             {
@@ -592,7 +554,7 @@ theBleedingSpireSkill.addSkill(2, {
     cooldown: 30,
     charge: false,
     action: (source: Player) => {
-        source.playAnimation("animation.the_bleeding_spire.attack_3");
+        source.playAnimation("animation.the_bleeding_spire.skill_2");
         const entities = source.dimension.getEntities({
             location: source.location,
             minDistance: 1.2,
@@ -648,7 +610,7 @@ theBleedingSpireSkill.addSkill(3, {
     cooldown: 30,
     charge: false,
     action: (source: Player) => {
-        source.playAnimation("animation.the_bleeding_spire.attack_1");
+        source.playAnimation("animation.the_bleeding_spire.skill_3");
         source.runCommand(`scriptevent ph:boss_summon 24, 0.7, 32, ph:crimson_laser`)
         const entities = source.dimension.getEntities({
             location: source.location,
