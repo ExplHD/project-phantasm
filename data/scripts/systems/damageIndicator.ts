@@ -91,18 +91,30 @@ for (const [, data] of Object.entries(VarSets)) {
 
 export function onDamageIndicator({ hurtEntity, damageSource, damage }: EntityHurtAfterEvent): void {
     const damageValue = Math.floor(damage);
-    const damageData = DamageTypes[damageSource.cause];
+    const damageData = DamageTypes[damageSource.cause] ?? DamageTypes["none"];
     if (!hurtEntity || !hurtEntity.isValid) return;
-    const loc = hurtEntity.location;
-    loc.y += 1;
-	const players = hurtEntity.dimension.getEntities({ type: "minecraft:player", location: loc, maxDistance: 64 });
+    const { center, extent } = hurtEntity.getAABB();
+    // Horizontal half-diagonal of the hitbox, so the number clears it from any angle
+    const radius = Math.hypot(extent.x, extent.z) + 0.3;
+	const players = hurtEntity.dimension.getEntities({ type: "minecraft:player", location: center, maxDistance: 64 });
 	// console.warn(`HURT FIRED: ${hurtEntity.typeId} dmg=${damageValue} cause=${damageSource.cause} tick=${system.currentTick}`);
 	
     for (const ent of players) {
         const player = ent as Player;
-        const viewDir = player.getViewDirection();
-        loc.x += -viewDir.x;
-        loc.z += -viewDir.z;
+        let dx = player.location.x - center.x;
+        let dz = player.location.z - center.z;
+        let len = Math.hypot(dx, dz);
+        if (len < 0.001) {
+            const viewDir = player.getViewDirection();
+            dx = -viewDir.x;
+            dz = -viewDir.z;
+            len = Math.hypot(dx, dz) || 1;
+        }
+        const loc = {
+            x: center.x + (dx / len) * radius,
+            y: center.y + extent.y * 0.5,
+            z: center.z + (dz / len) * radius
+        };
         const rot = player.getRotation();
 		const molang = new MolangVariableMap();
 		const iconMolang = new MolangVariableMap();
@@ -122,6 +134,7 @@ export function onDamageIndicator({ hurtEntity, damageSource, damage }: EntityHu
         molang.setFloat("variable.floored_ten_thousandths", (Math.floor(absDamage / 10000) % 10));
         molang.setFloat("variable.floored_hundred_thousandths", (Math.floor(absDamage / 100000) % 10));
 		molang.setColorRGB("variable.damagecolor", damageData.color);
+		iconMolang.setColorRGB("variable.damagecolor", damageData.color);
         try {
             player.spawnParticle("ph:damage_number", loc, molang);
             // player.spawnParticle("ph:damage_icons", loc, molang);
