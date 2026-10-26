@@ -62,7 +62,7 @@
 				"collision_radius": 0.2
 			},
 			"minecraft:particle_appearance_tinting": {
-				"color": [1, 1, 1, 1]
+				"color": ["v.damageColor.r", "v.damageColor.g", "v.damageColor.b", 1]
 			}
 		}
 	}
