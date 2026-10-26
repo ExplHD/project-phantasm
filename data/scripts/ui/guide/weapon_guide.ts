@@ -8,6 +8,7 @@ export default function guideWeapons(player: Player) {
 		.title(guideTitle("Weapons"))
 		.body("Weapons come in many variants, from Common up to Legendary.")
 		.button("§3Prismatic Tools", "textures/items/prismatic_sword")
+		.button("§5Xeon Plasm Tools", "textures/items/xeon_plasm_sword")
 		.button("§5Charged Copper Axe", "textures/items/weapons/charged_copper_axe")
 		.button("§5Cruxshaper", "textures/items/weapons/cruxshaper")
 		.button("§5Nature Staff", "textures/items/weapons/nature_staff")
@@ -22,20 +23,21 @@ export default function guideWeapons(player: Player) {
 		.button("§pThe Bleeding Spire", "textures/items/weapons/the_bleeding_spire")
 		.button("Back")
 		.show(player).then(r => {
-			if (r.canceled || r.selection == 13) mainGuideScreen(player);
+			if (r.canceled || r.selection == 14) mainGuideScreen(player);
 			if (r.selection == 0) prismaticTools(player);
-			if (r.selection == 1) chargedCopperAxe(player);
-			if (r.selection == 2) cruxshaper(player);
-			if (r.selection == 3) natureStaff(player);
-			if (r.selection == 4) peacemakerOath(player);
-			if (r.selection == 5) seiketsu(player);
-			if (r.selection == 6) spectricBow(player);
-			if (r.selection == 7) thunderGale(player);
-			if (r.selection == 8) animitta(player);
-			if (r.selection == 9) auricPhotonizer(player);
-			if (r.selection == 10) prismWeaver(player);
-			if (r.selection == 11) superchargedCopperAxe(player);
-			if (r.selection == 12) theBleedingSpire(player);
+			if (r.selection == 1) xeonPlasmTools(player);
+			if (r.selection == 2) chargedCopperAxe(player);
+			if (r.selection == 3) cruxshaper(player);
+			if (r.selection == 4) natureStaff(player);
+			if (r.selection == 5) peacemakerOath(player);
+			if (r.selection == 6) seiketsu(player);
+			if (r.selection == 7) spectricBow(player);
+			if (r.selection == 8) thunderGale(player);
+			if (r.selection == 9) animitta(player);
+			if (r.selection == 10) auricPhotonizer(player);
+			if (r.selection == 11) prismWeaver(player);
+			if (r.selection == 12) superchargedCopperAxe(player);
+			if (r.selection == 13) theBleedingSpire(player);
 		})
 }
 
@@ -46,6 +48,18 @@ function prismaticTools(player: Player) {
 		.label("The sword's special attack pierces through an area, but it cannot crit.")
 		.label("The spear can dismount enemies with a sprint-jump charge attack.")
 		.label("Craft Prismatic Tools with Prismatic Ingots and Netherite Tools.")
+		.button("Back")
+		.show(player).then(r => {
+			if (r.canceled || r.selection == 0) guideWeapons(player);
+		})
+}
+
+function xeonPlasmTools(player: Player) {
+	const form = new ActionFormData()
+		.title(guideTitle("Xeon Plasm Tools"))
+		.label("Xeon Plasm is a tier beyond Prismatic: twice the damage, durability, and mining speed.")
+		.label("The sword and spear work like their Prismatic versions.")
+		.label("Repair them with Xeonnite Cubes or Plasmoid Scrap.")
 		.button("Back")
 		.show(player).then(r => {
 			if (r.canceled || r.selection == 0) guideWeapons(player);

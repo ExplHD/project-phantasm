@@ -90,6 +90,24 @@
 		"ph_prismatic_spear": {
 			"textures": "textures/items/prismatic_spear"
 		},
+		"ph_xeon_plasm_sword": {
+			"textures": "textures/items/xeon_plasm_sword"
+		},
+		"ph_xeon_plasm_axe": {
+			"textures": "textures/items/xeon_plasm_axe"
+		},
+		"ph_xeon_plasm_pickaxe": {
+			"textures": "textures/items/xeon_plasm_pickaxe"
+		},
+		"ph_xeon_plasm_shovel": {
+			"textures": "textures/items/xeon_plasm_shovel"
+		},
+		"ph_xeon_plasm_hoe": {
+			"textures": "textures/items/xeon_plasm_hoe"
+		},
+		"ph_xeon_plasm_spear": {
+			"textures": "textures/items/xeon_plasm_spear"
+		},
 		"ph_cruxshaper": {
 			"textures": "textures/items/weapons/cruxshaper"
 		},
