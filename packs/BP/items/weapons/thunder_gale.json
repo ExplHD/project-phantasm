@@ -27,7 +27,7 @@
 					"max": 100
 				}
 			},
-			"minecraft:damage": 14,
+			"minecraft:damage": 18,
 			"minecraft:repairable": {
 				"repair_items": [
 					{
@@ -70,7 +70,7 @@
 					"max": 7.5
 				},
 				"hitbox_margin": 0.25,
-				"damage_multiplier": 1.6,
+				"damage_multiplier": 1.7,
 				"damage_conditions": {
 					"max_duration": 300,
 					"min_relative_speed": 4.6

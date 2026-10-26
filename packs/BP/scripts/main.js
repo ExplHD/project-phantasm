@@ -1,5 +1,5 @@
 // data/scripts/events/index.ts
-import { world as world8, system as system11, ItemStack as ItemStack3, MolangVariableMap as MolangVariableMap3, EquipmentSlot as EquipmentSlot5, EntityDamageCause as EntityDamageCause4 } from "@minecraft/server";
+import { world as world8, system as system12, ItemStack as ItemStack3, MolangVariableMap as MolangVariableMap3, EquipmentSlot as EquipmentSlot5, EntityDamageCause as EntityDamageCause4 } from "@minecraft/server";
 
 // data/scripts/core/scoreboard.ts
 import { world } from "@minecraft/server";
@@ -149,7 +149,253 @@ function summonOwned(owner, command, source = owner) {
 }
 
 // data/scripts/features/weapons/weaponHandler.ts
-import { world as world2, system as system2, EquipmentSlot as EquipmentSlot2, EntityDamageCause } from "@minecraft/server";
+import { world as world2, system as system3 } from "@minecraft/server";
+
+// data/scripts/features/weapons/damage.ts
+import { EquipmentSlot as EquipmentSlot2, EntityDamageCause } from "@minecraft/server";
+function strikeStats(source, baseDamage) {
+  const strengthLevel = (source.getEffect("strength")?.amplifier ?? -1) + 1;
+  const strengthFormula = 1 + strengthLevel * 0.45;
+  const weaknessLevel = (source.getEffect("weakness")?.amplifier ?? -1) + 1;
+  const weaknessFormula = Math.max(0, 1 - weaknessLevel * 0.24);
+  const enchantable = source.getComponent("equippable")?.getEquipment(EquipmentSlot2.Mainhand)?.getComponent("enchantable");
+  const sharpnessDamage = (enchantable?.getEnchantment("sharpness")?.level ?? 0) * 1.25;
+  return {
+    damage: (baseDamage + sharpnessDamage) * strengthFormula * weaknessFormula,
+    fireAspect: enchantable?.getEnchantment("fire_aspect")?.level ?? 0,
+    knockback: enchantable?.getEnchantment("knockback")?.level ?? 0
+  };
+}
+var EXCLUDED_TYPES = ["minecraft:item", "minecraft:lightning_bolt", "minecraft:xp_orb"];
+var EXCLUDED_FAMILIES = ["inanimate", "invulnerable"];
+function canWeaponHit(source, entity) {
+  if (!entity.isValid || entity.id === source.id) return false;
+  if (getOwnerId(entity) === source.id) return false;
+  try {
+    if (entity.getComponent("tameable")?.tamedToPlayerId === source.id) return false;
+  } catch {
+  }
+  return true;
+}
+function strikeEntity(source, entity, stats, push, knockbackScale = 1) {
+  entity.applyDamage(stats.damage, {
+    cause: EntityDamageCause.entityAttack,
+    damagingEntity: source
+  });
+  const kbStrength = (1 + stats.knockback) * knockbackScale;
+  try {
+    entity.applyKnockback({ x: push.x * kbStrength, z: push.z * kbStrength }, 0.4 * Math.min(1, knockbackScale + 0.25));
+  } catch {
+  }
+  if (stats.fireAspect > 0) {
+    try {
+      entity.setOnFire(stats.fireAspect * 4 - 1);
+    } catch {
+    }
+  }
+}
+function applyCustomDamage(source, damage, radius) {
+  const stats = strikeStats(source, damage);
+  const entities = source.dimension.getEntities({
+    location: source.location,
+    minDistance: 0.1,
+    maxDistance: radius,
+    excludeTypes: EXCLUDED_TYPES,
+    excludeFamilies: EXCLUDED_FAMILIES
+  });
+  for (const entity of entities) {
+    if (!canWeaponHit(source, entity)) continue;
+    let dx = entity.location.x - source.location.x;
+    let dz = entity.location.z - source.location.z;
+    const dist = Math.sqrt(dx * dx + dz * dz);
+    if (dist > 0) {
+      dx /= dist;
+      dz /= dist;
+    } else {
+      dx = 0;
+      dz = 1;
+    }
+    strikeEntity(source, entity, stats, { x: dx, z: dz });
+  }
+}
+
+// data/scripts/features/weapons/projectile.ts
+import { system as system2 } from "@minecraft/server";
+var STEP = 0.45;
+var bolts = [];
+var runner;
+function normalize(v) {
+  const length = Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+  return length > 0 ? { x: v.x / length, y: v.y / length, z: v.z / length } : { x: 0, y: 0, z: 1 };
+}
+function dot(a, b) {
+  return a.x * b.x + a.y * b.y + a.z * b.z;
+}
+function rotateYaw(v, degrees) {
+  const r = degrees * Math.PI / 180;
+  const cos = Math.cos(r);
+  const sin = Math.sin(r);
+  return { x: v.x * cos - v.z * sin, y: v.y, z: v.x * sin + v.z * cos };
+}
+function steer(from, to, maxDegrees) {
+  const angle = Math.acos(Math.min(1, Math.max(-1, dot(from, to))));
+  const max = maxDegrees * Math.PI / 180;
+  if (angle <= max || angle < 1e-4) return to;
+  const t = max / angle;
+  return normalize({ x: from.x + (to.x - from.x) * t, y: from.y + (to.y - from.y) * t, z: from.z + (to.z - from.z) * t });
+}
+function bodyCenter(entity) {
+  const base = entity.location;
+  try {
+    const head = entity.getHeadLocation();
+    return { x: base.x, y: base.y + (head.y - base.y) * 0.6, z: base.z };
+  } catch {
+    return { x: base.x, y: base.y + 0.5, z: base.z };
+  }
+}
+function lockTarget(owner, eye, view, range, coneDegrees) {
+  const minDot = Math.cos(coneDegrees * Math.PI / 180);
+  let best;
+  let bestDot = minDot;
+  for (const entity of owner.dimension.getEntities({ location: eye, maxDistance: range, excludeTypes: EXCLUDED_TYPES, excludeFamilies: EXCLUDED_FAMILIES })) {
+    if (!canWeaponHit(owner, entity)) continue;
+    const center = bodyCenter(entity);
+    const offset = { x: center.x - eye.x, y: center.y - eye.y, z: center.z - eye.z };
+    const distance = Math.sqrt(dot(offset, offset));
+    if (distance < 0.5) continue;
+    const facing = dot(view, offset) / distance;
+    if (facing <= bestDot) continue;
+    const wall = owner.dimension.getBlockFromRay(eye, normalize(offset), { maxDistance: distance, includePassableBlocks: false, includeLiquidBlocks: false });
+    if (wall) continue;
+    best = entity;
+    bestDot = facing;
+  }
+  return best;
+}
+function fireProjectile(owner, config) {
+  if (!owner.isValid) return;
+  const view = normalize(owner.getViewDirection());
+  const eye = owner.getHeadLocation();
+  const right = normalize({ x: -view.z, y: 0, z: view.x });
+  const forward = config.origin?.forward ?? 0.6;
+  const side = config.origin?.side ?? 0;
+  const up = config.origin?.up ?? -0.15;
+  const start = {
+    x: eye.x + view.x * forward + right.x * side,
+    y: eye.y + view.y * forward + up,
+    z: eye.z + view.z * forward + right.z * side
+  };
+  let target;
+  try {
+    target = lockTarget(owner, eye, view, config.range, config.lockCone ?? 12);
+  } catch {
+    target = void 0;
+  }
+  const stats = strikeStats(owner, config.damage);
+  for (const yaw of config.spread ?? [0]) {
+    let dir = rotateYaw(view, yaw);
+    const aim = target ? bodyCenter(target) : { x: eye.x + view.x * 16, y: eye.y + view.y * 16, z: eye.z + view.z * 16 };
+    if (yaw === 0) dir = normalize({ x: aim.x - start.x, y: aim.y - start.y, z: aim.z - start.z });
+    bolts.push({
+      owner,
+      dimension: owner.dimension,
+      pos: { ...start },
+      dir,
+      config,
+      stats,
+      target,
+      travelled: 0,
+      pierceLeft: config.pierce ?? 0,
+      hit: /* @__PURE__ */ new Set()
+    });
+  }
+  runner ??= system2.runInterval(tickBolts, 1);
+}
+function tickBolts() {
+  for (let i = bolts.length - 1; i >= 0; i--) {
+    let alive = false;
+    try {
+      alive = advance(bolts[i]);
+    } catch {
+    }
+    if (!alive) bolts.splice(i, 1);
+  }
+  if (bolts.length === 0 && runner !== void 0) {
+    system2.clearRun(runner);
+    runner = void 0;
+  }
+}
+function advance(bolt) {
+  const { config, dimension } = bolt;
+  if (!bolt.owner.isValid) return false;
+  const steps = Math.max(1, Math.ceil(config.speed / STEP));
+  const stepLength = config.speed / steps;
+  const homing = (config.homing ?? 0) / steps;
+  for (let s = 0; s < steps; s++) {
+    if (bolt.target && homing > 0) {
+      if (bolt.target.isValid) {
+        const center = bodyCenter(bolt.target);
+        bolt.dir = steer(bolt.dir, normalize({ x: center.x - bolt.pos.x, y: center.y - bolt.pos.y, z: center.z - bolt.pos.z }), homing);
+      } else {
+        bolt.target = void 0;
+      }
+    }
+    const wall = dimension.getBlockFromRay(bolt.pos, bolt.dir, { maxDistance: stepLength, includePassableBlocks: false, includeLiquidBlocks: false });
+    const wallDistance = wall ? Math.sqrt(
+      (wall.block.location.x + wall.faceLocation.x - bolt.pos.x) ** 2 + (wall.block.location.y + wall.faceLocation.y - bolt.pos.y) ** 2 + (wall.block.location.z + wall.faceLocation.z - bolt.pos.z) ** 2
+    ) : Infinity;
+    const hits = dimension.getEntitiesFromRay(bolt.pos, bolt.dir, {
+      maxDistance: Math.min(stepLength, wallDistance),
+      ignoreBlockCollision: true,
+      excludeTypes: EXCLUDED_TYPES,
+      excludeFamilies: EXCLUDED_FAMILIES
+    });
+    for (const { entity, distance } of hits.sort((a, b) => a.distance - b.distance)) {
+      if (bolt.hit.has(entity.id) || !canWeaponHit(bolt.owner, entity)) continue;
+      bolt.hit.add(entity.id);
+      strikeEntity(bolt.owner, entity, bolt.stats, normalize({ x: bolt.dir.x, y: 0, z: bolt.dir.z }), config.knockback ?? 0.35);
+      if (bolt.pierceLeft-- <= 0) {
+        impact(bolt, along(bolt, distance));
+        return false;
+      }
+    }
+    if (bolt.target?.isValid && !bolt.hit.has(bolt.target.id)) {
+      const center = bodyCenter(bolt.target);
+      const dx = center.x - bolt.pos.x, dy = center.y - bolt.pos.y, dz = center.z - bolt.pos.z;
+      if (dx * dx + dy * dy + dz * dz < 0.7 * 0.7) {
+        bolt.hit.add(bolt.target.id);
+        strikeEntity(bolt.owner, bolt.target, bolt.stats, normalize({ x: bolt.dir.x, y: 0, z: bolt.dir.z }), config.knockback ?? 0.35);
+        if (bolt.pierceLeft-- <= 0) {
+          impact(bolt, bolt.pos);
+          return false;
+        }
+        bolt.target = void 0;
+      }
+    }
+    if (wall) {
+      impact(bolt, along(bolt, wallDistance));
+      return false;
+    }
+    bolt.pos = along(bolt, stepLength);
+    bolt.travelled += stepLength;
+    dimension.spawnParticle(config.core, bolt.pos);
+    if (bolt.travelled >= config.range) {
+      impact(bolt, bolt.pos);
+      return false;
+    }
+  }
+  if (config.trail) dimension.spawnParticle(config.trail, bolt.pos);
+  return true;
+}
+function along(bolt, distance) {
+  return { x: bolt.pos.x + bolt.dir.x * distance, y: bolt.pos.y + bolt.dir.y * distance, z: bolt.pos.z + bolt.dir.z * distance };
+}
+function impact(bolt, at) {
+  for (const particle of bolt.config.impact ?? []) bolt.dimension.spawnParticle(particle, at);
+  if (bolt.config.impactSound) bolt.dimension.playSound(bolt.config.impactSound, at, { volume: 0.6, pitch: 1.2 + Math.random() * 0.4 });
+}
+
+// data/scripts/features/weapons/weaponHandler.ts
 var WeaponHandler = class {
   itemId;
   objective;
@@ -203,7 +449,7 @@ var WeaponHandler = class {
       const pattern = this.attackPatterns[currentStep];
       const delay = this.delayPerAttackPattern[currentStep];
       if (getScore(source, "delayatk") > 0 && getScore(source, "delayatk") < delay) return;
-      triggerAttack(source, pattern.delay, pattern.damage, pattern.radius, pattern.animation, pattern.sound);
+      triggerAttack(source, pattern.delay, pattern.damage, pattern.radius, pattern.animation, pattern.sound, pattern.projectile);
       if (currentStep < this.attackPatterns.length - 1) {
         addScore(source, this.objective, 1);
       } else {
@@ -313,73 +559,70 @@ var CommandHandler = class {
     let totalDelay = 0;
     for (const cmd of this.commands) {
       totalDelay += cmd.delay;
-      system2.runTimeout(() => {
-        cmd.action(source);
+      system3.runTimeout(() => {
+        if (!source.isValid) return;
+        try {
+          cmd.action(source);
+        } catch (e) {
+          console.warn(`Weapon command failed: ${e}`);
+        }
       }, totalDelay);
     }
   }
 };
-function triggerAttack(source, delay, damage, radius, animation, sound) {
+function triggerAttack(source, delay, damage, radius, animation, sound, projectile) {
   if (!source) return console.error("No Players found!");
   if (!delay && !damage) return console.error("Specify Damage and Delay before Damage Value");
-  if (!radius) return console.error("Specify Radius Value");
+  if (!radius && !projectile) return console.error("Specify Radius Value");
   if (!animation) return;
   source.playAnimation(animation);
-  system2.runTimeout(() => {
-    applyCustomDamage(source, damage, radius);
+  system3.runTimeout(() => {
+    if (!source.isValid) return;
+    if (projectile) fireProjectile(source, projectile);
+    else applyCustomDamage(source, damage, radius);
     if (!sound) return;
     source.dimension.playSound(sound, source.location);
   }, delay);
 }
-function applyCustomDamage(source, damage, radius) {
-  const strengthLevel = (source.getEffect("strength")?.amplifier ?? -1) + 1;
-  const strengthFormula = 1 + strengthLevel * 0.45;
-  const weaknessLevel = (source.getEffect("weakness")?.amplifier ?? -1) + 1;
-  const weaknessFormula = Math.max(0, 1 - weaknessLevel * 0.24);
-  const item = source?.getComponent("equippable")?.getEquipment(EquipmentSlot2.Mainhand);
-  const sharpnessLevel = item?.getComponent("enchantable")?.getEnchantment("sharpness")?.level ?? 0;
-  const sharpnessDamage = sharpnessLevel * 1.25;
-  const calculatedDamage = (damage + sharpnessDamage) * strengthFormula * weaknessFormula;
-  const fireAspect = item?.getComponent("enchantable")?.getEnchantment("fire_aspect")?.level ?? 0;
-  const knockback = item?.getComponent("enchantable")?.getEnchantment("knockback")?.level ?? 0;
-  const entities = source.dimension.getEntities({
-    location: source.location,
-    minDistance: 0.1,
-    maxDistance: radius,
-    excludeTypes: ["minecraft:item", "minecraft:lightning_bolt", "minecraft:xp_orb"],
-    excludeFamilies: ["inanimate", "invulnerable"]
-  });
-  entities.forEach((entity) => {
-    entity.applyDamage(calculatedDamage, {
-      cause: EntityDamageCause.entityAttack,
-      damagingEntity: source
-    });
-    let dx = entity.location.x - source.location.x;
-    let dz = entity.location.z - source.location.z;
-    const dist = Math.sqrt(dx * dx + dz * dz);
-    if (dist > 0) {
-      dx /= dist;
-      dz /= dist;
-    } else {
-      dx = 0;
-      dz = 1;
-    }
-    const kbStrength = 1 + knockback * 1;
-    try {
-      entity.applyKnockback({ x: dx * kbStrength, z: dz * kbStrength }, 0.4);
-    } catch {
-    }
-    if (fireAspect > 0) {
-      try {
-        entity.setOnFire(fireAspect * 4 - 1);
-      } catch {
-      }
-    }
-  });
+
+// data/scripts/features/weapons/prismWeaver.ts
+var BOLT_FX = {
+  core: "ph:prism_bolt",
+  trail: "ph:prism_bolt_trail",
+  impact: ["ph:prism_bolt_impact", "ph:prism_weaver_flash"],
+  impactSound: "random.glass"
+};
+function prismBolt(side) {
+  return { ...BOLT_FX, damage: 17, speed: 1.8, range: 28, homing: 6, lockCone: 10, origin: { side } };
+}
+var PRISM_FAN = {
+  ...BOLT_FX,
+  damage: 12,
+  speed: 1.6,
+  range: 24,
+  homing: 9,
+  lockCone: 14,
+  pierce: 1,
+  spread: [-9, 0, 9]
+};
+function prismBubble(side, up) {
+  return {
+    core: "ph:prism_bubble",
+    impact: ["ph:prism_bubble_pop"],
+    impactSound: "random.pop",
+    damage: 22,
+    speed: 0.9,
+    range: 20,
+    homing: 14,
+    lockCone: 25,
+    knockback: 0.15,
+    pierce: Infinity,
+    origin: { forward: 0.2, side, up }
+  };
 }
 
 // data/scripts/features/weapons/weaponSkills.ts
-import { MolangVariableMap, system as system3, EntityDamageCause as EntityDamageCause2 } from "@minecraft/server";
+import { MolangVariableMap, system as system4, EntityDamageCause as EntityDamageCause2 } from "@minecraft/server";
 function setAxisDelta(map, a, b) {
   map.setFloat("variable.x", b.x - a.x);
   map.setFloat("variable.y", b.y - a.y);
@@ -395,7 +638,7 @@ solarisverdantSkill.addSkill(1, {
   action: (source) => {
     const location = { x: source.location.x, y: source.location.y + 1, z: source.location.z };
     source.addTag("animirra");
-    source.playAnimation("animation.solaris_verdant.attack_3");
+    source.playAnimation("animation.solaris_verdant.skill_1");
     source.dimension.spawnParticle("ph:solaris_verdant_animirra", location);
     source.runCommand("inputpermission set @s movement disabled");
     const animirra = new CommandHandler([
@@ -425,7 +668,7 @@ solarisverdantSkill.addSkill(2, {
   cooldown: 20,
   charge: false,
   action: (source) => {
-    source.playAnimation("animation.solaris_verdant.attack_3");
+    source.playAnimation("animation.solaris_verdant.skill_2");
     source.runCommand("inputpermission set @s movement disabled");
     const solarisSlash = new CommandHandler([
       {
@@ -451,7 +694,7 @@ solarisverdantSkill.addSkill(3, {
   action: (source) => {
     const location = { x: source.location.x, y: source.location.y + 1, z: source.location.z };
     source.addTag("animirra");
-    source.playAnimation("animation.solaris_verdant.attack_3");
+    source.playAnimation("animation.solaris_verdant.skill_3");
     source.dimension.spawnParticle("ph:solaris_verdant_animirra", location);
     source.runCommand("inputpermission set @s movement disabled");
     const animirra = new CommandHandler([
@@ -492,6 +735,7 @@ superchargedCopperAxeSkill.addSkill(1, {
   cooldown: 15,
   charge: false,
   action: (source) => {
+    source.playAnimation("animation.charged_copper_axe.skill_1");
     source.dimension.spawnParticle("ph:lightning_flash", source.location);
     source.dimension.spawnParticle("ph:lightning_sparks", source.location);
     source.addEffect("strength", 300, {
@@ -510,6 +754,7 @@ superchargedCopperAxeSkill.addSkill(2, {
   cooldown: 10,
   charge: false,
   action: (source) => {
+    source.playAnimation("animation.charged_copper_axe.skill_2");
     source.dimension.spawnParticle("ph:lightning_flash", source.location);
     source.dimension.spawnParticle("ph:copper_mech_explosion", source.location);
     source.applyKnockback({ x: source.getViewDirection().x * 2, z: source.getViewDirection().z * 2 }, 1.2);
@@ -532,7 +777,7 @@ superchargedCopperAxeSkill.addSkill(3, {
   action: (source) => {
     source.dimension.spawnParticle("ph:lightning_flash", source.location);
     source.dimension.spawnParticle("ph:lightning_sparks", source.location);
-    source.playAnimation("animation.charged_copper_axe.attack_4");
+    source.playAnimation("animation.charged_copper_axe.skill_3");
     const discharge = new CommandHandler([
       {
         delay: 3,
@@ -574,7 +819,7 @@ superchargedCopperAxeSkill.addSkill(4, {
   action: (source) => {
     source.dimension.spawnParticle("ph:lightning_flash", source.location);
     source.dimension.spawnParticle("ph:lightning_sparks", source.location);
-    source.playAnimation("animation.charged_copper_axe.attack_4");
+    source.playAnimation("animation.charged_copper_axe.skill_4");
     source.runCommand("inputpermission set @s camera disabled");
     source.runCommand("inputpermission set @s movement disabled");
     const discharge = new CommandHandler([
@@ -646,65 +891,20 @@ prismWeaverSkill.addSkill(1, {
   action: (source) => {
     source.runCommand("inputpermission set @s movement disabled");
     source.playAnimation("animation.prism_weaver.skill_1");
+    const volley = (src) => {
+      for (const [side, up] of [[-1.1, 0.5], [1.1, 0.5], [-0.7, -0.3], [0.7, -0.3]]) fireProjectile(src, prismBubble(side, up));
+      src.dimension.playSound("custom_sfx.animirra_summon", src.location);
+    };
     const command = new CommandHandler([
+      { delay: 7, action: volley },
+      { delay: 7, action: volley },
+      { delay: 7, action: volley },
+      { delay: 7, action: volley },
+      { delay: 7, action: volley },
       {
         delay: 7,
         action: (src) => {
-          summonOwned(src, "summon ph:prism_weaver_laser ~2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          summonOwned(src, "summon ph:prism_weaver_laser ~2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          src.dimension.playSound("custom_sfx.animirra_summon", src.location);
-        }
-      },
-      {
-        delay: 7,
-        action: (src) => {
-          summonOwned(src, "summon ph:prism_weaver_laser ~2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          summonOwned(src, "summon ph:prism_weaver_laser ~2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          src.dimension.playSound("custom_sfx.animirra_summon", src.location);
-        }
-      },
-      {
-        delay: 7,
-        action: (src) => {
-          summonOwned(src, "summon ph:prism_weaver_laser ~2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          summonOwned(src, "summon ph:prism_weaver_laser ~2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          src.dimension.playSound("custom_sfx.animirra_summon", src.location);
-        }
-      },
-      {
-        delay: 7,
-        action: (src) => {
-          summonOwned(src, "summon ph:prism_weaver_laser ~2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          summonOwned(src, "summon ph:prism_weaver_laser ~2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          src.dimension.playSound("custom_sfx.animirra_summon", src.location);
-        }
-      },
-      {
-        delay: 7,
-        action: (src) => {
-          summonOwned(src, "summon ph:prism_weaver_laser ~2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          summonOwned(src, "summon ph:prism_weaver_laser ~2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          src.dimension.playSound("custom_sfx.animirra_summon", src.location);
-        }
-      },
-      {
-        delay: 7,
-        action: (src) => {
-          summonOwned(src, "summon ph:prism_weaver_laser ~2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          summonOwned(src, "summon ph:prism_weaver_laser ~2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          src.dimension.playSound("custom_sfx.animirra_summon", src.location);
+          volley(src);
           src.runCommand("inputpermission set @s movement enabled");
         }
       }
@@ -720,7 +920,7 @@ prismWeaverSkill.addSkill(2, {
   charge: false,
   action: (source) => {
     source.runCommand("inputpermission set @s movement disabled");
-    source.playAnimation("animation.prism_weaver.attack_2");
+    source.playAnimation("animation.prism_weaver.skill_2");
     const command = new CommandHandler([
       {
         delay: 10,
@@ -752,7 +952,7 @@ prismWeaverSkill.addSkill(3, {
       maxDistance: 32,
       minDistance: 1
     });
-    function normalize(v) {
+    function normalize2(v) {
       const len = Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
       if (len === 0) return { x: 0, y: 0, z: 0 };
       return { x: v.x / len, y: v.y / len, z: v.z / len };
@@ -764,7 +964,7 @@ prismWeaverSkill.addSkill(3, {
       const dx = source.location.x - entity.location.x;
       const dy = source.location.y - entity.location.y;
       const dz = source.location.z - entity.location.z;
-      const dir = normalize({ x: dx, y: dy, z: dz });
+      const dir = normalize2({ x: dx, y: dy, z: dz });
       const pullStrength = 4.5;
       const impulse = { x: dir.x * pullStrength, y: Math.max(dir.y * 0.7, 0.1), z: dir.z * pullStrength };
       try {
@@ -785,16 +985,10 @@ prismWeaverSkill.addSkill(3, {
     applyCustomDamage(source, 40, 32);
     source.dimension.spawnParticle("ph:vortex_prism", source.location);
     source.dimension.playSound("custom_sfx.vortex_beam", source.location);
-    source.playAnimation("animation.prism_weaver.attack_2");
+    source.playAnimation("animation.prism_weaver.skill_3");
     const command = new CommandHandler([
       {
-        delay: 50,
-        action: (src) => {
-          src.playAnimation("animation.prism_weaver.attack_3");
-        }
-      },
-      {
-        delay: 10,
+        delay: 60,
         action: (src) => {
           const entities2 = src.dimension.getEntities({
             location: src.location,
@@ -802,7 +996,7 @@ prismWeaverSkill.addSkill(3, {
             minDistance: 1
           });
           src.dimension.spawnParticle("ph:vortex_prism_push", src.location);
-          function normalize2(v) {
+          function normalize3(v) {
             const len = Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
             if (len === 0) return { x: 0, y: 0, z: 0 };
             return { x: v.x / len, y: v.y / len, z: v.z / len };
@@ -814,7 +1008,7 @@ prismWeaverSkill.addSkill(3, {
             const dx = source.location.x - entity.location.x;
             const dy = source.location.y - entity.location.y;
             const dz = source.location.z - entity.location.z;
-            const dir = normalize2({ x: dx, y: dy, z: dz });
+            const dir = normalize3({ x: dx, y: dy, z: dz });
             const pullStrength = 8.6;
             const impulse = { x: dir.x * pullStrength, y: Math.max(dir.y * 0.7, 0.1), z: dir.z * -pullStrength };
             try {
@@ -896,6 +1090,7 @@ auricPhotonizerSkill.addSkill(3, {
   charge: false,
   action: (source) => {
     source.addTag("BBARRAGE");
+    source.playAnimation("animation.auric_photonizer.skill_3");
     source.runCommand(`scriptevent ph:boss_summon 5, 0.6, 26, ph:copper_mech_double_blade, custom_sfx.prism_fire`);
     const command = new CommandHandler([
       {
@@ -916,6 +1111,7 @@ auricPhotonizerSkill.addSkill(4, {
   charge: false,
   action: (source) => {
     source.addTag("SWORDIMMUNE");
+    source.playAnimation("animation.auric_photonizer.skill_4");
     source.runCommand(`scriptevent ph:boss_summon 32, 1, 24, ph:copper_mech_sword, custom_sfx.animirra_summon`);
     const command = new CommandHandler([
       {
@@ -963,7 +1159,7 @@ theBleedingSpireSkill.addSkill(2, {
   cooldown: 30,
   charge: false,
   action: (source) => {
-    source.playAnimation("animation.the_bleeding_spire.attack_3");
+    source.playAnimation("animation.the_bleeding_spire.skill_2");
     const entities = source.dimension.getEntities({
       location: source.location,
       minDistance: 1.2,
@@ -995,7 +1191,7 @@ theBleedingSpireSkill.addSkill(2, {
         });
         entity.runCommand("inputpermission set @s jump disabled");
         entity.runCommand('tellraw @s {"rawtext":[{"text":"You have been stunned for 5 seconds."}]}');
-        system3.runTimeout(() => {
+        system4.runTimeout(() => {
           entity.runCommand('tellraw @s {"rawtext":[{"text":"Stunned effect is gone!"}]}');
           entity.runCommand("inputpermission set @s jump enabled");
         }, 100);
@@ -1014,7 +1210,7 @@ theBleedingSpireSkill.addSkill(3, {
   cooldown: 30,
   charge: false,
   action: (source) => {
-    source.playAnimation("animation.the_bleeding_spire.attack_1");
+    source.playAnimation("animation.the_bleeding_spire.skill_3");
     source.runCommand(`scriptevent ph:boss_summon 24, 0.7, 32, ph:crimson_laser`);
     const entities = source.dimension.getEntities({
       location: source.location,
@@ -1047,7 +1243,7 @@ theBleedingSpireSkill.addSkill(3, {
         });
         entity.runCommand("inputpermission set @s jump disabled");
         entity.runCommand('tellraw @s {"rawtext":[{"text":"You have been stunned for 5 seconds."}]}');
-        system3.runTimeout(() => {
+        system4.runTimeout(() => {
           entity.runCommand('tellraw @s {"rawtext":[{"text":"Stunned effect is gone!"}]}');
           entity.runCommand("inputpermission set @s jump enabled");
         }, 100);
@@ -1057,7 +1253,7 @@ theBleedingSpireSkill.addSkill(3, {
       setAxisDelta(pConfig, playerLoc, entityLoc);
       source.dimension.spawnParticle("ph:entanglement_lead_particle", source.location, pConfig);
     }
-    system3.runTimeout(() => {
+    system4.runTimeout(() => {
       source.runCommand("inputpermission set @s movement enabled");
     }, 20);
   }
@@ -1065,7 +1261,7 @@ theBleedingSpireSkill.addSkill(3, {
 var weaponSkills = [solarisverdantSkill, superchargedCopperAxeSkill, prismWeaverSkill, auricPhotonizerSkill, theBleedingSpireSkill];
 
 // data/scripts/systems/accessories.ts
-import { world as world3, system as system4, ItemStack } from "@minecraft/server";
+import { world as world3, system as system5, ItemStack } from "@minecraft/server";
 
 // data/scripts/core/constants.ts
 var ORE_DROPS = /* @__PURE__ */ new Map([
@@ -1104,7 +1300,7 @@ var accessoryRegistry = {
       const drop = ORE_DROPS.get(block.type.id);
       if (!drop) return;
       if (player.getGameMode() === "Creative") return;
-      system4.run(() => {
+      system5.run(() => {
         const itemDropped = player.dimension.getEntities({
           location: player.location,
           maxDistance: 5,
@@ -1120,7 +1316,7 @@ var accessoryRegistry = {
   },
   "ph:the_crimson_watcher": {
     onHurt(player, event) {
-      system4.run(() => {
+      system5.run(() => {
         const randomChance = Math.floor(Math.random() * 101);
         const { x, y, z } = player.location;
         if (randomChance < 26) {
@@ -1138,7 +1334,7 @@ var accessoryRegistry = {
   },
   "ph:auric_proton": {
     onHurt(player, event) {
-      system4.run(() => {
+      system5.run(() => {
         addScore(player, "auric_charge", 1);
         player.runCommand('titleraw @s actionbar {"rawtext":[{"text":"\xA7gAuric Charge : "},{"score":{"name":"*","objective":"auric_charge"}},{"text":"/700"}]}');
       });
@@ -1148,7 +1344,7 @@ var accessoryRegistry = {
       player.runCommand('titleraw @s actionbar {"rawtext":[{"text":"\xA7gAuric Charge : "},{"score":{"name":"*","objective":"auric_charge"}},{"text":"/700"}]}');
     },
     onLoop(player, event) {
-      system4.run(() => {
+      system5.run(() => {
         addScore(player, "auric_charge", 1);
         player.runCommand('titleraw @s actionbar {"rawtext":[{"text":"\xA7gAuric Charge : "},{"score":{"name":"*","objective":"auric_charge"}},{"text":"/700"}]}');
       });
@@ -1156,7 +1352,7 @@ var accessoryRegistry = {
   },
   "ph:time_polarizer": {
     onLoop(player, event) {
-      system4.run(() => {
+      system5.run(() => {
         player.addEffect("speed", 100, {
           amplifier: 1,
           showParticles: false
@@ -1166,7 +1362,7 @@ var accessoryRegistry = {
   },
   "ph:weeping_repair": {
     onLoop(player, event) {
-      system4.run(() => {
+      system5.run(() => {
         const inventory = player?.getComponent("minecraft:inventory")?.container;
         for (let i = 0; i < inventory.size; i++) {
           const item = inventory.getItem(i);
@@ -1206,14 +1402,14 @@ function handleAccessory(player, trigger, event, hitTarget, items) {
     handler?.(player, event, hitTarget, item);
   }
 }
-system4.runInterval(() => {
+system5.runInterval(() => {
   for (const player of world3.getPlayers()) {
     handleAccessory(player, "onLoop", void 0);
   }
 }, 100);
 
 // data/scripts/events/loader.ts
-import { world as world4, system as system5, ItemStack as ItemStack2 } from "@minecraft/server";
+import { world as world4, system as system6, ItemStack as ItemStack2 } from "@minecraft/server";
 
 // data/scripts/core/playerProperties.ts
 var PLAYER_PROPERTIES = [
@@ -1335,7 +1531,7 @@ function onPlayerSpawn(player, initialSpawn) {
   if (playerInput == "Touch") {
     player.sendMessage("\xA7eTouch controls? Joystick + Crosshair with the Action Button enabled makes weapons easier to use");
   }
-  system5.runTimeout(() => {
+  system6.runTimeout(() => {
     if (player.isValid) applyPropertyDefaults(player);
   }, 20);
   for (const objective of objectives) {
@@ -1430,16 +1626,27 @@ for (const [, data] of Object.entries(VarSets)) {
 }
 function onDamageIndicator({ hurtEntity, damageSource, damage }) {
   const damageValue = Math.floor(damage);
-  const damageData = DamageTypes[damageSource.cause];
+  const damageData = DamageTypes[damageSource.cause] ?? DamageTypes["none"];
   if (!hurtEntity || !hurtEntity.isValid) return;
-  const loc = hurtEntity.location;
-  loc.y += 1;
-  const players = hurtEntity.dimension.getEntities({ type: "minecraft:player", location: loc, maxDistance: 64 });
+  const { center, extent } = hurtEntity.getAABB();
+  const radius = Math.hypot(extent.x, extent.z) + 0.3;
+  const players = hurtEntity.dimension.getEntities({ type: "minecraft:player", location: center, maxDistance: 64 });
   for (const ent of players) {
     const player = ent;
-    const viewDir = player.getViewDirection();
-    loc.x += -viewDir.x;
-    loc.z += -viewDir.z;
+    let dx = player.location.x - center.x;
+    let dz = player.location.z - center.z;
+    let len = Math.hypot(dx, dz);
+    if (len < 1e-3) {
+      const viewDir = player.getViewDirection();
+      dx = -viewDir.x;
+      dz = -viewDir.z;
+      len = Math.hypot(dx, dz) || 1;
+    }
+    const loc = {
+      x: center.x + dx / len * radius,
+      y: center.y + extent.y * 0.5,
+      z: center.z + dz / len * radius
+    };
     const rot = player.getRotation();
     const molang = new MolangVariableMap2();
     const iconMolang = new MolangVariableMap2();
@@ -1459,6 +1666,7 @@ function onDamageIndicator({ hurtEntity, damageSource, damage }) {
     molang.setFloat("variable.floored_ten_thousandths", Math.floor(absDamage / 1e4) % 10);
     molang.setFloat("variable.floored_hundred_thousandths", Math.floor(absDamage / 1e5) % 10);
     molang.setColorRGB("variable.damagecolor", damageData.color);
+    iconMolang.setColorRGB("variable.damagecolor", damageData.color);
     try {
       player.spawnParticle("ph:damage_number", loc, molang);
     } catch {
@@ -1471,7 +1679,7 @@ function onDamageIndicator({ hurtEntity, damageSource, damage }) {
 }
 
 // data/scripts/systems/combatDummy.ts
-import { system as system6 } from "@minecraft/server";
+import { system as system7 } from "@minecraft/server";
 var COMBAT_TIMEOUT = 5e3;
 var DPS_WINDOW = 1e3;
 var SMOOTH_SPEED = 0.15;
@@ -1498,9 +1706,9 @@ function getStats(dummy) {
 function beginCombat(dummy, stats) {
   if (stats.interval !== void 0)
     return;
-  stats.interval = system6.runInterval(() => {
+  stats.interval = system7.runInterval(() => {
     if (!dummy.isValid) {
-      system6.clearRun(stats.interval);
+      system7.clearRun(stats.interval);
       DummyStatsMap.delete(dummy.id);
       return;
     }
@@ -1527,7 +1735,7 @@ function beginCombat(dummy, stats) {
     }
     if (now - stats.lastHit >= COMBAT_TIMEOUT && stats.displayDps < 1) {
       dummy.nameTag = "";
-      system6.clearRun(stats.interval);
+      system7.clearRun(stats.interval);
       DummyStatsMap.delete(dummy.id);
     }
   }, 1);
@@ -1557,7 +1765,7 @@ function onDummyHurt(event) {
 }
 
 // data/scripts/features/titan_core/manager.ts
-import { world as world5, system as system7 } from "@minecraft/server";
+import { world as world5, system as system8 } from "@minecraft/server";
 var CORE_ID = "ph:titan_core";
 var MINION_TAG = "core_minion";
 var MINION_TYPES = ["ph:plasmoid_drone", "ph:rupture_drone"];
@@ -1637,7 +1845,7 @@ function countMinions(core) {
 }
 function endWave(core, fight) {
   if (fight.watcher !== void 0) {
-    system7.clearRun(fight.watcher);
+    system8.clearRun(fight.watcher);
     fight.watcher = void 0;
   }
   fight.shielded = false;
@@ -1651,9 +1859,9 @@ function endWave(core, fight) {
 }
 function watchWave(core, fight) {
   fight.watcherPolls = 0;
-  const interval = system7.runInterval(() => {
+  const interval = system8.runInterval(() => {
     if (!core.isValid) {
-      system7.clearRun(interval);
+      system8.clearRun(interval);
       if (fight.watcher === interval) fight.watcher = void 0;
       fights.delete(core.id);
       return;
@@ -1697,7 +1905,7 @@ function onTitanCoreDie(core) {
   const fight = fights.get(core.id);
   if (fight) {
     if (fight.watcher !== void 0) {
-      system7.clearRun(fight.watcher);
+      system8.clearRun(fight.watcher);
       fight.watcher = void 0;
     }
     fights.delete(core.id);
@@ -1713,7 +1921,7 @@ function onTitanCoreDie(core) {
 // data/scripts/features/ancient_sentinel/manager.ts
 import {
   world as world6,
-  system as system8,
+  system as system9,
   EntityDamageCause as EntityDamageCause3,
   GameMode
 } from "@minecraft/server";
@@ -1938,7 +2146,7 @@ function beginAwaken(entity, fight) {
   } catch {
   }
   announce2(entity.dimension, entity.location, "\xA7cSomething ancient is stirring... the thousand-year sleeper is waking up!");
-  system8.runTimeout(() => finishAwaken(entity, fight), 52);
+  system9.runTimeout(() => finishAwaken(entity, fight), 52);
 }
 function finishAwaken(entity, fight) {
   if (!entity.isValid) {
@@ -1968,7 +2176,7 @@ function finishAwaken(entity, fight) {
   fight.ballCd = now + 4e3;
   fight.rollCd = now + 8e3;
   announce2(entity.dimension, entity.location, "\xA74[BOSS] The Ancient Sentinel has awakened after a thousand years!");
-  system8.runTimeout(() => {
+  system9.runTimeout(() => {
     try {
       announce2(
         entity.dimension,
@@ -1994,7 +2202,7 @@ function startBall(entity, fight) {
   fight.hopsLeft = fight.enraged ? 2 : 1;
   playAt(entity, "mob.armadillo.roll", { pitch: 1.1, volume: 1 });
   announce2(entity.dimension, entity.location, "\xA7cThe Ancient Sentinel curls up and leaps skyward!");
-  system8.runTimeout(() => {
+  system9.runTimeout(() => {
     if (!entity.isValid || fight.state !== "ball") return;
     fight.flightTicks = 0;
     try {
@@ -2004,12 +2212,12 @@ function startBall(entity, fight) {
       resumeCombat(entity, fight, true);
       return;
     }
-    fight.ballLoopId = system8.runInterval(() => ballTick(entity, fight), 1);
+    fight.ballLoopId = system9.runInterval(() => ballTick(entity, fight), 1);
   }, 12);
 }
 function ballTick(entity, fight) {
   if (!entity.isValid) {
-    if (fight.ballLoopId !== void 0) system8.clearRun(fight.ballLoopId);
+    if (fight.ballLoopId !== void 0) system9.clearRun(fight.ballLoopId);
     fight.ballLoopId = void 0;
     dropFight(entity);
     return;
@@ -2019,7 +2227,7 @@ function ballTick(entity, fight) {
   const grounded = Math.abs(velocity.y) < 0.03 && isStandingOnGround(entity);
   if (!grounded && fight.flightTicks < 130) return;
   if (fight.ballLoopId !== void 0) {
-    system8.clearRun(fight.ballLoopId);
+    system9.clearRun(fight.ballLoopId);
     fight.ballLoopId = void 0;
   }
   fight.hopsLeft = (fight.hopsLeft ?? 0) - 1;
@@ -2031,7 +2239,7 @@ function ballTick(entity, fight) {
       entity.playAnimation("animation.ph.sentinel.launch");
     } catch {
     }
-    fight.ballLoopId = system8.runInterval(() => ballTick(entity, fight), 1);
+    fight.ballLoopId = system9.runInterval(() => ballTick(entity, fight), 1);
     return;
   }
   try {
@@ -2039,7 +2247,7 @@ function ballTick(entity, fight) {
   } catch {
   }
   shockwave(entity, fight, true);
-  system8.runTimeout(() => {
+  system9.runTimeout(() => {
     if (!entity.isValid || fight.state !== "ball") return;
     resumeCombat(entity, fight, true);
   }, 8);
@@ -2126,15 +2334,15 @@ function startRoll(entity, fight, target) {
   faceRollDirection(entity, fight);
   playAt(entity, "mob.armadillo.roll", { pitch: 0.8, volume: 1 });
   announce2(entity.dimension, entity.location, "\xA7cThe Ancient Sentinel locks into a barrage charge!");
-  system8.runTimeout(() => {
+  system9.runTimeout(() => {
     if (!entity.isValid || fight.state !== "roll") return;
-    fight.rollLoopId = system8.runInterval(() => rollTick(entity, fight), 1);
+    fight.rollLoopId = system9.runInterval(() => rollTick(entity, fight), 1);
   }, 9);
 }
 function rollTick(entity, fight) {
   if (!entity.isValid || !fight.rollDir) {
     if (fight.rollLoopId !== void 0) {
-      system8.clearRun(fight.rollLoopId);
+      system9.clearRun(fight.rollLoopId);
       fight.rollLoopId = void 0;
     }
     if (!entity.isValid) dropFight(entity);
@@ -2150,7 +2358,7 @@ function rollTick(entity, fight) {
   }
   if ((fight.rollTicks ?? 0) >= ROLL_MAX_TICKS || (fight.rollBounces ?? 0) >= ROLL_MAX_BOUNCES) {
     if (fight.rollLoopId !== void 0) {
-      system8.clearRun(fight.rollLoopId);
+      system9.clearRun(fight.rollLoopId);
       fight.rollLoopId = void 0;
     }
     resumeCombat(entity, fight, true);
@@ -2249,11 +2457,11 @@ function rollContactDamage(entity, fight) {
 }
 function resumeCombat(entity, fight, withUnroll) {
   if (fight.ballLoopId !== void 0) {
-    system8.clearRun(fight.ballLoopId);
+    system9.clearRun(fight.ballLoopId);
     fight.ballLoopId = void 0;
   }
   if (fight.rollLoopId !== void 0) {
-    system8.clearRun(fight.rollLoopId);
+    system9.clearRun(fight.rollLoopId);
     fight.rollLoopId = void 0;
   }
   if (!entity.isValid || !withUnroll) {
@@ -2270,7 +2478,7 @@ function resumeCombat(entity, fight, withUnroll) {
     fight.specialGapUntil = Date.now() + SPECIAL_GAP_MS;
     return;
   }
-  system8.runTimeout(() => {
+  system9.runTimeout(() => {
     if (!entity.isValid) {
       dropFight(entity);
       return;
@@ -2288,7 +2496,7 @@ function resumeCombat(entity, fight, withUnroll) {
 }
 function dropFight(entity) {
   const fight = fights2.get(entity.id);
-  if (fight?.thinkId !== void 0) system8.clearRun(fight.thinkId);
+  if (fight?.thinkId !== void 0) system9.clearRun(fight.thinkId);
   fights2.delete(entity.id);
 }
 function onSentinelSpawn(entity) {
@@ -2308,7 +2516,7 @@ function onSentinelSpawn(entity) {
       }
     }
     fight.enraged = fight.enraged || entity.hasTag(TAG_RAGED);
-    fight.thinkId = system8.runInterval(() => think(entity, fight), 4);
+    fight.thinkId = system9.runInterval(() => think(entity, fight), 4);
   }
 }
 function onSentinelHurt(event) {
@@ -2361,7 +2569,7 @@ function onSentinelDie(entity) {
   dropFight(entity);
 }
 var SWEEP_DIMENSION_IDS = ["overworld", "nether", "the_end"];
-system8.runInterval(() => {
+system9.runInterval(() => {
   for (const dimensionId of SWEEP_DIMENSION_IDS) {
     let dimension;
     let tracked = [];
@@ -2380,7 +2588,7 @@ system8.runInterval(() => {
 }, 200);
 
 // data/scripts/systems/lighting.ts
-import { system as system9, BlockPermutation } from "@minecraft/server";
+import { system as system10, BlockPermutation } from "@minecraft/server";
 var lightLevelMap = {
   "minecraft:beacon": 15,
   "minecraft:conduit": 15,
@@ -2455,7 +2663,7 @@ function clearPlayerLighting(player) {
   }
   if (state.interval !== -1) {
     try {
-      system9.clearRun(state.interval);
+      system10.clearRun(state.interval);
     } catch (e) {
     }
   }
@@ -2477,7 +2685,7 @@ function onDynamicLighting(player) {
   if (existing && existing.maxLight === maxLight) return;
   if (existing) {
     if (existing.interval !== -1) {
-      system9.clearRun(existing.interval);
+      system10.clearRun(existing.interval);
     }
     player.removeTag(existing.tag);
     clearPlacedLight(existing);
@@ -2513,11 +2721,11 @@ function onDynamicLighting(player) {
     }
   };
   updateLight();
-  state.interval = system9.runInterval(updateLight, 4);
+  state.interval = system10.runInterval(updateLight, 4);
 }
 
 // data/scripts/systems/movement.ts
-import { world as world7, system as system10, EquipmentSlot as EquipmentSlot3 } from "@minecraft/server";
+import { world as world7, system as system11, EquipmentSlot as EquipmentSlot3 } from "@minecraft/server";
 function dashRuntime(player, requireFalling = true) {
   const scoreboard_dash = world7.scoreboard.getObjective("dash_cd");
   if (!scoreboard_dash || (scoreboard_dash.getScore(player) ?? 0) > 0) return;
@@ -2571,7 +2779,7 @@ function windPlungeRuntime(player) {
   }
   if (!isHighEnough) return;
   if (player.hasTag("windPlunge")) return;
-  function impact() {
+  function impact2() {
     if (!player.isValid || !player.getComponent("minecraft:health")) return;
     if (player.hasTag("windPlunge")) {
       player.removeEffect("resistance");
@@ -2581,10 +2789,10 @@ function windPlungeRuntime(player) {
       player.removeTag("windPlunge");
     }
   }
-  const runInterval = system10.runInterval(() => {
+  const runInterval = system11.runInterval(() => {
     if (!player.isOnGround) return;
-    system10.run(impact);
-    system10.clearRun(runInterval);
+    system11.run(impact2);
+    system11.clearRun(runInterval);
   }, 2);
   player.applyKnockback({ x: 0, z: 0 }, -2);
   player.dimension.spawnParticle("minecraft:wind_explosion_emitter", player.location);
@@ -2603,7 +2811,7 @@ function vanillaBlockInteractFix(player, item, block) {
   const tags = block.getTags();
   const typeId = block.typeId;
   if (item.hasTag("minecraft:is_axe")) {
-    system10.runTimeout(() => {
+    system11.runTimeout(() => {
       if (typeId.includes("stripped") || !block.typeId.includes("stripped")) return;
       let materialSound = "";
       if (typeId === "minecraft:cherry_log") materialSound = "step.cherry_wood";
@@ -2615,7 +2823,7 @@ function vanillaBlockInteractFix(player, item, block) {
       applyDurabilityDamage(player);
     }, 1);
   } else if (item.hasTag("minecraft:is_hoe")) {
-    system10.runTimeout(() => {
+    system11.runTimeout(() => {
       const isTillable = tags.includes("grass") || typeId === "minecraft:dirt_with_roots";
       const hasBlockAbove = block.above()?.typeId !== "minecraft:air";
       if (!isTillable || hasBlockAbove) return;
@@ -2633,7 +2841,7 @@ function vanillaBlockInteractFix(player, item, block) {
     const isCoarsable = dirtPathable.includes(block.typeId) || block.typeId === "minecraft:grass_block";
     const hasBlockAbove = block.above()?.typeId !== "minecraft:air";
     if (!isCoarsable || hasBlockAbove) return;
-    system10.run(() => {
+    system11.run(() => {
       player.dimension.playSound("use.grass", block.center(), { volume: 1, pitch: 0.8 });
       applyDurabilityDamage(player);
     });
@@ -2647,7 +2855,8 @@ var PARRY_ITEMS = /* @__PURE__ */ new Set([
   "minecraft:golden_sword",
   "minecraft:diamond_sword",
   "minecraft:netherite_sword",
-  "ph:prismatic_sword"
+  "ph:prismatic_sword",
+  "ph:xeon_plasm_sword"
 ]);
 function parryRuntime(source, itemStack) {
   if (!itemStack?.typeId || !PARRY_ITEMS.has(itemStack.typeId)) return;
@@ -2658,7 +2867,7 @@ function parryRuntime(source, itemStack) {
   source.addTag("parried");
   source.inputPermissions.setPermissionCategory(2, false);
   applyDurabilityDamage(source, { damage: 1 });
-  system10.runTimeout(() => {
+  system11.runTimeout(() => {
     if (source?.hasTag("parried")) source.removeTag("parried");
     source.inputPermissions.setPermissionCategory(2, true);
   }, 6);
@@ -2670,14 +2879,14 @@ function startBetterMending(source, itemStack) {
   if (itemStack.hasTag("minecraft:is_tools") || itemStack.hasTag("minecraft:is_armor")) return;
   if (!enchantment) return;
   source.playSound("random.anvil_use");
-  const runBetterMending2 = system10.runInterval(() => {
+  const runBetterMending2 = system11.runInterval(() => {
     try {
       const equippable = source.getComponent("minecraft:equippable");
       const currentItem = equippable?.getEquipment(EquipmentSlot3.Mainhand);
       const durability = currentItem?.getComponent("minecraft:durability");
       const experience = source.getTotalXp();
       if (!currentItem || !durability || durability.damage <= 0 || experience <= 0) {
-        system10.clearRun(runBetterMending2);
+        system11.clearRun(runBetterMending2);
         return;
       }
       const repairAmount = Math.min(durability.damage, 1);
@@ -2694,7 +2903,7 @@ function startBetterMending(source, itemStack) {
       });
     } catch (error) {
       console.warn(`betterMending error untuk ${source.name}: ${error}`);
-      system10.clearRun(runBetterMending2);
+      system11.clearRun(runBetterMending2);
     }
   }, 1);
 }
@@ -2858,54 +3067,9 @@ var superchargedCopperAxeSS = new SkillSwitcher("ph:supercharged_copper_axe", "s
   { skillSMessage: "Ultimate Discharge" }
 ]);
 var prismWeaver = new WeaponHandler("ph:prism_weaver", "prism_weaver_atk", [20, 15, 15], [
-  {
-    delay: 4,
-    damage: 17,
-    radius: 2,
-    animation: "animation.prism_weaver.attack_1",
-    sound: "weapon_slash.magic_staff",
-    action: new CommandHandler([
-      {
-        delay: 0,
-        action: (src) => {
-          summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~ facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-        }
-      }
-    ])
-  },
-  {
-    delay: 8,
-    damage: 17,
-    radius: 2,
-    animation: "animation.prism_weaver.attack_2",
-    sound: "weapon_slash.magic_staff",
-    action: new CommandHandler([
-      {
-        delay: 0,
-        action: (src) => {
-          summonOwned(src, "summon ph:prism_weaver_laser ~2~1~ facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-        }
-      }
-    ])
-  },
-  {
-    delay: 8,
-    damage: 18,
-    radius: 6,
-    animation: "animation.prism_weaver.attack_3",
-    sound: "weapon_slash.magic_staff",
-    action: new CommandHandler([
-      {
-        delay: 0,
-        action: (src) => {
-          summonOwned(src, "summon ph:prism_weaver_laser ~2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          summonOwned(src, "summon ph:prism_weaver_laser ~2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-          summonOwned(src, "summon ph:prism_weaver_laser ~-2~1~-2 facing @e[c=1,rm=2.5,family=!inanimate,type=!item]");
-        }
-      }
-    ])
-  }
+  { delay: 6, damage: 17, radius: 0, animation: "animation.prism_weaver.attack_1", sound: "weapon_slash.magic_staff", projectile: prismBolt(-0.35) },
+  { delay: 10, damage: 17, radius: 0, animation: "animation.prism_weaver.attack_2", sound: "weapon_slash.magic_staff", projectile: prismBolt(0.35) },
+  { delay: 10, damage: 12, radius: 0, animation: "animation.prism_weaver.attack_3", sound: "weapon_slash.magic_staff", projectile: PRISM_FAN }
 ]);
 var prismWeaverSS = new SkillSwitcher("ph:prism_weaver", "prism_weaver", [
   { skillSMessage: "Bubble Barrage" },
@@ -3137,13 +3301,13 @@ world8.beforeEvents.entityHurt.subscribe((acc) => {
   handleAccessory(player, "onHurt", acc, void 0, accessories2);
   if (hurtEntity.hasTag("parried")) {
     acc.cancel = true;
-    system11.run(() => {
+    system12.run(() => {
       const mainItem = hurtEntity?.getComponent("equippable")?.getEquipment(EquipmentSlot5.Mainhand);
       const head = hurtEntity.getHeadLocation();
       const view = hurtEntity.getViewDirection();
       hurtEntity.runCommand(`particle ph:parry_success ^^^0.5`);
       hurtEntity.dimension.spawnParticle(
-        "ph:parry_invert_flash",
+        "ph:parry_flash",
         {
           x: head.x + view.x,
           y: head.y + view.y,
@@ -3204,7 +3368,7 @@ world8.beforeEvents.playerBreakBlock.subscribe((e) => {
   if (!e.block.typeId.includes("ore")) return;
   if (Math.floor(Math.random() * 100) !== 1) return;
   if (e.player.getGameMode() === "Creative") return;
-  system11.run(() => {
+  system12.run(() => {
     e.dimension.spawnItem(new ItemStack3("ph:rust_coin", 1), e.block.location);
   });
 });
@@ -3218,7 +3382,7 @@ world8.beforeEvents.playerBreakBlock.subscribe((e) => {
   if (itemStack?.getComponent("enchantable")?.getEnchantment("silk_touch")) return;
   if (!itemStack?.getTags().includes("minecraft:is_pickaxe")) return;
   e.cancel = true;
-  system11.run(() => {
+  system12.run(() => {
     dimension.setBlockType(block.location, "minecraft:air");
     dimension.spawnItem(new ItemStack3("minecraft:prismarine_shard", Math.floor(Math.random() * 3 + 4)), block.location);
   });
@@ -3298,7 +3462,7 @@ world8.afterEvents.playerBreakBlock.subscribe((e) => {
     drop = e.player?.getGameMode?.() !== "Creative";
   } catch {
   }
-  system11.run(() => {
+  system12.run(() => {
     for (const off of faceOffsets) {
       try {
         const neighbor = dimension.getBlock({ x: loc.x + off.x, y: loc.y + off.y, z: loc.z + off.z });
@@ -3437,9 +3601,9 @@ world8.afterEvents.entitySpawn.subscribe(({ entity, cause }) => {
   const dx = dir.x;
   const dy = dir.y;
   const dz = dir.z;
-  const interval = system11.runInterval(() => {
+  const interval = system12.runInterval(() => {
     if (!entity?.isValid) {
-      system11.clearRun(interval);
+      system12.clearRun(interval);
       return;
     }
     entity?.teleport({
@@ -3454,12 +3618,12 @@ world8.beforeEvents.playerLeave.subscribe(({ player }) => {
   clearPlayerLighting(player);
   clearControlState(player);
 });
-system11.runInterval(() => {
+system12.runInterval(() => {
   for (const player of world8.getPlayers()) {
     javaSaturationRegen(player);
   }
 }, 6);
-system11.runInterval(() => {
+system12.runInterval(() => {
   for (const player of world8.getPlayers()) {
     try {
       const base = player.location;
@@ -3488,12 +3652,12 @@ system11.runInterval(() => {
     }
   }
 }, 40);
-system11.afterEvents.scriptEventReceive.subscribe(({ id, message, sourceBlock, sourceEntity }) => {
+system12.afterEvents.scriptEventReceive.subscribe(({ id, message, sourceBlock, sourceEntity }) => {
   const parseMessage = (message2) => message2.split(",").map((v) => v.trim());
   switch (id) {
     case "ph:remove_target_lock":
       if (!sourceEntity) return;
-      system11.runTimeout(() => {
+      system12.runTimeout(() => {
         sourceEntity.removeTag("locked");
       }, 5);
       break;
@@ -3589,7 +3753,7 @@ system11.afterEvents.scriptEventReceive.subscribe(({ id, message, sourceBlock, s
       sourceEntity.dimension.spawnParticle("ph:cruxshaper_charge_arc", sourceEntity.location, molang);
       break;
     case "ph:particle_custom":
-      system11.run(() => {
+      system12.run(() => {
         const particleMolang = new MolangVariableMap3();
         particleMolang.setFloat("variable.spawn_rate", Number(message));
         if (sourceBlock) {
@@ -3633,9 +3797,9 @@ function beginCollisionCheck(dasher, duration, damage, collisionRadius, spareFam
   let tick = 0;
   let prevPos = { ...dasher.location };
   const hitEntities = /* @__PURE__ */ new Set();
-  const interval = system11.runInterval(() => {
+  const interval = system12.runInterval(() => {
     if (!dasher || !dasher.isValid) {
-      system11.clearRun(interval);
+      system12.clearRun(interval);
       return;
     }
     tick++;
@@ -3666,7 +3830,7 @@ function beginCollisionCheck(dasher, duration, damage, collisionRadius, spareFam
     }
     prevPos = { ...currentPos };
     if (tick >= duration) {
-      system11.clearRun(interval);
+      system12.clearRun(interval);
     }
   });
 }
@@ -3702,9 +3866,9 @@ function fireLaserOnce(shooter, range, damage, width) {
 function bossLaserBeam(boss, charge, duration, range, damagePerTick, width) {
   let tick = 0;
   let chargeTime = charge;
-  const chargeInterval = system11.runInterval(() => {
+  const chargeInterval = system12.runInterval(() => {
     if (!boss || !boss.isValid) {
-      system11.clearRun(chargeInterval);
+      system12.clearRun(chargeInterval);
       return;
     }
     const start = boss.location;
@@ -3719,14 +3883,14 @@ function bossLaserBeam(boss, charge, duration, range, damagePerTick, width) {
     }
     chargeTime--;
     if (chargeTime <= 0) {
-      system11.clearRun(chargeInterval);
+      system12.clearRun(chargeInterval);
       startLaser();
     }
   });
   function startLaser() {
-    const interval = system11.runInterval(() => {
+    const interval = system12.runInterval(() => {
       if (!boss || !boss.isValid) {
-        system11.clearRun(interval);
+        system12.clearRun(interval);
         return;
       }
       tick++;
@@ -3767,17 +3931,17 @@ function bossLaserBeam(boss, charge, duration, range, damagePerTick, width) {
         }
       }
       if (tick >= duration) {
-        system11.clearRun(interval);
+        system12.clearRun(interval);
       }
     });
   }
 }
 
 // data/scripts/features/blocks/customComponents.ts
-import { system as system15, CommandPermissionLevel, CustomCommandStatus, CustomCommandParamType, MolangVariableMap as MolangVariableMap5, ItemStack as ItemStack5 } from "@minecraft/server";
+import { system as system16, CommandPermissionLevel, CustomCommandStatus, CustomCommandParamType, MolangVariableMap as MolangVariableMap5, ItemStack as ItemStack5 } from "@minecraft/server";
 
 // data/scripts/ui/forms/skillUnlock.ts
-import { system as system12 } from "@minecraft/server";
+import { system as system13 } from "@minecraft/server";
 import { ActionFormData, MessageFormData } from "@minecraft/server-ui";
 function skillUnlock(player) {
   let dashLevelStatus = player.getDynamicProperty("ph:dash_level") ?? 0;
@@ -3787,7 +3951,7 @@ function skillUnlock(player) {
 \xA72Level : ${dashLevelStatus}`).button(`Extra Health
 \xA72Level : ${healthLevelStatus}`).button(`Wind Plunge
 ${plungeUnlockStatus}`).show(player).then((r) => {
-    if (r.cancelationReason == "UserBusy") system12.run(() => skillUnlock(player));
+    if (r.cancelationReason == "UserBusy") system13.run(() => skillUnlock(player));
     if (r.selection == 0) dashUnlock(player);
     if (r.selection == 1) healthUpgrade(player);
     if (r.selection == 2) plungeUnlock(player);
@@ -3877,7 +4041,7 @@ Required Level : 30`).button1("Confirm").button2("Cancel").show(player).then((r)
 }
 
 // data/scripts/ui/forms/settingsForm.ts
-import { system as system13 } from "@minecraft/server";
+import { system as system14 } from "@minecraft/server";
 import { ActionFormData as ActionFormData2 } from "@minecraft/server-ui";
 function openSettings(player) {
   const dashControl = getDashControl(player);
@@ -3885,7 +4049,7 @@ function openSettings(player) {
   const form = new ActionFormData2().title("Phantasm Settings").body("Pick the controls you want for Phantasm mechanics. Every setting is saved to you only.").button(`Passive Dash
 \xA77Currently: \xA7f${DASH_CONTROL_NAMES[dashControl]}`).button(`Legendary Weapon Skills
 \xA77Currently: \xA7f${SKILL_SWITCH_CONTROL_NAMES[skillSwitchControl]}`).button("Reset To Defaults").button("Close").show(player).then((r) => {
-    if (r.cancelationReason == "UserBusy") system13.run(() => openSettings(player));
+    if (r.cancelationReason == "UserBusy") system14.run(() => openSettings(player));
     if (r.selection == 0) dashControlMenu(player);
     if (r.selection == 1) skillSwitchControlMenu(player);
     if (r.selection == 2) resetSettings(player);
@@ -3945,25 +4109,31 @@ function guideTitle(title) {
 
 // data/scripts/ui/guide/weapon_guide.ts
 function guideWeapons(player) {
-  const form = new ActionFormData3().title(guideTitle("Weapons")).body("Weapons come in many variants, from Common up to Legendary.").button("\xA73Prismatic Tools", "textures/items/prismatic_sword").button("\xA75Charged Copper Axe", "textures/items/weapons/charged_copper_axe").button("\xA75Cruxshaper", "textures/items/weapons/cruxshaper").button("\xA75Nature Staff", "textures/items/weapons/nature_staff").button("\xA75Peacemaker Oath", "textures/items/weapons/peacemaker_oath").button("\xA75Seiketsu", "textures/items/weapons/seiketsu").button("\xA75Spectric Bow", "textures/items/weapons/spectric_bow").button("\xA75Thunder Gale", "textures/items/weapons/thunder_gale").button("\xA7pAnimitta", "textures/items/weapons/solaris_verdant").button("\xA7pAuric Photonizer", "textures/items/weapons/auric_photonizer").button("\xA7pPrism Weaver", "textures/items/weapons/prism_weaver").button("\xA7pSupercharged Copper Axe", "textures/items/weapons/supercharged_copper_axe").button("\xA7pThe Bleeding Spire", "textures/items/weapons/the_bleeding_spire").button("Back").show(player).then((r) => {
-    if (r.canceled || r.selection == 13) mainGuideScreen(player);
+  const form = new ActionFormData3().title(guideTitle("Weapons")).body("Weapons come in many variants, from Common up to Legendary.").button("\xA73Prismatic Tools", "textures/items/prismatic_sword").button("\xA75Xeon Plasm Tools", "textures/items/xeon_plasm_sword").button("\xA75Charged Copper Axe", "textures/items/weapons/charged_copper_axe").button("\xA75Cruxshaper", "textures/items/weapons/cruxshaper").button("\xA75Nature Staff", "textures/items/weapons/nature_staff").button("\xA75Peacemaker Oath", "textures/items/weapons/peacemaker_oath").button("\xA75Seiketsu", "textures/items/weapons/seiketsu").button("\xA75Spectric Bow", "textures/items/weapons/spectric_bow").button("\xA75Thunder Gale", "textures/items/weapons/thunder_gale").button("\xA7pAnimitta", "textures/items/weapons/solaris_verdant").button("\xA7pAuric Photonizer", "textures/items/weapons/auric_photonizer").button("\xA7pPrism Weaver", "textures/items/weapons/prism_weaver").button("\xA7pSupercharged Copper Axe", "textures/items/weapons/supercharged_copper_axe").button("\xA7pThe Bleeding Spire", "textures/items/weapons/the_bleeding_spire").button("Back").show(player).then((r) => {
+    if (r.canceled || r.selection == 14) mainGuideScreen(player);
     if (r.selection == 0) prismaticTools(player);
-    if (r.selection == 1) chargedCopperAxe(player);
-    if (r.selection == 2) cruxshaper(player);
-    if (r.selection == 3) natureStaff(player);
-    if (r.selection == 4) peacemakerOath(player);
-    if (r.selection == 5) seiketsu2(player);
-    if (r.selection == 6) spectricBow(player);
-    if (r.selection == 7) thunderGale(player);
-    if (r.selection == 8) animitta(player);
-    if (r.selection == 9) auricPhotonizer2(player);
-    if (r.selection == 10) prismWeaver2(player);
-    if (r.selection == 11) superchargedCopperAxe2(player);
-    if (r.selection == 12) theBleedingSpire2(player);
+    if (r.selection == 1) xeonPlasmTools(player);
+    if (r.selection == 2) chargedCopperAxe(player);
+    if (r.selection == 3) cruxshaper(player);
+    if (r.selection == 4) natureStaff(player);
+    if (r.selection == 5) peacemakerOath(player);
+    if (r.selection == 6) seiketsu2(player);
+    if (r.selection == 7) spectricBow(player);
+    if (r.selection == 8) thunderGale(player);
+    if (r.selection == 9) animitta(player);
+    if (r.selection == 10) auricPhotonizer2(player);
+    if (r.selection == 11) prismWeaver2(player);
+    if (r.selection == 12) superchargedCopperAxe2(player);
+    if (r.selection == 13) theBleedingSpire2(player);
   });
 }
 function prismaticTools(player) {
   const form = new ActionFormData3().title(guideTitle("Prismatic Tools")).label("Prismatic is a tier beyond Netherite: slightly faster, with twice the durability.").label("The sword's special attack pierces through an area, but it cannot crit.").label("The spear can dismount enemies with a sprint-jump charge attack.").label("Craft Prismatic Tools with Prismatic Ingots and Netherite Tools.").button("Back").show(player).then((r) => {
+    if (r.canceled || r.selection == 0) guideWeapons(player);
+  });
+}
+function xeonPlasmTools(player) {
+  const form = new ActionFormData3().title(guideTitle("Xeon Plasm Tools")).label("Xeon Plasm is a tier beyond Prismatic: twice the damage, durability, and mining speed.").label("The sword and spear work like their Prismatic versions.").label("Repair them with Xeonnite Cubes or Plasmoid Scrap.").button("Back").show(player).then((r) => {
     if (r.canceled || r.selection == 0) guideWeapons(player);
   });
 }
@@ -4008,7 +4178,7 @@ function animitta(player) {
   });
 }
 function prismWeaver2(player) {
-  const form = new ActionFormData3().title(guideTitle("Prism Weaver")).label("One of the first Legendary weapons you can get, alongside the Animitta. It fights at long range with lower damage than other Legendary weapons. It has 3 skills:").label("Bubble Barrage :\nFires a burst of bubble projectiles in one attack.").label("Prism Wave Wall :\nCasts a Prism Wall that deals massive damage on touch.").label("Vortex Prism :\nPulls targets in a large radius toward you, then repels them with massive damage.").label("Drops from the Soul of Nature at 50% chance, alternating with the Animitta (50/50).").button("Back").show(player).then((r) => {
+  const form = new ActionFormData3().title(guideTitle("Prism Weaver")).label("One of the first Legendary weapons you can get, alongside the Animitta. It fights at long range with lower damage than other Legendary weapons. Attacks fire prism bolts at your crosshair that curve slightly onto the target you aim at; every third attack fans out three piercing bolts. It has 3 skills:").label("Bubble Barrage :\nFires a burst of bubble projectiles in one attack.").label("Prism Wave Wall :\nCasts a Prism Wall that deals massive damage on touch.").label("Vortex Prism :\nPulls targets in a large radius toward you, then repels them with massive damage.").label("Drops from the Soul of Nature at 50% chance, alternating with the Animitta (50/50).").button("Back").show(player).then((r) => {
     if (r.canceled || r.selection == 0) guideWeapons(player);
   });
 }
@@ -4259,8 +4429,8 @@ import { CustomForm, ObservableNumber, ObservableBoolean, ObservableString } fro
 // data/scripts/systems/xeonniteBlessing.ts
 import {
   world as world9,
-  system as system14,
-  Player as Player13,
+  system as system15,
+  Player as Player15,
   EasingType,
   EntityComponentTypes,
   EntityDamageCause as EntityDamageCause5,
@@ -4334,7 +4504,7 @@ function holdsCube(player) {
 function inTitanRidge(player) {
   return player.dimension.getBiome(player.location).hasTags([TITAN_RIDGE_TAG]);
 }
-system14.runInterval(() => {
+system15.runInterval(() => {
   for (const player of world9.getAllPlayers()) {
     if (isBlessed(player)) continue;
     try {
@@ -4375,7 +4545,7 @@ function setLocked(player, locked) {
 }
 var cutsceneRuns = /* @__PURE__ */ new Map();
 function releaseBlessingCutscene(player) {
-  for (const run of cutsceneRuns.get(player.id) ?? []) system14.clearRun(run);
+  for (const run of cutsceneRuns.get(player.id) ?? []) system15.clearRun(run);
   cutsceneRuns.delete(player.id);
   try {
     setLocked(player, false);
@@ -4402,7 +4572,7 @@ function playBlessingCutscene(player) {
   dimension.spawnParticle("ph:xeonnite_bless_motes", feet);
   const runs = [];
   cutsceneRuns.set(player.id, runs);
-  const at = (tick, action) => runs.push(system14.runTimeout(() => {
+  const at = (tick, action) => runs.push(system15.runTimeout(() => {
     if (!player.isValid) return;
     try {
       action();
@@ -4430,7 +4600,7 @@ function playBlessingCutscene(player) {
     FADE_OUT_TICK,
     () => player.camera.fade({ fadeColor: { red: 0, green: 0, blue: 0 }, fadeTime: { fadeInTime: 0.25, holdTime: 0.2, fadeOutTime: 0.5 } })
   );
-  runs.push(system14.runTimeout(() => {
+  runs.push(system15.runTimeout(() => {
     if (!player.isValid) return;
     releaseBlessingCutscene(player);
     player.onScreenDisplay.setActionBar("\xA76Xeonnite Blessing \xA77awakened: Titan Ridge foes can now be wounded");
@@ -4450,7 +4620,7 @@ function damageDealer(acc) {
 var WARD_COOLDOWN_TICKS = 3;
 var lastWard = /* @__PURE__ */ new Map();
 function showWard(hurtEntity, from, player) {
-  const now = system14.currentTick;
+  const now = system15.currentTick;
   if ((lastWard.get(hurtEntity.id) ?? -WARD_COOLDOWN_TICKS) + WARD_COOLDOWN_TICKS > now) return;
   lastWard.set(hurtEntity.id, now);
   const base = hurtEntity.location;
@@ -4485,7 +4655,7 @@ world9.beforeEvents.entityHurt.subscribe((acc) => {
     return;
   }
   const owner = world9.getEntity(ownerId);
-  const player = owner instanceof Player13 ? owner : void 0;
+  const player = owner instanceof Player15 ? owner : void 0;
   if (player && isBlessed(player)) return;
   acc.cancel = true;
   let from;
@@ -4494,7 +4664,7 @@ world9.beforeEvents.entityHurt.subscribe((acc) => {
   } catch {
     from = dealer.location;
   }
-  system14.run(() => {
+  system15.run(() => {
     try {
       showWard(hurtEntity, from, player);
     } catch {
@@ -4644,14 +4814,14 @@ function coreRing(size, color) {
   return map;
 }
 var copperRing = () => coreRing(1, COPPER_RING_COLOR);
-system15.beforeEvents.startup.subscribe((initEvent) => {
+system16.beforeEvents.startup.subscribe((initEvent) => {
   initEvent.itemComponentRegistry.registerCustomComponent("ph:charge_passive", {
     onHitEntity(e) {
       const hitEntity = e.hitEntity;
       const source = e.attackingEntity;
       const itemStack = e.itemStack;
       if (itemStack.typeId === "ph:charged_copper_axe") {
-        system15.runTimeout(() => {
+        system16.runTimeout(() => {
           if (getScore(source, "charged_copper_axe") == 100) {
             summonOwned(source, "summon lightning_bolt", hitEntity);
           }
@@ -4665,9 +4835,9 @@ system15.beforeEvents.startup.subscribe((initEvent) => {
       const player = e.source;
       player.startItemCooldown("charged_copper_axe", 120);
       applyDurabilityDamage(player, { damage: 36 });
-      system15.run(() => {
+      system16.run(() => {
         player.playAnimation("animation.charged_copper_axe.attack_3", player.location);
-        system15.runTimeout(() => {
+        system16.runTimeout(() => {
           player.dimension.playSound("weapon_slash.slash_heavy", player.location);
           player.dimension.spawnParticle("ph:lightning_flash", player.location);
           player.dimension.spawnParticle("ph:lightning_sparks", player.location);
@@ -4887,20 +5057,20 @@ system15.beforeEvents.startup.subscribe((initEvent) => {
     onUse(e) {
       const player = e.source;
       player.startItemCooldown("cruxshaper", 600);
-      function impact() {
+      function impact2() {
         player.removeEffect("slow_falling");
         player.dimension.spawnParticle("ph:cruxshaper_smash_explosion", player.location);
         player.dimension.playSound("random.explode", player.location);
         player.runCommand("damage @e[r=10,rm=0.1,family=!inanimate,type=!item] 50 entity_explosion entity @s");
         player.runCommand("execute as @s at @e[r=10,rm=0.1,family=!inanimate,type=!item] run setblock ~~~ fire");
       }
-      system15.run(() => {
+      system16.run(() => {
         player.dimension.spawnParticle("ph:cruxshaper_flung", player.location);
         player.addEffect("levitation", 20, {
           amplifier: 24
         });
         player.dimension.playSound("random.explode", player.location);
-        system15.runTimeout(() => {
+        system16.runTimeout(() => {
           player.dimension.spawnParticle("ph:cruxshaper_flung", player.location);
           player.applyKnockback({ x: 0, z: 0 }, -2.1);
           player.addEffect("slow_falling", 20);
@@ -4908,10 +5078,10 @@ system15.beforeEvents.startup.subscribe((initEvent) => {
             stopExpression: "query.is_on_ground"
           });
           player.dimension.playSound("random.explode", player.location);
-          const intervalRun = system15.runInterval(() => {
+          const intervalRun = system16.runInterval(() => {
             if (!player.isOnGround) return;
-            system15.run(impact);
-            system15.clearRun(intervalRun);
+            system16.run(impact2);
+            system16.clearRun(intervalRun);
           }, 2);
         }, 30);
       });
@@ -4919,7 +5089,7 @@ system15.beforeEvents.startup.subscribe((initEvent) => {
     },
     onUseOn(e) {
       const player = e.source;
-      system15.run(() => {
+      system16.run(() => {
         player.sendMessage("Look up while using the skill!");
       });
     }
@@ -4979,7 +5149,7 @@ system15.beforeEvents.startup.subscribe((initEvent) => {
       block.dimension.spawnParticle("ph:auric_communicator_loading", { x: blockLoc.x, y: blockLoc.y + 1, z: blockLoc.z });
       if (auricMode == 1) {
         source.addTag("AURIC_ORBITAL_NUKE");
-        system15.runTimeout(() => {
+        system16.runTimeout(() => {
           block.dimension.playSound("random.explode", blockLoc);
           try {
             block.dimension.runCommand(`damage @e[r=48,tag=!AURIC_ORBITAL_NUKE,type=!item,family=!inanimate,x=${blockLoc.x},y=${blockLoc.y},z=${blockLoc.z}] 50 entity_explosion entity @e[tag=AURIC_ORBITAL_NUKE]`);
@@ -4994,7 +5164,7 @@ system15.beforeEvents.startup.subscribe((initEvent) => {
         return;
       }
       source.addTag("AURIC_ORBITAL_LASER");
-      system15.runTimeout(() => {
+      system16.runTimeout(() => {
         for (let i = 0; i < 381; i += 10) {
           try {
             block.dimension.runCommand(`damage @e[r=10,tag=!AURIC_ORBITAL_LASER,type=!item,family=!inanimate,x=${blockLoc.x},y=${i},z=${blockLoc.z}] 80 entity_explosion entity @e[tag=AURIC_ORBITAL_LASER]`);
@@ -5059,7 +5229,7 @@ system15.beforeEvents.startup.subscribe((initEvent) => {
       source.addTag("parried");
       source.inputPermissions.setPermissionCategory(2, false);
       applyDurabilityDamage(source, { damage: 1 });
-      system15.runTimeout(() => {
+      system16.runTimeout(() => {
         if (source?.hasTag("parried")) source.removeTag("parried");
         source.inputPermissions.setPermissionCategory(2, true);
       }, window_time);
@@ -5129,7 +5299,7 @@ system15.beforeEvents.startup.subscribe((initEvent) => {
         block.dimension.spawnParticle("ph:auric_beam_small", block.west(2).center());
         block.dimension.playSound("custom_sfx.boss_summoned", block.center());
         const bossSpawnPoint = findBossSpawnPoint(block.dimension, block.center(), player);
-        system15.runTimeout(() => {
+        system16.runTimeout(() => {
           block.dimension.spawnEntity("ph:copper_mechanical_array", bossSpawnPoint);
           block.dimension.playSound("mob.zombie.woodbreak", bossSpawnPoint);
           block.dimension.spawnParticle("ph:auric_beam_small", bossSpawnPoint);
@@ -5345,7 +5515,7 @@ system15.beforeEvents.startup.subscribe((initEvent) => {
     cheatsRequired: true,
     permissionLevel: CommandPermissionLevel.GameDirectors
   }, (origin) => {
-    system15.run(() => {
+    system16.run(() => {
       openDynamicPropertyMenu(origin.sourceEntity);
     });
   });
@@ -5355,7 +5525,7 @@ system15.beforeEvents.startup.subscribe((initEvent) => {
     cheatsRequired: false,
     permissionLevel: CommandPermissionLevel.Any
   }, (origin) => {
-    system15.run(() => {
+    system16.run(() => {
       mainGuideScreen(origin.sourceEntity);
     });
   });
@@ -5367,7 +5537,7 @@ system15.beforeEvents.startup.subscribe((initEvent) => {
   }, (origin) => {
     const player = origin.sourceEntity;
     if (player?.typeId !== "minecraft:player") return { status: CustomCommandStatus.Failure };
-    system15.run(() => {
+    system16.run(() => {
       openSettings(player);
     });
     return { status: CustomCommandStatus.Success };
@@ -5383,7 +5553,7 @@ system15.beforeEvents.startup.subscribe((initEvent) => {
   });
 });
 function openForm({ sourceEntity: player }) {
-  system15.run(() => {
+  system16.run(() => {
     skillUnlock(player);
   });
   return { status: CustomCommandStatus.Success };
@@ -5393,7 +5563,7 @@ function clearDynamicProperty({ sourceEntity }, targets) {
   if (players.length === 0) {
     return { status: CustomCommandStatus.Failure, message: "No player to reset. Run it as a player or pass a target." };
   }
-  system15.run(() => {
+  system16.run(() => {
     for (const player of players) {
       if (!player.isValid) continue;
       resetPlayerProperties(player);
@@ -5404,7 +5574,7 @@ function clearDynamicProperty({ sourceEntity }, targets) {
 }
 
 // data/scripts/features/mace/detection.ts
-import { world as world10, system as system16, EquipmentSlot as EquipmentSlot7, EntityDamageCause as EntityDamageCause6 } from "@minecraft/server";
+import { world as world10, system as system17, EquipmentSlot as EquipmentSlot7, EntityDamageCause as EntityDamageCause6 } from "@minecraft/server";
 
 // data/scripts/features/mace/manager.ts
 import { EntityEquippableComponent, EquipmentSlot as EquipmentSlot6 } from "@minecraft/server";
@@ -5417,7 +5587,7 @@ function isCustomMace(item) {
   return !!item && CustomMaceItems.has(item?.typeId);
 }
 var playerFallData = /* @__PURE__ */ new Map();
-system16.runInterval(() => {
+system17.runInterval(() => {
   for (const player of world10.getAllPlayers()) {
     const item = player.getComponent("minecraft:equippable")?.getEquipment(EquipmentSlot7.Mainhand);
     const isFallingWithMace = isCustomMace(item) && !player.isOnGround && !player.isInWater && !player.isClimbing && !player.isGliding && !player.isFlying && !player.getEffect("minecraft:slow_falling") && !player.getEffect("minecraft:levitation");
@@ -5439,7 +5609,7 @@ system16.runInterval(() => {
 // data/scripts/features/forge_trooper/manager.ts
 import {
   world as world11,
-  system as system17,
+  system as system18,
   EntityDamageCause as EntityDamageCause7
 } from "@minecraft/server";
 var TROOPER_ID = "ph:forge_trooper";
@@ -5534,7 +5704,7 @@ world11.beforeEvents.entityHurt.subscribe((acc) => {
   if (Math.random() < 0.2) {
     acc.cancel = true;
     const trooper = hurtEntity;
-    system17.run(() => {
+    system18.run(() => {
       try {
         playMove(trooper, "parry");
         const dim = trooper.dimension;
@@ -5567,7 +5737,7 @@ function startSweep(trooper, st) {
   const variant = variantOf(trooper);
   const radius = variant === VARIANT_PLASMA ? SWEEP_RADIUS + 1 : SWEEP_RADIUS;
   const damage = variant === VARIANT_AMBER ? SWEEP_DAMAGE + 3 : SWEEP_DAMAGE;
-  system17.runTimeout(() => {
+  system18.runTimeout(() => {
     if (!trooper.isValid) return;
     const location = trooper.location;
     const targets = trooper.dimension.getEntities({
@@ -5585,7 +5755,7 @@ function startSweep(trooper, st) {
     trooper.dimension.playSound("weapon_slash.slash_heavy", location);
   }, SWEEP_HIT_TICK);
 }
-system17.runInterval(() => {
+system18.runInterval(() => {
   const now = Date.now();
   const troopers = /* @__PURE__ */ new Map();
   for (const player of world11.getAllPlayers()) {

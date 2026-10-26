@@ -175,7 +175,8 @@ const PARRY_ITEMS = new Set([
     "minecraft:golden_sword",
     "minecraft:diamond_sword",
     "minecraft:netherite_sword",
-    "ph:prismatic_sword"
+    "ph:prismatic_sword",
+    "ph:xeon_plasm_sword"
 ]);
 
 export function parryRuntime(source: Player, itemStack: any): void {

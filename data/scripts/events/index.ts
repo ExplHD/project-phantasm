@@ -38,7 +38,7 @@ world.beforeEvents.entityHurt.subscribe((acc) => {
             const view = hurtEntity.getViewDirection();
             hurtEntity.runCommand(`particle ph:parry_success ^^^0.5`);
             (hurtEntity as Player).dimension.spawnParticle(
-                "ph:parry_invert_flash",
+                "ph:parry_flash",
                 {
                     x: head.x + view.x,
                     y: head.y + view.y,
@@ -437,6 +437,9 @@ system.runInterval(() => {
 // Safety net: pop bud/cluster world-gen yang sudah telanjur melayang
 // (support hilang sebelum script ini ada / hancur oleh ledakan / command).
 // Tiap 2 detik, box kecil di sekitar player biar murah.
+// TODO(zeromaster178): ini script call paling berat di profile (2026-10-26): 1089 getBlock per player
+// tiap 2 detik. Opsi: tangkap kasus ledakan lewat blockExplode lalu hapus sweep ini, atau kecilkan box /
+// jarangkan interval kalau masih perlu nangkep crystal world-gen yang sudah melayang.
 system.runInterval(() => {
     for (const player of world.getPlayers()) {
         try {

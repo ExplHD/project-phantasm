@@ -28,7 +28,7 @@
                 "should_update_effects_offscreen": "1.0"
             },
             "render_controllers": [
-                "controller.render.default"
+                "controller.render.titan_core"
             ],
             "spawn_egg": {
                 "base_color": "#555B63",

@@ -2,7 +2,7 @@
 	"format_version": "1.16.100",
 	"minecraft:texture_set": {
 		"color": "titan_core",
-		"metalness_emissive_roughness": "titan_core_mer",
+		"metalness_emissive_roughness": "titan_core_mers",
 		"heightmap": "titan_core_height"
 	}
 }

@@ -27,18 +27,19 @@ export const PRISM_FAN: ProjectileConfig = {
 	spread: [-9, 0, 9]
 };
 
-/** Bubble Barrage: slow, strongly homing bubbles, four per volley from around the player. */
+/** Bubble Barrage: slow, strongly homing bubbles, four per volley from around the player. Pierces every entity until a wall or max range. */
 export function prismBubble(side: number, up: number): ProjectileConfig {
 	return {
 		core: "ph:prism_bubble",
 		impact: ["ph:prism_bubble_pop"],
 		impactSound: "random.pop",
-		damage: 6,
+		damage: 22,
 		speed: 0.9,
 		range: 20,
 		homing: 14,
 		lockCone: 25,
 		knockback: 0.15,
+		pierce: Infinity,
 		origin: { forward: 0.2, side, up }
 	};
 }
