@@ -1443,6 +1443,7 @@ var objectives = [
   "delayatk",
   "sectick",
   "dash_cd",
+  "sfx_cd",
   // Solaris Verdant (Animitta)
   "solaris_verdant",
   "solaris_verdant_atk",
@@ -3712,7 +3713,7 @@ system12.afterEvents.scriptEventReceive.subscribe(({ id, message, sourceBlock, s
       const collisionRadius = Number(ramDash[2]);
       sourceEntity.applyImpulse({ x: ramDirection.x * force, y: 0, z: ramDirection.z * force });
       beginCollisionCheck(sourceEntity, 14, ramDamage, collisionRadius);
-      sourceEntity.runCommand(`playsound ${ramDash[3]} @a[r=32] ~~~ 1 1 0.3`);
+      if (ramDash[3]?.trim()) sourceEntity.runCommand(`playsound ${ramDash[3]} @a[r=32] ~~~ 1 1 0.3`);
       break;
     case "ph:ram_dash_3d":
       if (!sourceEntity) return;
@@ -3732,7 +3733,7 @@ system12.afterEvents.scriptEventReceive.subscribe(({ id, message, sourceBlock, s
       const damage2 = Number(laserBeamOnce[1]);
       const width = Number(laserBeamOnce[2]);
       fireLaserOnce(sourceEntity, range, damage2, width);
-      sourceEntity.runCommand(`playsound ${laserBeamOnce[3]} @a[r=32] ~~~ 1 1 0.3`);
+      if (laserBeamOnce[3]?.trim()) sourceEntity.runCommand(`playsound ${laserBeamOnce[3]} @a[r=32] ~~~ 1 1 0.3`);
       break;
     case "ph:boss_laser_beam":
       if (!sourceEntity) return;
@@ -5625,11 +5626,18 @@ var SWEEP_HIT_TICK = 11;
 var SWEEP_ANIM_MS = 1250;
 var ATTACK_REACH = SWEEP_RADIUS + 0.8;
 var FLEE_MS = 3e3;
+var DASH_RANGE_MIN = 10;
+var DASH_COOLDOWN_MS = 12e3;
+var DASH_AIR_TICKS = 8;
+var DASH_PUSHES_PER_BLOCK = 0.5;
+var DASH_IMPULSE = 0.35;
+var DASH_SWEEP_REACH = SWEEP_RADIUS + 1.5;
+var DASH_MAX_MS = (DASH_AIR_TICKS + 2 * Math.ceil(TARGET_RANGE * DASH_PUSHES_PER_BLOCK)) * 50 + 500;
 var states2 = /* @__PURE__ */ new Map();
 function getState2(trooper) {
   let st = states2.get(trooper.id);
   if (!st) {
-    st = { phase: "chase", phaseUntil: 0 };
+    st = { phase: "chase", phaseUntil: 0, dashCd: 0 };
     states2.set(trooper.id, st);
     setPhase(trooper, st, "chase", 0);
   }
@@ -5755,6 +5763,49 @@ function startSweep(trooper, st) {
     trooper.dimension.playSound("weapon_slash.slash_heavy", location);
   }, SWEEP_HIT_TICK);
 }
+function startDash(trooper, st, dist) {
+  setPhase(trooper, st, "dash", DASH_MAX_MS);
+  st.dashCd = Date.now() + DASH_COOLDOWN_MS;
+  try {
+    playMove(trooper, "dash");
+    trooper.applyImpulse({ x: 0, y: 0.9, z: 0 });
+  } catch {
+    setPhase(trooper, st, "chase", 0);
+    return;
+  }
+  system18.runTimeout(() => {
+    if (!trooper.isValid || st.phase !== "dash") return;
+    let pushes = Math.ceil(dist * DASH_PUSHES_PER_BLOCK);
+    const push = system18.runInterval(() => {
+      if (!trooper.isValid || st.phase !== "dash") {
+        system18.clearRun(push);
+        return;
+      }
+      const target = nearestTarget(trooper);
+      if (target === void 0 || pushes <= 0) {
+        system18.clearRun(push);
+        setPhase(trooper, st, "chase", 0);
+        return;
+      }
+      if (distanceBetween(trooper, target) <= DASH_SWEEP_REACH) {
+        system18.clearRun(push);
+        startSweep(trooper, st);
+        return;
+      }
+      const dx = target.location.x - trooper.location.x;
+      const dz = target.location.z - trooper.location.z;
+      const flat = Math.sqrt(dx * dx + dz * dz) || 1;
+      try {
+        trooper.applyImpulse({ x: dx / flat * DASH_IMPULSE, y: 0, z: dz / flat * DASH_IMPULSE });
+      } catch {
+        system18.clearRun(push);
+        setPhase(trooper, st, "chase", 0);
+        return;
+      }
+      pushes--;
+    }, 2);
+  }, DASH_AIR_TICKS);
+}
 system18.runInterval(() => {
   const now = Date.now();
   const troopers = /* @__PURE__ */ new Map();
@@ -5777,11 +5828,18 @@ system18.runInterval(() => {
     switch (st.phase) {
       case "chase": {
         const target = nearestTarget(trooper);
-        if (target !== void 0 && distanceBetween(trooper, target) <= ATTACK_REACH) {
+        if (target === void 0) break;
+        const dist = distanceBetween(trooper, target);
+        if (dist <= ATTACK_REACH) {
           startSweep(trooper, st);
+        } else if (variantOf(trooper) === VARIANT_GOLD && dist >= DASH_RANGE_MIN && now >= st.dashCd) {
+          startDash(trooper, st, dist);
         }
         break;
       }
+      case "dash":
+        if (now >= st.phaseUntil) setPhase(trooper, st, "chase", 0);
+        break;
       case "attack":
         if (now >= st.phaseUntil) setPhase(trooper, st, "flee", FLEE_MS);
         break;

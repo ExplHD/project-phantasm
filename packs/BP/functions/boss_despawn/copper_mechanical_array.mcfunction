@@ -1,2 +1,4 @@
-execute as @e[type=ph:copper_mechanical_array] at @s run event entity @s despawn
+fog @a remove copper_mechanical_array
+fog @a remove copper_mechanical_array_sword_attack
 music stop 3
+event entity @s despawn

@@ -8,6 +8,7 @@ const objectives: string[] = [
     "delayatk",
 	"sectick",
     "dash_cd",
+    "sfx_cd",
     // Solaris Verdant (Animitta)
     "solaris_verdant",
     "solaris_verdant_atk",

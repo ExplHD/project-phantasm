@@ -108,6 +108,18 @@
 		"ph_xeon_plasm_spear": {
 			"textures": "textures/items/xeon_plasm_spear"
 		},
+		"ph_xeon_plasm_helmet": {
+			"textures": "textures/items/xeon_plasm/xeon_plasm_helmet"
+		},
+		"ph_xeon_plasm_chestplate": {
+			"textures": "textures/items/xeon_plasm/xeon_plasm_chestplate"
+		},
+		"ph_xeon_plasm_leggings": {
+			"textures": "textures/items/xeon_plasm/xeon_plasm_leggings"
+		},
+		"ph_xeon_plasm_boots": {
+			"textures": "textures/items/xeon_plasm/xeon_plasm_boots"
+		},
 		"ph_cruxshaper": {
 			"textures": "textures/items/weapons/cruxshaper"
 		},

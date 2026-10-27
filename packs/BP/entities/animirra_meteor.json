@@ -79,7 +79,8 @@
                 "queue_command": {
                     "command": [
                         "damage @e[rm=0.1,r=4,family=!animirra] 20 entity_attack entity @s",
-                        "playsound entity.meteor_impact @a[r=64]",
+                        "execute unless score sfx_meteor sfx_cd matches 1.. run playsound entity.meteor_impact @a[r=64]",
+                        "scoreboard players set sfx_meteor sfx_cd 3",
                         "particle ph:animitta_meteor_impact ~~~"
                     ]
                 },
