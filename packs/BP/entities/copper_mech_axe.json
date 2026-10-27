@@ -94,7 +94,8 @@
                 "queue_command": {
                     "command": [
                         "damage @e[r=6,rm=0.1,family=!copper_mechanical] 35 entity_attack entity @e[type=ph:copper_mechanical_array,c=1]",
-                        "playsound weapon_slash.slash_heavy @a[r=16] ~~~ 1 1 0.3"
+                        "execute unless score sfx_axe sfx_cd matches 1.. run playsound weapon_slash.slash_heavy @a[r=16] ~~~ 1 1 0.3",
+                        "scoreboard players set sfx_axe sfx_cd 3"
                     ]
                 }
             },

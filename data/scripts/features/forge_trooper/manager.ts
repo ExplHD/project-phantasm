@@ -13,6 +13,8 @@ import { isBlessed } from "../../systems/xeonniteBlessing";
 // players cannot damage it at all, see systems/xeonniteBlessing.ts), and it fights
 // with a grounded 360-degree sweep.
 // Loop: chase the target -> sweep once in reach -> flee for 3s -> chase again.
+// Gold variants leap-dash at targets 10+ blocks away while chasing; reaching sweep
+// range mid-dash goes straight into the sweep.
 // The script owns the phase; the BP component groups (ph:chase / ph:attack / ph:flee)
 // own the movement, so the two never fight over where the mob walks.
 // It hunts players and every other mob, but never its own Titan Ridge faction.
@@ -35,12 +37,23 @@ const ATTACK_REACH = SWEEP_RADIUS + 0.8; // start swinging slightly before the t
 
 const FLEE_MS = 3000;
 
-type Phase = "chase" | "attack" | "flee";
+const DASH_RANGE_MIN = 10;
+const DASH_COOLDOWN_MS = 12000;
+const DASH_AIR_TICKS = 8; // rise time after the jump impulse before pushing forward
+const DASH_PUSHES_PER_BLOCK = 0.5; // forward re-impulses, one every 2 ticks; 6 at 12 blocks
+const DASH_IMPULSE = 0.35;
+const DASH_SWEEP_REACH = SWEEP_RADIUS + 1.5; // momentum carries it the rest of the way into the blade
+// Safety net if the push loop dies with the trooper (unload, dimension swap).
+const DASH_MAX_MS = (DASH_AIR_TICKS + 2 * Math.ceil(TARGET_RANGE * DASH_PUSHES_PER_BLOCK)) * 50 + 500;
+
+type Phase = "chase" | "attack" | "flee" | "dash";
 
 interface TrooperState {
 	phase: Phase;
 	/** When the current attack or flee phase ends, compared against Date.now(). */
 	phaseUntil: number;
+	/** Gold dash cooldown, compared against Date.now(). */
+	dashCd: number;
 }
 
 const states = new Map<string, TrooperState>();
@@ -48,7 +61,7 @@ const states = new Map<string, TrooperState>();
 function getState(trooper: Entity): TrooperState {
 	let st = states.get(trooper.id);
 	if (!st) {
-		st = { phase: "chase", phaseUntil: 0 };
+		st = { phase: "chase", phaseUntil: 0, dashCd: 0 };
 		states.set(trooper.id, st);
 		// Fresh state after a reload or for a trooper spawned before the loop existed:
 		// force the BP groups to match instead of trusting whatever was saved.
@@ -219,6 +232,61 @@ function startSweep(trooper: Entity, st: TrooperState): void {
 	}, SWEEP_HIT_TICK);
 }
 
+// Gold-only approach: leap toward the target, then a short ground-parallel dash,
+// then the sweep. Horizontal impulses stay small and frequent so the arc reads as
+// a jump instead of launching the trooper like a missile. The BP side sits in the
+// planted ph:attack group meanwhile, so pathing doesn't fight the impulses.
+function startDash(trooper: Entity, st: TrooperState, dist: number): void {
+	setPhase(trooper, st, "dash", DASH_MAX_MS);
+	st.dashCd = Date.now() + DASH_COOLDOWN_MS;
+
+	try {
+		playMove(trooper, "dash");
+		trooper.applyImpulse({ x: 0, y: 0.9, z: 0 });
+	} catch {
+		setPhase(trooper, st, "chase", 0);
+		return;
+	}
+
+	system.runTimeout(() => {
+		if (!trooper.isValid || st.phase !== "dash") return;
+
+		let pushes = Math.ceil(dist * DASH_PUSHES_PER_BLOCK);
+		const push = system.runInterval(() => {
+			if (!trooper.isValid || st.phase !== "dash") {
+				system.clearRun(push);
+				return;
+			}
+
+			const target = nearestTarget(trooper);
+			if (target === undefined || pushes <= 0) {
+				system.clearRun(push);
+				setPhase(trooper, st, "chase", 0);
+				return;
+			}
+
+			if (distanceBetween(trooper, target) <= DASH_SWEEP_REACH) {
+				system.clearRun(push);
+				startSweep(trooper, st);
+				return;
+			}
+
+			const dx = target.location.x - trooper.location.x;
+			const dz = target.location.z - trooper.location.z;
+			const flat = Math.sqrt(dx * dx + dz * dz) || 1;
+			try {
+				trooper.applyImpulse({ x: (dx / flat) * DASH_IMPULSE, y: 0, z: (dz / flat) * DASH_IMPULSE });
+			} catch {
+				system.clearRun(push);
+				setPhase(trooper, st, "chase", 0);
+				return;
+			}
+
+			pushes--;
+		}, 2);
+	}, DASH_AIR_TICKS);
+}
+
 // Driver tick: 4-tick cadence so the sweep starts as soon as the target is in reach.
 // Troopers are gathered around players so only loaded, relevant ones run.
 system.runInterval(() => {
@@ -247,11 +315,19 @@ system.runInterval(() => {
 			case "chase": {
 				// BP melee_box_attack does the pathing; the script only decides when to swing.
 				const target = nearestTarget(trooper);
-				if (target !== undefined && distanceBetween(trooper, target) <= ATTACK_REACH) {
+				if (target === undefined) break;
+				const dist = distanceBetween(trooper, target);
+				if (dist <= ATTACK_REACH) {
 					startSweep(trooper, st);
+				} else if (variantOf(trooper) === VARIANT_GOLD && dist >= DASH_RANGE_MIN && now >= st.dashCd) {
+					startDash(trooper, st, dist);
 				}
 				break;
 			}
+			case "dash":
+				// The push loop hands off to sweep or chase itself; this only catches a dead loop.
+				if (now >= st.phaseUntil) setPhase(trooper, st, "chase", 0);
+				break;
 			case "attack":
 				if (now >= st.phaseUntil) setPhase(trooper, st, "flee", FLEE_MS);
 				break;

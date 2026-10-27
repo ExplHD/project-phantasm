@@ -257,6 +257,12 @@
 				"remove": { "component_groups": ["ph:chase", "ph:flee"] },
 				"add": { "component_groups": ["ph:attack"] }
 			},
+			// Gold leap-dash: the script drives the motion with impulses, so it reuses the
+			// planted attack group (no movement goal to fight them).
+			"ph:state_dash": {
+				"remove": { "component_groups": ["ph:chase", "ph:flee"] },
+				"add": { "component_groups": ["ph:attack"] }
+			},
 			"ph:state_flee": {
 				"remove": { "component_groups": ["ph:chase", "ph:attack"] },
 				"add": { "component_groups": ["ph:flee"] }

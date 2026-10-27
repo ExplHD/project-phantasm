@@ -539,7 +539,8 @@ system.afterEvents.scriptEventReceive.subscribe(({ id, message, sourceBlock, sou
             const collisionRadius = Number(ramDash[2]);
             sourceEntity.applyImpulse({ x: ramDirection.x * force, y: 0, z: ramDirection.z * force });
             beginCollisionCheck(sourceEntity, 14, ramDamage, collisionRadius);
-            sourceEntity.runCommand(`playsound ${ramDash[3]} @a[r=32] ~~~ 1 1 0.3`);
+            // Empty sound arg: the caller plays its own (rate-limited) sound.
+            if (ramDash[3]?.trim()) sourceEntity.runCommand(`playsound ${ramDash[3]} @a[r=32] ~~~ 1 1 0.3`);
             break;
         case "ph:ram_dash_3d":
             if (!sourceEntity) return;
@@ -560,7 +561,8 @@ system.afterEvents.scriptEventReceive.subscribe(({ id, message, sourceBlock, sou
             const damage2 = Number(laserBeamOnce[1]);
             const width = Number(laserBeamOnce[2]);
             fireLaserOnce(sourceEntity, range, damage2, width);
-            sourceEntity.runCommand(`playsound ${laserBeamOnce[3]} @a[r=32] ~~~ 1 1 0.3`);
+            // Empty sound arg: the caller plays its own (rate-limited) sound.
+            if (laserBeamOnce[3]?.trim()) sourceEntity.runCommand(`playsound ${laserBeamOnce[3]} @a[r=32] ~~~ 1 1 0.3`);
             break;
         case "ph:boss_laser_beam":
             if (!sourceEntity) return;

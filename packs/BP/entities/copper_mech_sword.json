@@ -94,7 +94,9 @@
                 },
                 "queue_command": {
                     "command": [
-                        "scriptevent ph:ram_dash 8, 35, 1.1, custom_sfx.judgement_cut"
+                        "scriptevent ph:ram_dash 8, 35, 1.1, ",
+                        "execute unless score sfx_sword sfx_cd matches 1.. run playsound custom_sfx.judgement_cut @a[r=32] ~~~ 1 1 0.3",
+                        "scoreboard players set sfx_sword sfx_cd 3"
                     ]
                 }
             },

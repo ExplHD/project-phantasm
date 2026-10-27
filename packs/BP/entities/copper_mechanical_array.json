@@ -335,8 +335,8 @@
                 "queue_command": {
                     "command": [
                         "music stop 3",
-                        "fog @a[r=128] remove copper_mechanical_array",
-                        "fog @a[r=128] remove copper_mechanical_array_sword_attack"
+                        "fog @a remove copper_mechanical_array",
+                        "fog @a remove copper_mechanical_array_sword_attack"
                     ]
                 },
                 "add": {
