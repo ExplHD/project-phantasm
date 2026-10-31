@@ -285,10 +285,63 @@ export function javaSaturationRegen(player: Player): void {
     }
 }
 
+// Absorption
+// The Script API has no way to read how much absorption a player has left, so it's tracked
+// here: Absorption I gives 8 HP, every extra level adds 2, and every hit drains it before
+// health. A missing entry means untracked, amount 0 means the pool ran dry while the effect is still on.
+const ABSORPTION_BASE = 8;
+const ABSORPTION_PER_LEVEL = 2;
+// amount is what's left, max is the full pool for the effect's level
+const absorptionPool = new Map<string, { amount: number; max: number }>();
+
+function absorptionFor(amplifier: number): number {
+    return ABSORPTION_BASE + ABSORPTION_PER_LEVEL * amplifier;
+}
+
+// Eating another golden apple re-adds the effect, which refills the pool
+export function onAbsorptionAdded(player: Player, amplifier: number): void {
+    const max = absorptionFor(amplifier);
+    absorptionPool.set(player.id, { amount: max, max });
+    healthBarRuntime(player, "absorptionChanged");
+}
+
+export function onAbsorptionHurt(player: Player, damage: number): void {
+    const pool = absorptionPool.get(player.id);
+    if (!pool || pool.amount <= 0) return;
+    pool.amount = Math.max(0, pool.amount - damage);
+    // A fully absorbed hit doesn't change health, so entityHealthChanged never refreshes the bar
+    healthBarRuntime(player, "absorptionChanged");
+}
+
+// Polled: catches the effect running out (no effect-remove event exists) and picks the
+// effect back up after a rejoin or /reload, when the pool map starts empty.
+export function syncAbsorption(player: Player): void {
+    const effect = player.getEffect("absorption");
+    const tracked = absorptionPool.has(player.id);
+    if (effect && !tracked) {
+        onAbsorptionAdded(player, effect.amplifier);
+    } else if (!effect && tracked) {
+        absorptionPool.delete(player.id);
+        healthBarRuntime(player, "absorptionChanged");
+    }
+}
+
+export function clearAbsorption(player: Player): void {
+    absorptionPool.delete(player.id);
+}
+
 export function healthBarDisplay(player: Player, health: any, totalArmor: any, maxHealth: number): void {
-    let scaled = (health.currentValue / maxHealth) * 100;
+    // While absorption is left, both sides grow by it (current by what's left, max by the
+    // full pool) so the bar never reads past 100%, and the whole text turns yellow.
+    // health_indicator.json strips the §e before reading the percentage for the bar fill.
+    const pool = absorptionPool.get(player.id);
+    const absorbing = pool !== undefined && pool.amount > 0;
+    const current = health.currentValue + (absorbing ? pool.amount : 0);
+    const max = maxHealth + (absorbing ? pool.max : 0);
+    const scaled = (current / max) * 100;
+    const color = absorbing ? "§e" : "";
     player.onScreenDisplay.setTitle(
-        `bar0:${Math.min(100, Math.max(0, Math.floor(scaled)))}%% healthind:${Math.floor(health.currentValue)}/${maxHealth}  ${totalArmor}`,
+        `bar0:${color}${Math.min(100, Math.max(0, Math.floor(scaled)))}%% healthind:${Math.floor(current)}/${max}${totalArmor}`,
         { fadeInDuration: 10, stayDuration: 70, fadeOutDuration: 20 }
     );
 }
@@ -302,7 +355,7 @@ export function healthBarRuntime(player: Player, eventType: string, beforeItemSt
 
     if (!health || !maxHealth) return;
 
-    if (eventType == "healthChanged") {
+    if (eventType == "healthChanged" || eventType == "absorptionChanged") {
         healthBarDisplay(player, health, totalArmor, maxHealth)
     }
 

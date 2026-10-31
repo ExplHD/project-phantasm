@@ -23,6 +23,20 @@
 					"weight": 90
 				}
 			]
+		},
+		{
+			"rolls": 1,
+			"entries": [
+				{
+					"type": "item",
+					"name": "ph:a_part_of_polaris_power",
+					"weight": 70
+				},
+				{
+					"type": "empty",
+					"weight": 30
+				}
+			]
 		}
 	]
 }

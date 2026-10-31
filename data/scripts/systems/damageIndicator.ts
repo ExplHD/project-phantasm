@@ -115,31 +115,28 @@ export function onDamageIndicator({ hurtEntity, damageSource, damage }: EntityHu
             y: center.y + extent.y * 0.5,
             z: center.z + (dz / len) * radius
         };
-        const rot = player.getRotation();
-		const molang = new MolangVariableMap();
 		const iconMolang = new MolangVariableMap();
         let absDamage = Math.abs(damageValue);
         if (absDamage > 999999)
             absDamage = 999999;
-		molang.setFloat("variable.length", 1.5);
         iconMolang.setFloat("variable.length", 1.5);
         iconMolang.setFloat("variable.icon_offset", damageData.icon ?? 14);
-        molang.setFloat("variable.damage", damageValue);
-        molang.setFloat("variable.roty", rot.y);
-        molang.setFloat("variable.digits", `${absDamage}`.length);
-        molang.setFloat("variable.floored", (absDamage % 10));
-        molang.setFloat("variable.floored_tenths", (Math.floor(absDamage / 10) % 10));
-        molang.setFloat("variable.floored_hundreths", (Math.floor(absDamage / 100) % 10));
-        molang.setFloat("variable.floored_thousandths", (Math.floor(absDamage / 1000) % 10));
-        molang.setFloat("variable.floored_ten_thousandths", (Math.floor(absDamage / 10000) % 10));
-        molang.setFloat("variable.floored_hundred_thousandths", (Math.floor(absDamage / 100000) % 10));
-		molang.setColorRGB("variable.damagecolor", damageData.color);
 		iconMolang.setColorRGB("variable.damagecolor", damageData.color);
-        try {
-            player.spawnParticle("ph:damage_number", loc, molang);
-            // player.spawnParticle("ph:damage_icons", loc, molang);
+        // One emitter per digit, laid out along the viewer's screen-left axis (ones digit on the right)
+        const leftX = -dz / len;
+        const leftZ = dx / len;
+        const digits = `${absDamage}`;
+        for (let i = 0; i < digits.length; i++) {
+            const offset = ((digits.length - 1) / 2 - i) / 3;
+            const molang = new MolangVariableMap();
+            molang.setFloat("variable.length", 1.5);
+            molang.setFloat("variable.digit", Number(digits[i]));
+            molang.setColorRGB("variable.damagecolor", damageData.color);
+            try {
+                player.spawnParticle("ph:damage_number", { x: loc.x + leftX * offset, y: loc.y, z: loc.z + leftZ * offset }, molang);
+            }
+            catch { }
         }
-        catch { }
         try {
             player.spawnParticle("ph:damage_icons", {x: loc.x, y: loc.y + 0.6, z:loc.z}, iconMolang);
         }

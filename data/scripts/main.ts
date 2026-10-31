@@ -21,5 +21,6 @@ import { } from './features/weapons/weapons'
 // Credits to @biggamers4u for older mechanics, now ALL of the MECHANICS are remade by me.
 import { } from './features/mace/detection'
 import { } from './features/forge_trooper/manager'
+import { } from './features/polaris_power/manager'
 
 console.warn("§a§lPhantasm 1.5.2 Activated!");

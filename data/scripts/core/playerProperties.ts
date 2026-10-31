@@ -37,7 +37,8 @@ export const PLAYER_PROPERTIES: PlayerPropertyDef[] = [
 
     // Short-lived state; missing means inactive.
     { id: "ph:forge_parry_nerf_until", label: "Forge parry nerf ends (ms)", type: "number", group: "Runtime" },
-    { id: "ph:xeonnite_cutscene_active", label: "Blessing cutscene running", type: "boolean", group: "Runtime" }
+    { id: "ph:xeonnite_cutscene_active", label: "Blessing cutscene running", type: "boolean", group: "Runtime" },
+    { id: "ph:polaris_charging", label: "Polaris Power charging", type: "boolean", group: "Runtime" }
 ];
 
 /** Writes the default of every property the player doesn't have yet. Existing values are kept. */

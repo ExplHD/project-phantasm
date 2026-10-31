@@ -215,6 +215,9 @@
 		},
 		"ph_astralith_alloy": {
 			"textures": "textures/items/astralith_alloy"
+		},
+		"ph_a_part_of_polaris_power": {
+			"textures": "textures/items/a_part_of_polaris_power"
 		}
 	},
 	"resource_pack_name": "Project Phantasm",

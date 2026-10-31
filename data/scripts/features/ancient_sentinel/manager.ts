@@ -859,7 +859,8 @@ export function onSentinelDie(entity: Entity): void {
 // Safety net: catch sentinels the spawn hook never saw (world reload, restore, /clone...).
 const SWEEP_DIMENSION_IDS = ["overworld", "nether", "the_end"];
 
-system.runInterval(() => {
+// Run every 200 ticks from events/index.ts
+export function sweepSentinels(): void {
     for (const dimensionId of SWEEP_DIMENSION_IDS) {
         let dimension: Dimension;
         let tracked: Entity[] = [];
@@ -877,4 +878,4 @@ system.runInterval(() => {
             onSentinelSpawn(entity);
         }
     }
-}, 200);
+}

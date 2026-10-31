@@ -5,15 +5,20 @@ import { getAccessoryItems } from '../core/player'
 import { summonOwned } from '../core/summons'
 import { weaponSkills } from '../features/weapons/weaponSkills'
 import { handleAccessory } from '../systems/accessories'
-import { loadScoreboards, onPlayerSpawn } from './loader'
 import { onDamageIndicator } from '../systems/damageIndicator'
 import { onDummyHurt } from '../systems/combatDummy'
 import { onTitanCoreHurt, onTitanCoreDie } from '../features/titan_core/manager'
 import { onSentinelSpawn, onSentinelHurt, onSentinelHit, onSentinelDie } from '../features/ancient_sentinel/manager'
 import { clearPlayerLighting, onDynamicLighting } from '../systems/lighting'
-import { windPlungeRuntime, vanillaBlockInteractFix, parryRuntime, startBetterMending, javaSaturationRegen, healthBarRuntime, specifiedFamilityAndSpeed } from '../systems/movement'
-import { onControlButtonInput, onControlSwingInput, clearControlState } from '../systems/controls'
-import { weapons } from '../features/weapons/weapons'
+import { windPlungeRuntime, dashRuntime, vanillaBlockInteractFix, parryRuntime, startBetterMending, javaSaturationRegen, healthBarRuntime, specifiedFamilityAndSpeed, onAbsorptionAdded, onAbsorptionHurt, syncAbsorption, clearAbsorption } from '../systems/movement'
+import { onControlButtonInput, onControlSwingInput, clearControlState, type ControlAction } from '../systems/controls'
+import { weapons, switchHeldWeaponSkill } from '../features/weapons/weapons'
+import { onMaceHurt, trackMaceFall } from '../features/mace/detection'
+import { tickAccessories } from '../systems/accessories'
+import { checkBlessingMilestones, onBlessingHurt, forgetWard } from '../systems/xeonniteBlessing'
+import { onTrooperHurt, tickTroopers, onTrooperDie, onTrooperRemove } from '../features/forge_trooper/manager'
+import { sweepSentinels } from '../features/ancient_sentinel/manager'
+import { onPolarisItemUse, cancelPolarisCharge } from '../features/polaris_power/manager'
 
 // ======================================== World Before Events ========================================
 
@@ -111,6 +116,14 @@ world.beforeEvents.entityHurt.subscribe(data => {
     // console.warn(`Toughness: ${totalToughness}, originalDamage: ${data.damage}, restoredDamage: ${finalDamage.toFixed(2)}`);
     data.damage -= finalDamage;
 });
+
+world.beforeEvents.entityHurt.subscribe(onMaceHurt)
+// Kept after the handlers above: they used to subscribe from their own modules, which
+// main.ts loads after this file, and both can cancel the hit.
+world.beforeEvents.entityHurt.subscribe(onBlessingHurt)
+world.beforeEvents.entityHurt.subscribe(onTrooperHurt)
+
+world.beforeEvents.itemUse.subscribe(onPolarisItemUse)
 
 // Ore blocks have a 1% chance to drop a rust coin, checked before the prismarine rule.
 world.beforeEvents.playerBreakBlock.subscribe((e) => {
@@ -245,6 +258,16 @@ world.afterEvents.entityHurt.subscribe(onDamageIndicator)
 world.afterEvents.entityHurt.subscribe(onDummyHurt)
 world.afterEvents.entityHurt.subscribe(onTitanCoreHurt)
 world.afterEvents.entityHurt.subscribe(onSentinelHurt)
+world.afterEvents.entityHurt.subscribe(({ hurtEntity, damage }) => {
+    if (hurtEntity.typeId !== "minecraft:player" || !hurtEntity.isValid) return;
+    onAbsorptionHurt(hurtEntity as Player, damage);
+})
+
+world.afterEvents.effectAdd.subscribe(({ entity, effect }) => {
+    if (entity.typeId !== "minecraft:player" || !entity.isValid) return;
+    if (effect.typeId.replace("minecraft:", "") !== "absorption") return;
+    onAbsorptionAdded(entity as Player, effect.amplifier);
+})
 
 // One subscription for the two things an inventory change triggers (dynamic lighting and
 // the health bar). The stack merge used to sit here too, alongside a lore pass that
@@ -296,17 +319,15 @@ world.afterEvents.playerInventoryItemChange.subscribe(({ player, itemStack, befo
     healthBarRuntime(player, "inventoryItemChanged", beforeItemStack, itemStack);
 })
 
-world.afterEvents.worldLoad.subscribe(() => {
-    loadScoreboards()
-})
-
-world.afterEvents.playerSpawn.subscribe(({ player, initialSpawn }) => {
-	onPlayerSpawn(player, initialSpawn)
-    onDynamicLighting(player)
-})
+// systems/controls.ts only picks the action for an input, the mechanics live in other layers
+function runControlAction(player: Player, action: ControlAction): void {
+    if (action === "dash") dashRuntime(player);
+    else if (action === "airDash") dashRuntime(player, false);
+    else if (action === "switchSkill") switchHeldWeaponSkill(player);
+}
 
 world.afterEvents.playerSwingStart.subscribe(({ player, heldItemStack, swingSource }) => {
-    onControlSwingInput(player, swingSource);
+    runControlAction(player, onControlSwingInput(player, swingSource));
 
     for (const weapon of weapons) {
         if (heldItemStack?.typeId === weapon.itemId) {
@@ -324,7 +345,7 @@ world.afterEvents.playerButtonInput.subscribe(({ player: source, button, newButt
     }
 
     // Jump and Sneak also drive the player-bound control schemes from /setting.
-    onControlButtonInput(source, button);
+    runControlAction(source, onControlButtonInput(source, button));
 })
 
 world.afterEvents.itemUse.subscribe(({ source, itemStack }) => {
@@ -339,11 +360,15 @@ world.afterEvents.itemUse.subscribe(({ source, itemStack }) => {
     }
 })
 
+world.afterEvents.itemStopUse.subscribe(({ itemStack, source }) => cancelPolarisCharge(itemStack, source))
+world.afterEvents.itemReleaseUse.subscribe(({ itemStack, source }) => cancelPolarisCharge(itemStack, source))
+
 world.afterEvents.entityDie.subscribe(({ damageSource, deadEntity }) => {
     const killer = damageSource?.damagingEntity;
 	if (deadEntity?.typeId === "minecraft:player") {
 		try {
 			clearPlayerLighting(deadEntity as Player);
+			clearAbsorption(deadEntity as Player);
 		} catch (e) {
 			// Ignore cleanup errors for invalid entities
 		}
@@ -361,6 +386,14 @@ world.afterEvents.entityDie.subscribe(({ damageSource, deadEntity }) => {
         addScore(killer, "auric_charge", 4);
         deadEntity.dimension.spawnEntity("minecraft:lightning_bolt", deadEntity.location);
     }
+})
+
+world.afterEvents.entityDie.subscribe(({ deadEntity, damageSource }) => onTrooperDie(deadEntity, damageSource))
+
+// Despawned or unloaded entities never fire entityDie, so per-entity state is dropped here
+world.afterEvents.entityRemove.subscribe(({ removedEntityId, typeId }) => {
+    forgetWard(removedEntityId);
+    onTrooperRemove(removedEntityId, typeId);
 })
 
 world.afterEvents.entityHealthChanged.subscribe(({ entity }) => {
@@ -426,13 +459,24 @@ world.afterEvents.entitySpawn.subscribe(({ entity }) => onSentinelSpawn(entity))
 world.beforeEvents.playerLeave.subscribe(({ player }) => {
     clearPlayerLighting(player);
     clearControlState(player);
+    clearAbsorption(player);
 });
 
 system.runInterval(() => {
     for (const player of world.getPlayers()) {
         javaSaturationRegen(player);
+        syncAbsorption(player);
     }
 }, 6);
+
+// Tracks the highest point of each mace fall so onMaceHurt can size the slam
+system.runInterval(trackMaceFall, 1);
+
+system.runInterval(tickTroopers, 4);
+system.runInterval(checkBlessingMilestones, 20);
+system.runInterval(tickAccessories, 100);
+// Safety net for sentinels the spawn hook never saw (world reload, restore, /clone...)
+system.runInterval(sweepSentinels, 200);
 
 // Safety net: pop bud/cluster world-gen yang sudah telanjur melayang
 // (support hilang sebelum script ini ada / hancur oleh ledakan / command).

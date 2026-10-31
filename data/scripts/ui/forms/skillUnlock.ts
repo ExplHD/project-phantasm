@@ -109,7 +109,7 @@ function plungeUnlock(player: Player) {
         })
 }
 
-// [UNUSED] propertiesCheck — only called by openProperties in custom_components.ts, which
+// [UNUSED] propertiesCheck - only called by openProperties in custom_components.ts, which
 // is itself never registered as a command. Kept in case you want to re-enable it.
 export function propertiesCheck(player: Player) {
     let dashLevelStatus = player.getDynamicProperty("ph:dash_level");

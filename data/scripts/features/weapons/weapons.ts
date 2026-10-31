@@ -1,5 +1,6 @@
+import { EquipmentSlot, type Player } from '@minecraft/server'
 import { WeaponHandler, SkillSwitcher, CommandHandler, applyCustomDamage } from './weaponHandler'
-/* [UNUSED] import { weaponSkills } from './weaponSkills' — weapon skills are wired
+/* [UNUSED] import { weaponSkills } from './weaponSkills' - weapon skills are wired
    directly in events/index.ts (itemUse), not here. */
 import { addScore, getScore, removeScore } from '../../core/scoreboard'
 import { summonOwned } from '../../core/summons'
@@ -173,3 +174,21 @@ const seiketsu = new WeaponHandler("ph:seiketsu", "seiketsu_atk", [9, 9, 9], [
 
 export const weapons = [solarisVerdant, superchargedCopperAxe, prismWeaver, auricPhotonizer, theBleedingSpire, seiketsu];
 export const switcherSkills = [solarisVerdantSS, superchargedCopperAxeSS, prismWeaverSS, auricPhotonizerSS, theBleedingSpireSS];
+
+// switcherSkills is fixed at module load, so index it once instead of scanning it
+// on every skill switch.
+const switcherByItemId = new Map<string, (typeof switcherSkills)[number]>(
+    switcherSkills.map(switcher => [switcher.itemId, switcher])
+);
+
+// Switches the skill of the Legendary weapon in the main hand. Returns false when the
+// held item has no skill switcher.
+export function switchHeldWeaponSkill(player: Player): boolean {
+    const switcher = switcherByItemId.get(
+        player.getComponent("equippable")?.getEquipment(EquipmentSlot.Mainhand)?.typeId ?? ""
+    );
+    if (!switcher) return false;
+
+    switcher.switchSkill(player);
+    return true;
+}

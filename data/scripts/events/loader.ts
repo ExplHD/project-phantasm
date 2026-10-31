@@ -2,6 +2,12 @@ import { world, system, ItemStack, Player } from '@minecraft/server'
 import { addScore, setScore } from '../core/scoreboard'
 import { runUntilMoved, unstuckPlayer } from '../core/player'
 import { applyPropertyDefaults } from '../core/playerProperties'
+import { healthBarDisplay } from '../systems/movement'
+import { onDynamicLighting } from '../systems/lighting'
+import { onBlessingSpawn } from '../systems/xeonniteBlessing'
+import { registerCustomComponents } from '../features/blocks/customComponents'
+import { registerPolarisComponent, onPolarisSpawn } from '../features/polaris_power/manager'
+import { registerUiCommands } from '../ui/commands'
 
 const objectives: string[] = [
     // System Scoreboard
@@ -50,7 +56,26 @@ const objectives: string[] = [
     "seiketsu_atk"
 ]
 
-export function loadScoreboards(): void {
+// Custom item/block components and slash commands have to be registered during startup
+system.beforeEvents.startup.subscribe((initEvent) => {
+    registerCustomComponents(initEvent);
+    registerPolarisComponent(initEvent);
+    registerUiCommands(initEvent);
+})
+
+world.afterEvents.worldLoad.subscribe(() => {
+    loadScoreboards()
+})
+
+world.afterEvents.playerSpawn.subscribe(({ player, initialSpawn }) => {
+    onPlayerSpawn(player, initialSpawn)
+    onDynamicLighting(player)
+    // Both undo a state the player quit in the middle of (cutscene, Polaris charge)
+    onBlessingSpawn(player, initialSpawn)
+    onPolarisSpawn(player, initialSpawn)
+})
+
+function loadScoreboards(): void {
     for (const objective of objectives) {
         if (!world.scoreboard.getObjective(objective)) {
 			world.scoreboard.addObjective(objective)
@@ -67,7 +92,7 @@ function loadPlayerScore(player: Player) {
 	}
 }
 
-export function onPlayerSpawn(player: Player, initialSpawn: boolean): void {
+function onPlayerSpawn(player: Player, initialSpawn: boolean): void {
     const healthLevel = Number(player.getDynamicProperty("ph:health_level"));
     if (healthLevel != undefined && healthLevel > 0) {
         player.runCommand(`effect @s health_boost infinite ${3 * healthLevel} true`)
@@ -80,17 +105,12 @@ export function onPlayerSpawn(player: Player, initialSpawn: boolean): void {
     unstuckPlayer(player)
 
     // Health bar shows on every spawn (both initial join and respawn)
-    const health = player?.getComponent("minecraft:health")?.currentValue;
-    const maxHealth = player?.getComponent("minecraft:health")?.effectiveMax;
+    const health = player?.getComponent("minecraft:health");
+    const maxHealth = health?.effectiveMax;
     const totalArmor = player?.getComponent("minecraft:equippable")?.totalArmor;
-    if (maxHealth && maxHealth > 0) {
-        const healthVal = health ?? 0;
-        let scaled = (healthVal / maxHealth) * 100;
+    if (health && maxHealth && maxHealth > 0) {
         runUntilMoved(player, 10, () => {
-            player.onScreenDisplay.setTitle(
-                `bar0:${Math.min(100, Math.max(0, Math.floor(scaled)))}% healthind:${Math.floor(healthVal)}/${maxHealth} ${totalArmor}`,
-                { fadeInDuration: 10, stayDuration: 70, fadeOutDuration: 20 }
-            );
+            healthBarDisplay(player, health, totalArmor, maxHealth);
         });
     }
 

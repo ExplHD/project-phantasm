@@ -1,0 +1,30 @@
+{
+    "format_version": "1.21.100",
+    "minecraft:item": {
+        "description": {
+            "identifier": "ph:a_part_of_polaris_power",
+            "menu_category": {
+                "category": "items"
+            }
+        },
+        "components": {
+            "ph:polaris_power": {},
+            "minecraft:icon": "ph_a_part_of_polaris_power",
+            "minecraft:max_stack_size": 16,
+            "minecraft:rarity": "epic",
+            "minecraft:glint": true,
+            "minecraft:fire_resistant": {
+                "value": true
+            },
+            "minecraft:use_animation": "bow",
+            "minecraft:use_modifiers": {
+                "use_duration": 1.5,
+                "movement_modifier": 0
+            },
+            "minecraft:cooldown": {
+                "category": "polaris_power",
+                "duration": 10
+            }
+        }
+    }
+}

@@ -1,6 +1,6 @@
 import { ActionFormData } from "@minecraft/server-ui";
 import type { Player } from "@minecraft/server";
-// [UNUSED] import { world, system } from "@minecraft/server"; — nothing in this file uses them.
+// [UNUSED] import { world, system } from "@minecraft/server"; - nothing in this file uses them.
 import { unstuckPlayer } from "../../core/player";
 
 import guideWeapons from "./weapon_guide";
@@ -62,18 +62,18 @@ export function gettingStarted(player: Player) {
 		.title(guideTitle("Getting Started"))
 		.header("Where to begin?")
 		.divider()
-		.header("Early Game — Mining")
+		.header("Early Game - Mining")
 		.label("- Mine ores to get a chance at the Rusted Fortune Coin and Item Magnet Ore (1% chance per ore).")
 		.label("- Use /unlockskill to upgrade your passive abilities: Passive Dash, Extra Health, and Wind Plunge.")
 		.divider()
-		.header("Mid Game — Exploration")
+		.header("Mid Game - Exploration")
 		.label("- Explore Trial Chambers to find the Ancient Copper Core, Auric Proton, and the Peacemaker Oath.")
 		.label("- Visit the Crimson Forest: fight Crimson Tentacles for Essence of Crimson, and locate the Crimson Overgrowth.")
 		.divider()
-		.header("Bosses — Your Progression")
-		.label("1. Sealed Soul of Nature (Prismarine Arena, underwater) — your first boss, drops Prismatic Ingots and a treasure bag (Animitta / Prism Weaver).")
-		.label("2. Punicea : A Crimson Eye (Crimson Overgrowth) — drops The Bleeding Spire and Suspicious Mushroom.")
-		.label("3. Auric Automaton : Copper Mechanical Array (Ancient Copper Core ritual) — the final boss, drops Supercharged Copper Axe / Auric Photonizer.")
+		.header("Bosses - Your Progression")
+		.label("1. Sealed Soul of Nature (Prismarine Arena, underwater) - your first boss, drops Prismatic Ingots and a treasure bag (Animitta / Prism Weaver).")
+		.label("2. Punicea : A Crimson Eye (Crimson Overgrowth) - drops The Bleeding Spire and Suspicious Mushroom.")
+		.label("3. Auric Automaton : Copper Mechanical Array (Ancient Copper Core ritual) - the final boss, drops Supercharged Copper Axe / Auric Photonizer.")
 		.divider()
 		.button("Back")
 		.show(player)

@@ -137,8 +137,9 @@ export function handleAccessory(player: any, trigger: string, event: any, hitTar
     }
 }
 
-system.runInterval(() => {
+// Run every 100 ticks from events/index.ts
+export function tickAccessories(): void {
     for (const player of world.getPlayers()) {
         handleAccessory(player, "onLoop", undefined);
     }
-}, 100)
+}

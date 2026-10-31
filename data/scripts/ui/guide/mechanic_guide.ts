@@ -1,7 +1,6 @@
 import { ActionFormData } from "@minecraft/server-ui";
 import type { Player } from "@minecraft/server";
 import { mainGuideScreen } from "./main_guide";
-import { skillUnlock } from "../forms/skillUnlock";
 import { guideTitle } from "./guidebookTitle";
 
 export default function mechanicsList(player: Player) {
@@ -46,7 +45,8 @@ function skillUnlockGuide(player: Player) {
 		.button("Back")
 		.show(player).then(r => {
 			if (r.selection == 1 || r.canceled) mechanicsList(player);
-			if(r.selection == 0) skillUnlock(player)
+			// Same as typing /unlockskill, so the guide doesn't import ui/forms directly
+			if(r.selection == 0) player.runCommand("ph:unlockskill")
 		})
 }
 
