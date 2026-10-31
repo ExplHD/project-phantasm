@@ -1,4 +1,4 @@
-// [UNUSED] LEGENDARY_TIER — exported but never referenced. Weapons currently detect
+// [UNUSED] LEGENDARY_TIER - exported but never referenced. Weapons currently detect
 // legendary status by hardcoded typeId lists instead of this list.
 export const LEGENDARY_TIER = [
 	"ph:solaris_verdant",

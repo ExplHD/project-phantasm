@@ -6,7 +6,7 @@
 // color codes, so it renders as nothing: with the RP active the book shows,
 // without it the vanilla form shows the plain title. Always build guide
 // titles with guideTitle() so new screens are routed automatically.
-// NOT UNUSED — do not remove. It looks unreferenced from TypeScript alone, but the value
+// NOT UNUSED - do not remove. It looks unreferenced from TypeScript alone, but the value
 // is matched as a string inside packs/RP/ui/server_form.json ("#title_text" comparison)
 // to decide whether a form renders in the guidebook book shell. Changing or deleting the
 // literal breaks every guide screen.

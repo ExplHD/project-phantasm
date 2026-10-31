@@ -46,7 +46,7 @@
                         {
                             "binding_type": "view",
                             "source_control_name": "health_data_control",
-                            "source_property_name": "((#preserved_text - $update_string) * $one)",
+                            "source_property_name": "((#preserved_text - $update_string - '§e') * $one)",
                             "target_property_name": "#health"
                         },
                         {

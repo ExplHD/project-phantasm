@@ -4,6 +4,7 @@ import {
 	Entity,
 	EntityHurtBeforeEvent,
 	EntityDamageCause,
+	type EntityDamageSource,
 	Player
 } from "@minecraft/server";
 import { isBlessed } from "../../systems/xeonniteBlessing";
@@ -145,7 +146,7 @@ function nearestTarget(trooper: Entity): Entity | undefined {
 	}
 }
 
-world.beforeEvents.entityHurt.subscribe((acc: EntityHurtBeforeEvent) => {
+export function onTrooperHurt(acc: EntityHurtBeforeEvent): void {
 	const hurtEntity = acc.hurtEntity;
 	const attacker = acc.damageSource.damagingEntity;
 
@@ -191,7 +192,7 @@ world.beforeEvents.entityHurt.subscribe((acc: EntityHurtBeforeEvent) => {
 	}
 	// The 20% damage reduction lives in the BP damage_sensor (damage_multiplier 0.8).
 	// Scaling acc.damage here as well would stack it to 36%.
-});
+}
 
 // The sweep: plant the feet, play the spin, then pulse the AoE at the hit frame.
 function startSweep(trooper: Entity, st: TrooperState): void {
@@ -287,9 +288,9 @@ function startDash(trooper: Entity, st: TrooperState, dist: number): void {
 	}, DASH_AIR_TICKS);
 }
 
-// Driver tick: 4-tick cadence so the sweep starts as soon as the target is in reach.
+// Driver tick, run every 4 ticks from events/index.ts so the sweep starts as soon as the target is in reach.
 // Troopers are gathered around players so only loaded, relevant ones run.
-system.runInterval(() => {
+export function tickTroopers(): void {
 	const now = Date.now();
 	const troopers = new Map<string, Entity>();
 
@@ -336,9 +337,9 @@ system.runInterval(() => {
 				break;
 		}
 	}
-}, 4);
+}
 
-world.afterEvents.entityDie.subscribe(({ deadEntity, damageSource }) => {
+export function onTrooperDie(deadEntity: Entity, damageSource: EntityDamageSource): void {
 	if (deadEntity?.typeId !== TROOPER_ID) return;
 	forgetState(deadEntity.id);
 
@@ -364,9 +365,9 @@ world.afterEvents.entityDie.subscribe(({ deadEntity, damageSource }) => {
 	} catch {
 		// The killer can log out on the same tick.
 	}
-});
+}
 
 // Despawned or unloaded troopers never fire entityDie; drop their state here instead.
-world.afterEvents.entityRemove.subscribe(({ removedEntityId, typeId }) => {
+export function onTrooperRemove(removedEntityId: string, typeId: string): void {
 	if (typeId === TROOPER_ID) forgetState(removedEntityId);
-});
+}

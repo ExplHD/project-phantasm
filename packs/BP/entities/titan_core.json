@@ -63,19 +63,19 @@
             "minecraft:damage_sensor": {
                 "triggers": [
                     {
-                        "cause": "suffocation",
-                        "deals_damage": "no"
+                        "on_damage": {
+                            "filters": {
+                                "test": "has_tag",
+                                "subject": "other",
+                                "value": "ph:polaris_strike"
+                            }
+                        },
+                        "cause": "all",
+                        "damage_multiplier": 2,
+                        "deals_damage": "yes"
                     },
                     {
-                        "cause": "drowning",
-                        "deals_damage": "no"
-                    },
-                    {
-                        "cause": "magma",
-                        "deals_damage": "no"
-                    },
-                    {
-                        "cause": "lightning",
+                        "cause": "all",
                         "deals_damage": "no"
                     }
                 ]

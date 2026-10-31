@@ -1,6 +1,4 @@
-import { EquipmentSlot, Player } from '@minecraft/server'
-import { dashRuntime } from './movement'
-import { switcherSkills } from '../features/weapons/weapons'
+import { Player } from '@minecraft/server'
 
 // ======================================== Control Schemes ========================================
 // Every scheme a player can bind to a Phantasm mechanic is listed here and can be
@@ -58,12 +56,6 @@ interface ControlState {
 
 const states = new Map<string, ControlState>();
 
-// switcherSkills is fixed at module load, so index it once instead of scanning it
-// on every skill switch.
-const switcherByItemId = new Map<string, (typeof switcherSkills)[number]>(
-    switcherSkills.map(switcher => [switcher.itemId, switcher])
-);
-
 /**
  * Date.now() is wall-clock and can step backwards if the system clock is corrected.
  * Treat a negative gap as "expired" so a clock jump cannot fake a combo.
@@ -117,26 +109,19 @@ export function clearControlState(player: Player): void {
 }
 
 // ======================================== Input Runtime ========================================
-
-function switchSkill(player: Player, requireSneaking: boolean = true): boolean {
-    // The plain Sneak scheme checks the sneak state itself. The combo schemes already
-    // consumed a sneak press, so requiring it again would break a tap-then-attack input.
-    if (requireSneaking && !player.isSneaking) return false;
-
-    const switcher = switcherByItemId.get(
-        player.getComponent("equippable")?.getEquipment(EquipmentSlot.Mainhand)?.typeId ?? ""
-    );
-    if (!switcher) return false;
-
-    switcher.switchSkill(player);
-    return true;
-}
+// These only decide which mechanic an input triggers. events/index.ts runs it, because
+// dashing lives in systems/movement.ts and skill switching in features/weapons, and this
+// module can't import either.
+//   "dash"        - dash, the player has to be falling
+//   "airDash"     - dash, being airborne is enough
+//   "switchSkill" - switch the held Legendary weapon's skill
+export type ControlAction = "dash" | "airDash" | "switchSkill" | undefined;
 
 /**
  * Routes Jump and Sneak presses to whichever control scheme the player bound in /setting.
  * Fires on every button press, so unrelated buttons bail out before any work happens.
  */
-export function onControlButtonInput(player: Player, button: string): void {
+export function onControlButtonInput(player: Player, button: string): ControlAction {
     if (button != "Jump" && button != "Sneak") return;
 
     const now = Date.now();
@@ -147,9 +132,9 @@ export function onControlButtonInput(player: Player, button: string): void {
         state.jumpAt = now;
 
         if (state.dash == DASH_CONTROL.SPRINT_JUMP) {
-            if (player.isSprinting) dashRuntime(player);
+            if (player.isSprinting) return "dash";
         } else if (state.dash == DASH_CONTROL.DOUBLE_TAP_JUMP && doubleTapped) {
-            dashRuntime(player);
+            return "dash";
         }
         return;
     }
@@ -161,18 +146,18 @@ export function onControlButtonInput(player: Player, button: string): void {
     if (state.dash == DASH_CONTROL.JUMP_SNEAK && elapsed(now, state.jumpAt) <= COMBO_WINDOW) {
         state.jumpAt = -Infinity;
         // Airborne is enough here, the jump that started the combo is still going up.
-        dashRuntime(player, false);
-        return;
+        return "airDash";
     }
 
+    // The plain Sneak scheme checks the sneak state itself. The combo schemes already
+    // consumed a sneak press, so requiring it again would break a tap-then-attack input.
     if (state.skill == SKILL_SWITCH_CONTROL.SNEAK) {
-        switchSkill(player);
-        return;
+        return player.isSneaking ? "switchSkill" : undefined;
     }
 
     if (state.skill == SKILL_SWITCH_CONTROL.DOUBLE_SNEAK && doubleTapped) {
         state.sneakAt = -Infinity;
-        switchSkill(player, false);
+        return "switchSkill";
     }
     // Sneak + Attack waits for the swing in onControlSwingInput.
 }
@@ -181,7 +166,7 @@ export function onControlButtonInput(player: Player, button: string): void {
  * Completes the Sneak + Attack skill switch combo. The attack itself is left alone so the
  * weapon still swings, the player just changes skill while hitting.
  */
-export function onControlSwingInput(player: Player, swingSource: string): void {
+export function onControlSwingInput(player: Player, swingSource: string): ControlAction {
     if (swingSource != "Mine" && swingSource != "Attack") return;
 
     const state = getState(player);
@@ -189,5 +174,5 @@ export function onControlSwingInput(player: Player, swingSource: string): void {
     if (elapsed(Date.now(), state.sneakAt) > COMBO_WINDOW) return;
 
     state.sneakAt = -Infinity;
-    switchSkill(player, false);
+    return "switchSkill";
 }

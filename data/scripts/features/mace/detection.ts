@@ -1,4 +1,4 @@
-import { world, system, EquipmentSlot, Player, Entity, ItemStack, EntityDamageCause, /* [UNUSED] EntityComponentTypes */ } from "@minecraft/server";
+import { world, system, EquipmentSlot, Player, Entity, ItemStack, EntityDamageCause, EntityHurtBeforeEvent, /* [UNUSED] EntityComponentTypes */ } from "@minecraft/server";
 import * as Manager from "./manager";
 
 // Your custom mace identifier
@@ -39,13 +39,34 @@ const WindBurstLevelImpulse: { [key: number]: number } = {
 const recentSwingHit: Set<string> = new Set();
 const playerFallData: Map<string, number> = new Map();
 
+// Swaps a falling mace hit for the slam (fall damage, density, wind burst). Subscribed in events/index.ts
+export function onMaceHurt(event: EntityHurtBeforeEvent): void {
+    const { damageSource, hurtEntity: victim } = event;
+
+    // The slam's own applyDamage comes back through here
+    if (damageSource.cause === EntityDamageCause.maceSmash) return;
+
+    const attacker = damageSource.damagingEntity;
+    if (!(attacker instanceof Player)) return;
+
+    // If the playerSwingStart event got the slam it stops
+    if (recentSwingHit.has(attacker.id)) return;
+
+    const item = attacker.getComponent("minecraft:equippable")?.getEquipment(EquipmentSlot.Mainhand);
+    if (!item || !isCustomMace(item)) return;
+
+    const startY = playerFallData.get(attacker.id);
+    if (startY === undefined) return;
+
+    const fallDistance = startY - attacker.location.y;
+    if (fallDistance < FallDistance) return;
+
+    const windBurst = item.getComponent("minecraft:enchantable")?.getEnchantment("wind_burst")?.level ?? 0;
+    event.cancel = true;
+    executeMaceSlam(attacker, victim, fallDistance, item, windBurst);
+}
+
 // Executes the slam
-// [UNUSED] executeMaceSlam — never called from anywhere in this file or the project.
-// NOTE: this is the entry point for the whole mace slam chain. handleStandardSlam and
-// handleWindBurst below are only reachable through it, so the entire slam damage/impulse
-// logic is currently unreachable. The fall-detection interval at the bottom of this file
-// still tracks playerFallData, but nothing consumes it. The mace itself may be handled
-// by vanilla/physics or another module — verify in-game before removing any of this.
 function executeMaceSlam(attacker: Player, victim: Entity, fallDistance: number, item: ItemStack, wbLevel: number = 0, firstHit?: boolean): void {
     if (!attacker.isValid || !victim.isValid) return;
 
@@ -102,7 +123,6 @@ function executeMaceSlam(attacker: Player, victim: Entity, fallDistance: number,
     })
 }
 
-// [UNUSED — only reachable via executeMaceSlam, which is itself never called]
 function handleStandardSlam(attacker: Player, victim: Entity, vLoc: { x: number; y: number; z: number }): void {
     const nearby = attacker.dimension.getEntities({
         location: vLoc,
@@ -128,7 +148,6 @@ function handleStandardSlam(attacker: Player, victim: Entity, vLoc: { x: number;
     }
 }
 
-// [UNUSED — only reachable via executeMaceSlam, which is itself never called]
 function handleWindBurst(attacker: Player, victim: Entity, vLoc: { x: number; y: number; z: number }, level: number): void {
     const vImpulse: number = WindBurstLevelImpulse[level] || 0.5;
 
@@ -159,9 +178,9 @@ function handleWindBurst(attacker: Player, victim: Entity, vLoc: { x: number; y:
     }
 }
 
-// Fall Detection
+// Fall Detection, run every tick from events/index.ts
 // I wouldn't touch this code since these cancel the slam
-system.runInterval(() => {
+export function trackMaceFall(): void {
     for (const player of world.getAllPlayers()) {
         // This runs every tick for every player, so the cheap entity-state checks run first
         // and the block query (the only expensive call here) only happens for a player who
@@ -192,4 +211,4 @@ system.runInterval(() => {
             playerFallData.delete(player.id);
         }
     }
-}, 1);
+}

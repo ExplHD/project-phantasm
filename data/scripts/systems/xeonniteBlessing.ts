@@ -53,8 +53,9 @@ function inTitanRidge(player: Player): boolean {
 	return player.dimension.getBiome(player.location).hasTags([TITAN_RIDGE_TAG]);
 }
 
-// 1s cadence: both milestones are one-time checks, nothing here needs tick precision.
-system.runInterval(() => {
+// Run every 20 ticks from events/index.ts: both milestones are one-time checks,
+// nothing here needs tick precision.
+export function checkBlessingMilestones(): void {
 	for (const player of world.getAllPlayers()) {
 		if (isBlessed(player)) continue;
 		try {
@@ -72,7 +73,7 @@ system.runInterval(() => {
 			// Players mid-respawn or mid-dimension-change have no readable biome or inventory.
 		}
 	}
-}, 20);
+}
 
 // ======================================== Blessing cutscene ========================================
 // 4.6s: power gathers into the player's chest while the camera circles the right side,
@@ -205,10 +206,10 @@ function playBlessingCutscene(player: Player): void {
 }
 
 // Someone who quit mid-cutscene would otherwise rejoin frozen with a detached camera.
-world.afterEvents.playerSpawn.subscribe(({ player, initialSpawn }) => {
+export function onBlessingSpawn(player: Player, initialSpawn: boolean): void {
 	if (!initialSpawn) return;
 	if (player.getDynamicProperty(CUTSCENE_PROPERTY) === true) releaseBlessingCutscene(player);
-});
+}
 
 // ======================================== Ward on blocked hits ========================================
 
@@ -256,7 +257,7 @@ function showWard(hurtEntity: Entity, from: Vector3, player: Player | undefined)
 	}
 }
 
-world.beforeEvents.entityHurt.subscribe((acc: EntityHurtBeforeEvent) => {
+export function onBlessingHurt(acc: EntityHurtBeforeEvent): void {
 	const dealer = damageDealer(acc);
 	if (!dealer) return;
 	// Players directly, or a summon stamped with its summoner's id.
@@ -289,8 +290,8 @@ world.beforeEvents.entityHurt.subscribe((acc: EntityHurtBeforeEvent) => {
 			// Either side can despawn between the cancel and this run.
 		}
 	});
-});
+}
 
-world.afterEvents.entityRemove.subscribe(({ removedEntityId }) => {
+export function forgetWard(removedEntityId: string): void {
 	lastWard.delete(removedEntityId);
-});
+}
