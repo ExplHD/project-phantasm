@@ -13,4 +13,5 @@
 /.DS_Store
 /.gradle
 .directory
-LICENSE.rtf__pycache__/
+LICENSE.rtf
+__pycache__/
