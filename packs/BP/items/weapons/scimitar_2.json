@@ -16,7 +16,10 @@
 			"minecraft:durability": {
 				"max_durability": 2031
 			},
-			"minecraft:icon": "ph_scimitar_2",
+			"minecraft:block_placer": {
+				"block": "ph:scimitar_2",
+				"replace_block_item": true
+			},
 			"minecraft:damage": 9,
 			"minecraft:enchantable": {
 				"value": 15,

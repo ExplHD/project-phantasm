@@ -7,6 +7,48 @@
 		"ph_sentinel_shield": {
 			"textures": "textures/models/shield/sentinel_shield"
 		},
+		"ph_charged_copper_axe_3d": {
+			"textures": "textures/3ds/charged_copper_axe"
+		},
+		"ph_cruxshaper_3d": {
+			"textures": "textures/3ds/cruxshaper"
+		},
+		"ph_nature_staff_3d": {
+			"textures": "textures/3ds/nature_staff"
+		},
+		"ph_peacemaker_oath_3d": {
+			"textures": "textures/3ds/peacemaker_oath"
+		},
+		"ph_seiketsu_3d": {
+			"textures": "textures/3ds/seiketsu"
+		},
+		"ph_spectric_bow_3d": {
+			"textures": "textures/3ds/spectric_bow"
+		},
+		"ph_thunder_gale_3d": {
+			"textures": "textures/3ds/thunder_gale"
+		},
+		"ph_solaris_verdant_3d": {
+			"textures": "textures/3ds/solaris_verdant"
+		},
+		"ph_prism_weaver_3d": {
+			"textures": "textures/3ds/prism_weaver"
+		},
+		"ph_the_bleeding_spire_3d": {
+			"textures": "textures/3ds/the_bleeding_spire"
+		},
+		"ph_supercharged_copper_axe_3d": {
+			"textures": "textures/3ds/supercharged_copper_axe"
+		},
+		"ph_auric_photonizer_3d": {
+			"textures": "textures/3ds/auric_photonizer"
+		},
+		"ph_scimitar_3d": {
+			"textures": "textures/3ds/schimitar"
+		},
+		"ph_scimitar_2_3d": {
+			"textures": "textures/3ds/schimitar2"
+		},
 		"ph_nature_soul_altar": {
 			"textures": "textures/blocks/nature_soul_altar"
 		},

@@ -851,4 +851,13 @@ export function registerCustomComponents(initEvent: any): void {
             }
         }
     })
+
+    // Weapon/shield blocks only exist so the item renders its 3D model as an icon
+    // (block_placer + replace_block_item). placement_filter alone let them be placed,
+    // eating the item, so placement is cancelled here before the item is consumed.
+    initEvent.blockComponentRegistry.registerCustomComponent("ph:icon_only", {
+        beforeOnPlayerPlace(event: any) {
+            event.cancel = true;
+        }
+    })
 }

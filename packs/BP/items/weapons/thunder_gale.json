@@ -9,7 +9,10 @@
 			}
 		},
 		"components": {
-			"minecraft:icon": "ph_thunder_gale",
+			"minecraft:block_placer": {
+				"block": "ph:thunder_gale",
+				"replace_block_item": true
+			},
 			"minecraft:max_stack_size": 1,
 			"minecraft:enchantable": {
 				"slot": "melee_spear",

@@ -12,6 +12,7 @@
 					"render_method": "alpha_test"
 				}
 			},
+			"ph:icon_only": {},
 			"minecraft:placement_filter": {
 				"conditions": [
 					{
