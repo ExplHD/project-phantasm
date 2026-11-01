@@ -34,6 +34,12 @@
 		"ph_auric_battery_recharge_station_result": {
 			"textures": "textures/blocks/auric_battery_recharge_station_result"
 		},
+		"ph_sky_fortress_portal_gateway_off": {
+			"textures": "textures/blocks/sky_fortress_portal_gateway_off"
+		},
+		"ph_sky_fortress_portal_gateway_on": {
+			"textures": "textures/blocks/sky_fortress_portal_gateway_on"
+		},
 		"ph_xeonnite_ore": {
 			"textures": "textures/blocks/xeonnite_ore"
 		},

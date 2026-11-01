@@ -1,0 +1,21 @@
+{
+    "format_version": "1.26.0",
+    "minecraft:item": {
+        "description": {
+            "identifier": "ph:titan_upgrade_smithing_template",
+            "menu_category": {
+                "category": "items",
+                "group": "minecraft:itemGroup.name.smithing_templates"
+            }
+        },
+        "components": {
+            "minecraft:icon": "ph_titan_upgrade_smithing_template",
+            "minecraft:rarity": "rare",
+            "minecraft:tags": {
+                "tags": [
+                    "minecraft:transform_templates"
+                ]
+            }
+        }
+    }
+}

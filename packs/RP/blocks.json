@@ -72,5 +72,8 @@
 	},
 	"ph:luminous_crystall": {
 		"sound": "stone"
+	},
+	"ph:sky_fortress_portal_gateway": {
+		"sound": "stone"
 	}
 }
