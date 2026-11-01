@@ -218,6 +218,9 @@
 		},
 		"ph_a_part_of_polaris_power": {
 			"textures": "textures/items/a_part_of_polaris_power"
+		},
+		"ph_titan_upgrade_smithing_template": {
+		    "textures": "textures/items/titan_upgrade_smithing_template"
 		}
 	},
 	"resource_pack_name": "Project Phantasm",

@@ -828,4 +828,27 @@ export function registerCustomComponents(initEvent: any): void {
             dimension.playSound("random.orb", block.center());
         }
     })
+
+    // The block only ticks while ph:active is true (see its permutation), every 10 ticks.
+    // Beam particles live 0.65s so each respawn overlaps the previous one.
+    initEvent.blockComponentRegistry.registerCustomComponent("ph:sky_gateway", {
+        onPlayerInteract({ block, dimension }: any) {
+            const active = !block.permutation.getState("ph:active");
+            block.setPermutation(block.permutation.withState("ph:active", active));
+            dimension.playSound(active ? "beacon.activate" : "beacon.deactivate", block.center());
+        },
+        onTick({ block, dimension }: any) {
+            if (!block.permutation.getState("ph:active")) return;
+            const center = block.center();
+            dimension.spawnParticle("ph:sky_gateway_beam_up", center);
+            dimension.spawnParticle("ph:sky_gateway_beam_down", center);
+            dimension.spawnParticle("ph:sky_gateway_beam_sparkle", center);
+            // One ring travels up the beam and one down; v.dir picks the direction.
+            for (const dir of [1, -1]) {
+                const pulse = new MolangVariableMap();
+                pulse.setFloat("variable.dir", dir);
+                dimension.spawnParticle("ph:sky_gateway_beam_pulse", center, pulse);
+            }
+        }
+    })
 }
