@@ -54,6 +54,9 @@
             "minecraft:movement.hover": {
                 "max_turn": 180
             },
+            "minecraft:loot": {
+                "table": "loot_tables/entities/plasmoid_drone.json"
+            },
             "minecraft:behavior.nearest_attackable_target": {
                 "priority": 0,
                 "within_radius": 24,

@@ -9,7 +9,20 @@
         "adjustment_radius": 12,
         "constraints": {
             "grounded": {},
-            "unburied": {}
+            "unburied": {},
+            "block_intersection": {
+                "block_allowlist": [
+                    "minecraft:air",
+                    "minecraft:cobbled_deepslate",
+                    "minecraft:tuff",
+                    "minecraft:stone",
+                    "minecraft:deepslate",
+                    "minecraft:gravel",
+                    "minecraft:dirt",
+                    "minecraft:short_grass",
+                    "minecraft:tall_grass"
+                ]
+            }
         }
     }
 }

@@ -21,6 +21,7 @@ import { sweepSentinels } from '../features/ancient_sentinel/manager'
 import { onPolarisItemUse, cancelPolarisCharge } from '../features/polaris_power/manager'
 import { tickTitanRadiation } from '../features/titan_core/radiation'
 import { tickShields, onShieldHurt, onShieldEffectAdd, onShieldSneak, onShieldSwing, onShieldItemUse, clearShieldState } from '../features/shield/manager'
+import { tickTitanRidgeSites } from '../features/titan_core/sites'
 
 // ======================================== World Before Events ========================================
 
@@ -280,47 +281,6 @@ world.afterEvents.effectAdd.subscribe(({ entity, effect }) => {
 // tile.<id>.tooltip keys in packs/RP/texts/en_US.lang, so only the merge is left.
 world.afterEvents.playerInventoryItemChange.subscribe(({ player, itemStack, beforeItemStack }) => {
     onDynamicLighting(player);
-
-    const container = player.getComponent("inventory")?.container;
-    if (container) {
-        const filled: { slot: number; item: any }[] = [];
-
-        for (let i = 0; i < container.size; i++) {
-            const item = container.getItem(i);
-            if (!item) continue;
-
-            filled.push({ slot: i, item });
-        }
-
-        // Merge partial stacks into earlier ones. Every full stack stays in the list as a
-        // source, only a full target is skipped.
-        for (let a = 0; a < filled.length; a++) {
-            const slotA = filled[a];
-            const itemA = slotA.item;
-            if (itemA.amount >= itemA.maxAmount) continue;
-
-            for (let b = a + 1; b < filled.length; b++) {
-                const slotB = filled[b];
-                const itemB = slotB.item;
-                if (!itemA.isStackableWith(itemB)) continue;
-
-                const spaceLeft = itemA.maxAmount - itemA.amount;
-                if (spaceLeft <= 0) break;
-
-                const moveAmount = Math.min(spaceLeft, itemB.amount);
-                itemA.amount += moveAmount;
-                container.setItem(slotA.slot, itemA);
-
-                if (moveAmount >= itemB.amount) {
-                    container.setItem(slotB.slot, undefined);
-                } else {
-                    itemB.amount -= moveAmount;
-                    container.setItem(slotB.slot, itemB);
-                }
-            }
-        }
-    }
-
     healthBarRuntime(player, "inventoryItemChanged", beforeItemStack, itemStack);
 })
 
@@ -491,6 +451,8 @@ system.runInterval(tickTroopers, 4);
 system.runInterval(tickShields, 1);
 system.runInterval(checkBlessingMilestones, 20);
 system.runInterval(tickTitanRadiation, 40);
+// Places the one tr_core + tr_gateway pair of each Titan Ridge the first time a player walks in
+system.runInterval(tickTitanRidgeSites, 100);
 system.runInterval(tickAccessories, 100);
 // Safety net for sentinels the spawn hook never saw (world reload, restore, /clone...)
 system.runInterval(sweepSentinels, 200);
