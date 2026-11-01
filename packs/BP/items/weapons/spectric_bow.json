@@ -8,7 +8,10 @@
             }
         },
         "components": {
-            "minecraft:icon": "ph_spectric_bow",
+            "minecraft:block_placer": {
+                "block": "ph:spectric_bow",
+                "replace_block_item": true
+            },
             "minecraft:max_stack_size": 1,
             "minecraft:enchantable": {
                 "slot": "bow",

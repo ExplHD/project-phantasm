@@ -1,0 +1,30 @@
+{
+	"format_version": "1.26.0",
+	"minecraft:block": {
+		"description": {
+			"identifier": "ph:auric_photonizer"
+		},
+		"components": {
+			"minecraft:geometry": "geometry.ph.auric_photonizer_block",
+			"minecraft:material_instances": {
+				"*": {
+					"texture": "ph_auric_photonizer_3d",
+					"render_method": "alpha_test"
+				}
+			},
+			"ph:icon_only": {},
+			"minecraft:placement_filter": {
+				"conditions": [
+					{
+						"allowed_faces": [
+							"up"
+						],
+						"block_filter": [
+							"air"
+						]
+					}
+				]
+			}
+		}
+	}
+}

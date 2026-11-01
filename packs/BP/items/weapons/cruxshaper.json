@@ -10,7 +10,10 @@
         "components": {
             "ph:cruxshaper": {},
             "minecraft:max_stack_size": 1,
-            "minecraft:icon": "ph_cruxshaper",
+            "minecraft:block_placer": {
+                "block": "ph:cruxshaper",
+                "replace_block_item": true
+            },
             "minecraft:damage": 8,
             "minecraft:durability": {
                 "max_durability": 1200,

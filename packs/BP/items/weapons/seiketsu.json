@@ -19,7 +19,10 @@
 			"minecraft:durability": {
 				"max_durability": 5100
 			},
-			"minecraft:icon": "ph_seiketsu",
+			"minecraft:block_placer": {
+				"block": "ph:seiketsu",
+				"replace_block_item": true
+			},
 			"minecraft:damage": 13,
 			"minecraft:enchantable": {
 				"value": 32,
