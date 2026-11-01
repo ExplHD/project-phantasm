@@ -1,5 +1,5 @@
 // data/scripts/events/index.ts
-import { world as world11, system as system15, ItemStack as ItemStack4, MolangVariableMap as MolangVariableMap4, EquipmentSlot as EquipmentSlot8, EntityDamageCause as EntityDamageCause9 } from "@minecraft/server";
+import { world as world12, system as system16, ItemStack as ItemStack5, MolangVariableMap as MolangVariableMap4, EquipmentSlot as EquipmentSlot9, EntityDamageCause as EntityDamageCause10 } from "@minecraft/server";
 
 // data/scripts/core/scoreboard.ts
 import { world } from "@minecraft/server";
@@ -4081,8 +4081,8 @@ import { world as world10, GameMode as GameMode3, EntityComponentTypes as Entity
 var CORE_ID2 = "ph:titan_core";
 var SET_TAG = "ph:xeon_plasm_tier";
 var CORE_RADIUS = 32;
-var CORE_DAMAGE = 3;
-var BIOME_DAMAGE = 1;
+var CORE_DAMAGE = 16;
+var BIOME_DAMAGE = 4;
 var ARMOR_SLOTS = [EquipmentSlot7.Head, EquipmentSlot7.Chest, EquipmentSlot7.Legs, EquipmentSlot7.Feet];
 function hasXeonPlasmSet(player) {
   const equippable = player.getComponent(EntityComponentTypes2.Equippable);
@@ -4108,8 +4108,203 @@ function tickTitanRadiation() {
   }
 }
 
+// data/scripts/features/shield/manager.ts
+import {
+  system as system15,
+  world as world11,
+  EntityDamageCause as EntityDamageCause9,
+  EntityEquippableComponent as EntityEquippableComponent2,
+  EntityOnFireComponent,
+  EquipmentSlot as EquipmentSlot8,
+  GameMode as GameMode4,
+  ItemCooldownComponent,
+  ItemDurabilityComponent,
+  ItemEnchantableComponent,
+  Player as Player18
+} from "@minecraft/server";
+var COMPONENT_ID = "ph:shield";
+var onBlock = {};
+var shielding = /* @__PURE__ */ new Set();
+var usingItem = /* @__PURE__ */ new Set();
+var heldShield = /* @__PURE__ */ new Map();
+var animations = /* @__PURE__ */ new Map();
+var delays = /* @__PURE__ */ new Map();
+var visualDelays = /* @__PURE__ */ new Map();
+var cancelledEffects = /* @__PURE__ */ new Set();
+function getParams(item) {
+  return item.getComponent(COMPONENT_ID)?.customComponentParameters.params ?? {};
+}
+function onCooldown(player, item) {
+  return (item.getComponent(ItemCooldownComponent.componentId)?.getCooldownTicksRemaining(player) ?? 0) > 0;
+}
+function getHeldShield(player, withCooldown = true) {
+  const isValid = (item) => !!item && item.hasComponent(COMPONENT_ID) && !(withCooldown && onCooldown(player, item));
+  const equippable = player.getComponent(EntityEquippableComponent2.componentId);
+  if (!equippable) return void 0;
+  const offhand = equippable.getEquipmentSlot(EquipmentSlot8.Offhand);
+  const offItem = offhand.getItem();
+  if (isValid(offItem)) return { item: offItem, slot: offhand, hand: "off_hand" };
+  const mainhand = equippable.getEquipmentSlot(EquipmentSlot8.Mainhand);
+  const mainItem = mainhand.getItem();
+  if (isValid(mainItem)) return { item: mainItem, slot: mainhand, hand: "main_hand" };
+  return void 0;
+}
+function clearRun(map, id) {
+  const run = map.get(id);
+  if (run !== void 0) system15.clearRun(run);
+  map.delete(id);
+}
+function startDelay(player, seconds, visual = true) {
+  const id = player.id;
+  clearRun(delays, id);
+  delays.set(id, system15.runTimeout(() => delays.delete(id), seconds * 20));
+  if (!visual) {
+    visualDelays.delete(id);
+    return;
+  }
+  clearRun(visualDelays, id);
+  visualDelays.set(id, system15.runTimeout(() => visualDelays.delete(id), seconds * 20));
+}
+function stopAnimation(player, animation) {
+  player.playAnimation(animation, { blendOutTime: 0, stopExpression: "return true;" });
+}
+function registerShieldComponent({ itemComponentRegistry }) {
+  itemComponentRegistry.registerCustomComponent(COMPONENT_ID, {});
+}
+function tickShields() {
+  for (const player of world11.getAllPlayers()) {
+    const id = player.id;
+    const shield = getHeldShield(player);
+    const delay = shield ? getParams(shield.item).delay : void 0;
+    if (shield?.item.typeId !== heldShield.get(id)) {
+      if (!shield) clearRun(delays, id);
+      if (delay !== void 0) startDelay(player, delay);
+    }
+    const idle = usingItem.has(id) || visualDelays.has(id) || !player.isSneaking || !shield;
+    const current = animations.get(id);
+    const anim = idle ? void 0 : `animation.ph.player.shield_block_${shield.hand}`;
+    if (anim !== current) {
+      if (current) stopAnimation(player, current);
+      if (anim) player.playAnimation(anim, { blendOutTime: 99999, stopExpression: "q.is_sneaking" });
+    }
+    if (anim) animations.set(id, anim);
+    else animations.delete(id);
+    if (shield) heldShield.set(id, shield.item.typeId);
+    else heldShield.delete(id);
+    if (shield && player.isSneaking) shielding.add(id);
+    else shielding.delete(id);
+  }
+}
+function onShieldSneak(player, pressed) {
+  if (!pressed) {
+    clearRun(delays, player.id);
+    return;
+  }
+  const shield = getHeldShield(player);
+  const delay = shield ? getParams(shield.item).delay : void 0;
+  if (delay !== void 0) startDelay(player, delay, false);
+}
+function onShieldSwing(player) {
+  if (!player.isSneaking) return;
+  const shield = getHeldShield(player);
+  const delay = shield ? getParams(shield.item).delay : void 0;
+  if (delay !== void 0) startDelay(player, delay);
+}
+function onShieldItemUse(player, using) {
+  if (using) usingItem.add(player.id);
+  else usingItem.delete(player.id);
+}
+function onShieldHurt(data) {
+  if (!(data.hurtEntity instanceof Player18)) return;
+  const player = data.hurtEntity;
+  const id = player.id;
+  if (!shielding.has(id) || delays.has(id) || usingItem.has(id)) return;
+  const source = data.damageSource;
+  const damageLocation = source.damagingEntity?.location ?? source.damagingProjectile?.location;
+  if (!damageLocation) return;
+  const playerLoc = player.location;
+  const view = player.getViewDirection();
+  const toDamage = { x: damageLocation.x - playerLoc.x, z: damageLocation.z - playerLoc.z };
+  if (toDamage.x * view.x + toDamage.z * view.z < 0) return;
+  let rawDamage = data.damage;
+  const equippable = player.getComponent(EntityEquippableComponent2.componentId);
+  if (equippable) {
+    let protection = 0;
+    for (const slot of [EquipmentSlot8.Head, EquipmentSlot8.Chest, EquipmentSlot8.Legs, EquipmentSlot8.Feet]) {
+      const ench = equippable.getEquipment(slot)?.getComponent(ItemEnchantableComponent.componentId);
+      protection += ench?.getEnchantment("protection")?.level ?? 0;
+      if (source.cause === EntityDamageCause9.projectile) protection += ench?.getEnchantment("projectile_protection")?.level ?? 0;
+    }
+    const armor = Math.min(equippable.totalArmor, 20);
+    if (armor) rawDamage /= 1 - armor * 0.04;
+    if (protection) rawDamage /= 1 - Math.min(protection, 20) * 0.04;
+  }
+  const attacker = source.damagingEntity;
+  let disables = false;
+  if (attacker) {
+    disables = attacker.typeId === "minecraft:vindicator" || attacker.typeId === "minecraft:piglin_brute" || attacker.typeId === "minecraft:warden" && source.cause === EntityDamageCause9.entityAttack || !!attacker.getComponent(EntityEquippableComponent2.componentId)?.getEquipment(EquipmentSlot8.Mainhand)?.hasTag("minecraft:is_axe");
+  }
+  const hadFire = player.getComponent(EntityOnFireComponent.componentId) !== void 0;
+  data.cancel = true;
+  cancelledEffects.add(id);
+  system15.run(() => {
+    cancelledEffects.delete(id);
+    if (!player.isValid) return;
+    const shield = getHeldShield(player);
+    if (!shield) return;
+    const params = getParams(shield.item);
+    if (attacker?.isValid && attacker.typeId === "minecraft:ravager" && source.cause === EntityDamageCause9.entityAttack) {
+      attacker.triggerEvent("minecraft:become_stunned");
+    }
+    if (!hadFire && player.getComponent(EntityOnFireComponent.componentId)) player.extinguishFire();
+    onBlock[shield.item.typeId]?.({ event: data, item: shield.item, source: player, slot: shield.slot });
+    if (shield.item.hasComponent(ItemDurabilityComponent.componentId)) {
+      shield.slot.setItem(wearShield(player, shield.item, Math.floor(rawDamage) + 1));
+    }
+    if (params.knockback && attacker?.isValid && !source.damagingProjectile) {
+      const total = Math.abs(toDamage.x) + Math.abs(toDamage.z) || 1;
+      const strength = params.knockback.x ?? 0;
+      try {
+        attacker.applyKnockback({ x: toDamage.x / total * strength, z: toDamage.z / total * strength }, params.knockback.y ?? 0.1);
+      } catch {
+      }
+    }
+    if (params.block) player.dimension.playSound(params.block, player.location);
+    if (params.command) player.runCommand(params.command);
+    const cooldown = shield.item.getComponent(ItemCooldownComponent.componentId);
+    if (cooldown && disables) {
+      cooldown.startCooldown(player);
+      if (params.disable_sound) player.dimension.playSound(params.disable_sound, player.location);
+    }
+  });
+}
+function onShieldEffectAdd(data) {
+  if (cancelledEffects.has(data.entity.id)) data.cancel = true;
+}
+function clearShieldState(playerId) {
+  shielding.delete(playerId);
+  usingItem.delete(playerId);
+  heldShield.delete(playerId);
+  animations.delete(playerId);
+  clearRun(delays, playerId);
+  clearRun(visualDelays, playerId);
+}
+function wearShield(player, item, damage) {
+  if (player.getGameMode() === GameMode4.Creative) return item;
+  const durability = item.getComponent(ItemDurabilityComponent.componentId);
+  if (!durability) return item;
+  const unbreaking = item.getComponent(ItemEnchantableComponent.componentId)?.getEnchantment("unbreaking");
+  if (unbreaking && Math.random() >= 1 / (unbreaking.level + 1)) return item;
+  if (durability.damage + damage > durability.maxDurability) {
+    player.dimension.playSound("random.break", player.location);
+    return void 0;
+  }
+  durability.damage += damage;
+  return item;
+}
+
 // data/scripts/events/index.ts
-world11.beforeEvents.entityHurt.subscribe((acc) => {
+world12.beforeEvents.entityHurt.subscribe((acc) => {
   const hurtEntity = acc.hurtEntity;
   if (hurtEntity?.typeId !== "minecraft:player") return;
   const damagingEntity = acc.damageSource.damagingEntity;
@@ -4118,8 +4313,8 @@ world11.beforeEvents.entityHurt.subscribe((acc) => {
   handleAccessory(player, "onHurt", acc, void 0, accessories2);
   if (hurtEntity.hasTag("parried")) {
     acc.cancel = true;
-    system15.run(() => {
-      const mainItem = hurtEntity?.getComponent("equippable")?.getEquipment(EquipmentSlot8.Mainhand);
+    system16.run(() => {
+      const mainItem = hurtEntity?.getComponent("equippable")?.getEquipment(EquipmentSlot9.Mainhand);
       const head = hurtEntity.getHeadLocation();
       const view = hurtEntity.getViewDirection();
       hurtEntity.runCommand(`particle ph:parry_success ^^^0.5`);
@@ -4141,16 +4336,16 @@ world11.beforeEvents.entityHurt.subscribe((acc) => {
       applyDurabilityDamage(hurtEntity, { damage: 30 });
     });
   }
-  if (accessories2.some((item) => item.typeId === "ph:the_crimson_watcher") || hurtEntity?.getComponent("equippable")?.getEquipment(EquipmentSlot8.Mainhand)?.typeId === "ph:the_bleeding_spire") {
+  if (accessories2.some((item) => item.typeId === "ph:the_crimson_watcher") || hurtEntity?.getComponent("equippable")?.getEquipment(EquipmentSlot9.Mainhand)?.typeId === "ph:the_bleeding_spire") {
     if (damagingEntity?.typeId === "ph:crimson_laser") acc.cancel = true;
   }
 });
-world11.beforeEvents.playerBreakBlock.subscribe((acc) => {
+world12.beforeEvents.playerBreakBlock.subscribe((acc) => {
   const block = acc.block;
   const player = acc.player;
   handleAccessory(player, "onBreakBlock", acc, block);
 });
-world11.beforeEvents.entityHurt.subscribe((data) => {
+world12.beforeEvents.entityHurt.subscribe((data) => {
   const player = data.hurtEntity;
   const cause = data?.damageSource?.cause;
   if (cause === "fall" || cause === "magic" || cause == "none" || cause == "selfDestruct") return;
@@ -4181,19 +4376,21 @@ world11.beforeEvents.entityHurt.subscribe((data) => {
   const finalDamage = data.damage * (1 - reductionFraction);
   data.damage -= finalDamage;
 });
-world11.beforeEvents.entityHurt.subscribe(onMaceHurt);
-world11.beforeEvents.entityHurt.subscribe(onBlessingHurt);
-world11.beforeEvents.entityHurt.subscribe(onTrooperHurt);
-world11.beforeEvents.itemUse.subscribe(onPolarisItemUse);
-world11.beforeEvents.playerBreakBlock.subscribe((e) => {
+world12.beforeEvents.entityHurt.subscribe(onMaceHurt);
+world12.beforeEvents.entityHurt.subscribe(onBlessingHurt);
+world12.beforeEvents.entityHurt.subscribe(onTrooperHurt);
+world12.beforeEvents.entityHurt.subscribe(onShieldHurt);
+world12.beforeEvents.effectAdd.subscribe(onShieldEffectAdd);
+world12.beforeEvents.itemUse.subscribe(onPolarisItemUse);
+world12.beforeEvents.playerBreakBlock.subscribe((e) => {
   if (!e.block.typeId.includes("ore")) return;
   if (Math.floor(Math.random() * 100) !== 1) return;
   if (e.player.getGameMode() === "Creative") return;
-  system15.run(() => {
-    e.dimension.spawnItem(new ItemStack4("ph:rust_coin", 1), e.block.location);
+  system16.run(() => {
+    e.dimension.spawnItem(new ItemStack5("ph:rust_coin", 1), e.block.location);
   });
 });
-world11.beforeEvents.playerBreakBlock.subscribe((e) => {
+world12.beforeEvents.playerBreakBlock.subscribe((e) => {
   if (e.block.typeId !== "minecraft:prismarine") return;
   const player = e.player;
   const itemStack = e.itemStack;
@@ -4203,12 +4400,12 @@ world11.beforeEvents.playerBreakBlock.subscribe((e) => {
   if (itemStack?.getComponent("enchantable")?.getEnchantment("silk_touch")) return;
   if (!itemStack?.getTags().includes("minecraft:is_pickaxe")) return;
   e.cancel = true;
-  system15.run(() => {
+  system16.run(() => {
     dimension.setBlockType(block.location, "minecraft:air");
-    dimension.spawnItem(new ItemStack4("minecraft:prismarine_shard", Math.floor(Math.random() * 3 + 4)), block.location);
+    dimension.spawnItem(new ItemStack5("minecraft:prismarine_shard", Math.floor(Math.random() * 3 + 4)), block.location);
   });
 });
-world11.beforeEvents.playerInteractWithBlock.subscribe((event) => {
+world12.beforeEvents.playerInteractWithBlock.subscribe((event) => {
   const { player, itemStack: item, block } = event;
   vanillaBlockInteractFix(player, item, block);
 });
@@ -4264,7 +4461,7 @@ function popCrystallIfFloating(block, drop = true) {
   block.dimension.setBlockType(loc, "minecraft:air");
   if (drop) {
     try {
-      block.dimension.spawnItem(new ItemStack4(dropId, 1), center);
+      block.dimension.spawnItem(new ItemStack5(dropId, 1), center);
     } catch (err) {
       console.warn(`[ph] crystall drop failed for ${typeId}: ${err}`);
     }
@@ -4275,7 +4472,7 @@ function popCrystallIfFloating(block, drop = true) {
   }
   return true;
 }
-world11.afterEvents.playerBreakBlock.subscribe((e) => {
+world12.afterEvents.playerBreakBlock.subscribe((e) => {
   const loc = e.block.location;
   const dimension = e.dimension;
   let drop = true;
@@ -4283,7 +4480,7 @@ world11.afterEvents.playerBreakBlock.subscribe((e) => {
     drop = e.player?.getGameMode?.() !== "Creative";
   } catch {
   }
-  system15.run(() => {
+  system16.run(() => {
     for (const off of faceOffsets) {
       try {
         const neighbor = dimension.getBlock({ x: loc.x + off.x, y: loc.y + off.y, z: loc.z + off.z });
@@ -4293,26 +4490,26 @@ world11.afterEvents.playerBreakBlock.subscribe((e) => {
     }
   });
 });
-world11.afterEvents.entityHitEntity.subscribe((acc) => {
+world12.afterEvents.entityHitEntity.subscribe((acc) => {
   const damagingEntity = acc.damagingEntity;
   const hitEntity = acc.hitEntity;
   handleAccessory(damagingEntity, "onHitEntity", acc, hitEntity);
   onSentinelHit(damagingEntity, hitEntity);
 });
-world11.afterEvents.entityHurt.subscribe(onDamageIndicator);
-world11.afterEvents.entityHurt.subscribe(onDummyHurt);
-world11.afterEvents.entityHurt.subscribe(onTitanCoreHurt);
-world11.afterEvents.entityHurt.subscribe(onSentinelHurt);
-world11.afterEvents.entityHurt.subscribe(({ hurtEntity, damage }) => {
+world12.afterEvents.entityHurt.subscribe(onDamageIndicator);
+world12.afterEvents.entityHurt.subscribe(onDummyHurt);
+world12.afterEvents.entityHurt.subscribe(onTitanCoreHurt);
+world12.afterEvents.entityHurt.subscribe(onSentinelHurt);
+world12.afterEvents.entityHurt.subscribe(({ hurtEntity, damage }) => {
   if (hurtEntity.typeId !== "minecraft:player" || !hurtEntity.isValid) return;
   onAbsorptionHurt(hurtEntity, damage);
 });
-world11.afterEvents.effectAdd.subscribe(({ entity, effect }) => {
+world12.afterEvents.effectAdd.subscribe(({ entity, effect }) => {
   if (entity.typeId !== "minecraft:player" || !entity.isValid) return;
   if (effect.typeId.replace("minecraft:", "") !== "absorption") return;
   onAbsorptionAdded(entity, effect.amplifier);
 });
-world11.afterEvents.playerInventoryItemChange.subscribe(({ player, itemStack, beforeItemStack }) => {
+world12.afterEvents.playerInventoryItemChange.subscribe(({ player, itemStack, beforeItemStack }) => {
   onDynamicLighting(player);
   const container = player.getComponent("inventory")?.container;
   if (container) {
@@ -4351,8 +4548,9 @@ function runControlAction(player, action) {
   else if (action === "airDash") dashRuntime(player, false);
   else if (action === "switchSkill") switchHeldWeaponSkill(player);
 }
-world11.afterEvents.playerSwingStart.subscribe(({ player, heldItemStack, swingSource }) => {
+world12.afterEvents.playerSwingStart.subscribe(({ player, heldItemStack, swingSource }) => {
   runControlAction(player, onControlSwingInput(player, swingSource));
+  onShieldSwing(player);
   for (const weapon of weapons) {
     if (heldItemStack?.typeId === weapon.itemId) {
       if (swingSource != "Mine" && swingSource != "Attack") return;
@@ -4360,14 +4558,15 @@ world11.afterEvents.playerSwingStart.subscribe(({ player, heldItemStack, swingSo
     }
   }
 });
-world11.afterEvents.playerButtonInput.subscribe(({ player: source, button, newButtonState }) => {
+world12.afterEvents.playerButtonInput.subscribe(({ player: source, button, newButtonState }) => {
+  if (button == "Sneak") onShieldSneak(source, newButtonState == "Pressed");
   if (newButtonState != "Pressed") return;
   if (button == "Sneak") {
     windPlungeRuntime(source);
   }
   runControlAction(source, onControlButtonInput(source, button));
 });
-world11.afterEvents.itemUse.subscribe(({ source, itemStack }) => {
+world12.afterEvents.itemUse.subscribe(({ source, itemStack }) => {
   if (!itemStack) return;
   parryRuntime(source, itemStack);
   startBetterMending(source, itemStack);
@@ -4377,9 +4576,16 @@ world11.afterEvents.itemUse.subscribe(({ source, itemStack }) => {
     }
   }
 });
-world11.afterEvents.itemStopUse.subscribe(({ itemStack, source }) => cancelPolarisCharge(itemStack, source));
-world11.afterEvents.itemReleaseUse.subscribe(({ itemStack, source }) => cancelPolarisCharge(itemStack, source));
-world11.afterEvents.entityDie.subscribe(({ damageSource, deadEntity }) => {
+world12.afterEvents.itemStartUse.subscribe(({ source }) => onShieldItemUse(source, true));
+world12.afterEvents.itemStopUse.subscribe(({ itemStack, source }) => {
+  cancelPolarisCharge(itemStack, source);
+  onShieldItemUse(source, false);
+});
+world12.afterEvents.itemReleaseUse.subscribe(({ itemStack, source }) => {
+  cancelPolarisCharge(itemStack, source);
+  onShieldItemUse(source, false);
+});
+world12.afterEvents.entityDie.subscribe(({ damageSource, deadEntity }) => {
   const killer = damageSource?.damagingEntity;
   if (deadEntity?.typeId === "minecraft:player") {
     try {
@@ -4395,31 +4601,31 @@ world11.afterEvents.entityDie.subscribe(({ damageSource, deadEntity }) => {
     onSentinelDie(deadEntity);
   }
   if (!killer?.isValid) return;
-  const mainhand = killer?.getComponent("equippable")?.getEquipment(EquipmentSlot8.Mainhand);
+  const mainhand = killer?.getComponent("equippable")?.getEquipment(EquipmentSlot9.Mainhand);
   if (killer?.typeId === "minecraft:player" && mainhand?.typeId === "ph:charged_copper_axe") {
     addScore(killer, "auric_charge", 4);
     deadEntity.dimension.spawnEntity("minecraft:lightning_bolt", deadEntity.location);
   }
 });
-world11.afterEvents.entityDie.subscribe(({ deadEntity, damageSource }) => onTrooperDie(deadEntity, damageSource));
-world11.afterEvents.entityRemove.subscribe(({ removedEntityId, typeId }) => {
+world12.afterEvents.entityDie.subscribe(({ deadEntity, damageSource }) => onTrooperDie(deadEntity, damageSource));
+world12.afterEvents.entityRemove.subscribe(({ removedEntityId, typeId }) => {
   forgetWard(removedEntityId);
   onTrooperRemove(removedEntityId, typeId);
 });
-world11.afterEvents.entityHealthChanged.subscribe(({ entity }) => {
+world12.afterEvents.entityHealthChanged.subscribe(({ entity }) => {
   if (!entity.isValid) return;
   healthBarRuntime(entity, "healthChanged");
 });
-world11.afterEvents.playerDimensionChange.subscribe(({ player }) => {
+world12.afterEvents.playerDimensionChange.subscribe(({ player }) => {
   healthBarRuntime(player, "dimensionChanged");
 });
-world11.afterEvents.playerGameModeChange.subscribe(({ player, toGameMode }) => {
+world12.afterEvents.playerGameModeChange.subscribe(({ player, toGameMode }) => {
   healthBarRuntime(player, "gamemodeChanged");
 });
 var animatedTpSpeeds = new Map(
   specifiedFamilityAndSpeed.map((data) => [data.type_family, data.speed])
 );
-world11.afterEvents.entitySpawn.subscribe(({ entity, cause }) => {
+world12.afterEvents.entitySpawn.subscribe(({ entity, cause }) => {
   if (cause != "Spawned") return;
   if (!entity.isValid) return;
   const family = entity?.getComponent("minecraft:type_family")?.getTypeFamilies();
@@ -4437,9 +4643,9 @@ world11.afterEvents.entitySpawn.subscribe(({ entity, cause }) => {
   const dx = dir.x;
   const dy = dir.y;
   const dz = dir.z;
-  const interval = system15.runInterval(() => {
+  const interval = system16.runInterval(() => {
     if (!entity?.isValid) {
-      system15.clearRun(interval);
+      system16.clearRun(interval);
       return;
     }
     entity?.teleport({
@@ -4449,26 +4655,28 @@ world11.afterEvents.entitySpawn.subscribe(({ entity, cause }) => {
     });
   }, 1);
 });
-world11.afterEvents.entitySpawn.subscribe(({ entity }) => onSentinelSpawn(entity));
-world11.beforeEvents.playerLeave.subscribe(({ player }) => {
+world12.afterEvents.entitySpawn.subscribe(({ entity }) => onSentinelSpawn(entity));
+world12.beforeEvents.playerLeave.subscribe(({ player }) => {
   clearPlayerLighting(player);
   clearControlState(player);
   clearAbsorption(player);
+  clearShieldState(player.id);
 });
-system15.runInterval(() => {
-  for (const player of world11.getPlayers()) {
+system16.runInterval(() => {
+  for (const player of world12.getPlayers()) {
     javaSaturationRegen(player);
     syncAbsorption(player);
   }
 }, 6);
-system15.runInterval(trackMaceFall, 1);
-system15.runInterval(tickTroopers, 4);
-system15.runInterval(checkBlessingMilestones, 20);
-system15.runInterval(tickTitanRadiation, 40);
-system15.runInterval(tickAccessories, 100);
-system15.runInterval(sweepSentinels, 200);
-system15.runInterval(() => {
-  for (const player of world11.getPlayers()) {
+system16.runInterval(trackMaceFall, 1);
+system16.runInterval(tickTroopers, 4);
+system16.runInterval(tickShields, 1);
+system16.runInterval(checkBlessingMilestones, 20);
+system16.runInterval(tickTitanRadiation, 40);
+system16.runInterval(tickAccessories, 100);
+system16.runInterval(sweepSentinels, 200);
+system16.runInterval(() => {
+  for (const player of world12.getPlayers()) {
     try {
       const base = player.location;
       const dimension = player.dimension;
@@ -4496,12 +4704,12 @@ system15.runInterval(() => {
     }
   }
 }, 40);
-system15.afterEvents.scriptEventReceive.subscribe(({ id, message, sourceBlock, sourceEntity }) => {
+system16.afterEvents.scriptEventReceive.subscribe(({ id, message, sourceBlock, sourceEntity }) => {
   const parseMessage = (message2) => message2.split(",").map((v) => v.trim());
   switch (id) {
     case "ph:remove_target_lock":
       if (!sourceEntity) return;
-      system15.runTimeout(() => {
+      system16.runTimeout(() => {
         sourceEntity.removeTag("locked");
       }, 5);
       break;
@@ -4597,7 +4805,7 @@ system15.afterEvents.scriptEventReceive.subscribe(({ id, message, sourceBlock, s
       sourceEntity.dimension.spawnParticle("ph:cruxshaper_charge_arc", sourceEntity.location, molang);
       break;
     case "ph:particle_custom":
-      system15.run(() => {
+      system16.run(() => {
         const particleMolang = new MolangVariableMap4();
         particleMolang.setFloat("variable.spawn_rate", Number(message));
         if (sourceBlock) {
@@ -4641,9 +4849,9 @@ function beginCollisionCheck(dasher, duration, damage, collisionRadius, spareFam
   let tick = 0;
   let prevPos = { ...dasher.location };
   const hitEntities = /* @__PURE__ */ new Set();
-  const interval = system15.runInterval(() => {
+  const interval = system16.runInterval(() => {
     if (!dasher || !dasher.isValid) {
-      system15.clearRun(interval);
+      system16.clearRun(interval);
       return;
     }
     tick++;
@@ -4667,14 +4875,14 @@ function beginCollisionCheck(dasher, duration, damage, collisionRadius, spareFam
       if (dist <= collisionRadius) {
         hitEntities.add(target.id);
         target.applyDamage(damage, {
-          cause: EntityDamageCause9.entityAttack,
+          cause: EntityDamageCause10.entityAttack,
           damagingEntity: dasher
         });
       }
     }
     prevPos = { ...currentPos };
     if (tick >= duration) {
-      system15.clearRun(interval);
+      system16.clearRun(interval);
     }
   });
 }
@@ -4701,7 +4909,7 @@ function fireLaserOnce(shooter, range, damage, width) {
     );
     if (dist <= width) {
       target.applyDamage(damage, {
-        cause: EntityDamageCause9.magic,
+        cause: EntityDamageCause10.magic,
         damagingEntity: shooter
       });
     }
@@ -4710,9 +4918,9 @@ function fireLaserOnce(shooter, range, damage, width) {
 function bossLaserBeam(boss, charge, duration, range, damagePerTick, width) {
   let tick = 0;
   let chargeTime = charge;
-  const chargeInterval = system15.runInterval(() => {
+  const chargeInterval = system16.runInterval(() => {
     if (!boss || !boss.isValid) {
-      system15.clearRun(chargeInterval);
+      system16.clearRun(chargeInterval);
       return;
     }
     const start = boss.location;
@@ -4727,14 +4935,14 @@ function bossLaserBeam(boss, charge, duration, range, damagePerTick, width) {
     }
     chargeTime--;
     if (chargeTime <= 0) {
-      system15.clearRun(chargeInterval);
+      system16.clearRun(chargeInterval);
       startLaser();
     }
   });
   function startLaser() {
-    const interval = system15.runInterval(() => {
+    const interval = system16.runInterval(() => {
       if (!boss || !boss.isValid) {
-        system15.clearRun(interval);
+        system16.clearRun(interval);
         return;
       }
       tick++;
@@ -4775,14 +4983,14 @@ function bossLaserBeam(boss, charge, duration, range, damagePerTick, width) {
         }
       }
       if (tick >= duration) {
-        system15.clearRun(interval);
+        system16.clearRun(interval);
       }
     });
   }
 }
 
 // data/scripts/events/loader.ts
-import { world as world12, system as system20, ItemStack as ItemStack7 } from "@minecraft/server";
+import { world as world13, system as system21, ItemStack as ItemStack8 } from "@minecraft/server";
 
 // data/scripts/core/playerProperties.ts
 var PLAYER_PROPERTIES = [
@@ -4812,7 +5020,7 @@ function applyPropertyDefaults(player) {
 }
 
 // data/scripts/features/blocks/customComponents.ts
-import { system as system16, MolangVariableMap as MolangVariableMap5, ItemStack as ItemStack5 } from "@minecraft/server";
+import { system as system17, MolangVariableMap as MolangVariableMap5, ItemStack as ItemStack6 } from "@minecraft/server";
 var BOSS_SPAWN_MIN_DISTANCE = 4;
 var BOSS_SPAWN_MAX_DISTANCE = 12;
 var BOSS_SPAWN_HEAD_ROOM = 4;
@@ -4861,7 +5069,7 @@ function registerCustomComponents(initEvent) {
       const source = e.attackingEntity;
       const itemStack = e.itemStack;
       if (itemStack.typeId === "ph:charged_copper_axe") {
-        system16.runTimeout(() => {
+        system17.runTimeout(() => {
           if (getScore(source, "charged_copper_axe") == 100) {
             summonOwned(source, "summon lightning_bolt", hitEntity);
           }
@@ -4875,9 +5083,9 @@ function registerCustomComponents(initEvent) {
       const player = e.source;
       player.startItemCooldown("charged_copper_axe", 120);
       applyDurabilityDamage(player, { damage: 36 });
-      system16.run(() => {
+      system17.run(() => {
         player.playAnimation("animation.charged_copper_axe.attack_3", player.location);
-        system16.runTimeout(() => {
+        system17.runTimeout(() => {
           player.dimension.playSound("weapon_slash.slash_heavy", player.location);
           player.dimension.spawnParticle("ph:lightning_flash", player.location);
           player.dimension.spawnParticle("ph:lightning_sparks", player.location);
@@ -5104,13 +5312,13 @@ function registerCustomComponents(initEvent) {
         player.runCommand("damage @e[r=10,rm=0.1,family=!inanimate,type=!item] 50 entity_explosion entity @s");
         player.runCommand("execute as @s at @e[r=10,rm=0.1,family=!inanimate,type=!item] run setblock ~~~ fire");
       }
-      system16.run(() => {
+      system17.run(() => {
         player.dimension.spawnParticle("ph:cruxshaper_flung", player.location);
         player.addEffect("levitation", 20, {
           amplifier: 24
         });
         player.dimension.playSound("random.explode", player.location);
-        system16.runTimeout(() => {
+        system17.runTimeout(() => {
           player.dimension.spawnParticle("ph:cruxshaper_flung", player.location);
           player.applyKnockback({ x: 0, z: 0 }, -2.1);
           player.addEffect("slow_falling", 20);
@@ -5118,10 +5326,10 @@ function registerCustomComponents(initEvent) {
             stopExpression: "query.is_on_ground"
           });
           player.dimension.playSound("random.explode", player.location);
-          const intervalRun = system16.runInterval(() => {
+          const intervalRun = system17.runInterval(() => {
             if (!player.isOnGround) return;
-            system16.run(impact2);
-            system16.clearRun(intervalRun);
+            system17.run(impact2);
+            system17.clearRun(intervalRun);
           }, 2);
         }, 30);
       });
@@ -5129,7 +5337,7 @@ function registerCustomComponents(initEvent) {
     },
     onUseOn(e) {
       const player = e.source;
-      system16.run(() => {
+      system17.run(() => {
         player.sendMessage("Look up while using the skill!");
       });
     }
@@ -5189,7 +5397,7 @@ function registerCustomComponents(initEvent) {
       block.dimension.spawnParticle("ph:auric_communicator_loading", { x: blockLoc.x, y: blockLoc.y + 1, z: blockLoc.z });
       if (auricMode == 1) {
         source.addTag("AURIC_ORBITAL_NUKE");
-        system16.runTimeout(() => {
+        system17.runTimeout(() => {
           block.dimension.playSound("random.explode", blockLoc);
           try {
             block.dimension.runCommand(`damage @e[r=48,tag=!AURIC_ORBITAL_NUKE,type=!item,family=!inanimate,x=${blockLoc.x},y=${blockLoc.y},z=${blockLoc.z}] 50 entity_explosion entity @e[tag=AURIC_ORBITAL_NUKE]`);
@@ -5204,7 +5412,7 @@ function registerCustomComponents(initEvent) {
         return;
       }
       source.addTag("AURIC_ORBITAL_LASER");
-      system16.runTimeout(() => {
+      system17.runTimeout(() => {
         for (let i = 0; i < 381; i += 10) {
           try {
             block.dimension.runCommand(`damage @e[r=10,tag=!AURIC_ORBITAL_LASER,type=!item,family=!inanimate,x=${blockLoc.x},y=${i},z=${blockLoc.z}] 80 entity_explosion entity @e[tag=AURIC_ORBITAL_LASER]`);
@@ -5269,7 +5477,7 @@ function registerCustomComponents(initEvent) {
       source.addTag("parried");
       source.inputPermissions.setPermissionCategory(2, false);
       applyDurabilityDamage(source, { damage: 1 });
-      system16.runTimeout(() => {
+      system17.runTimeout(() => {
         if (source?.hasTag("parried")) source.removeTag("parried");
         source.inputPermissions.setPermissionCategory(2, true);
       }, window_time);
@@ -5282,7 +5490,7 @@ function registerCustomComponents(initEvent) {
       let bargaining_item_amount = block.getComponent("ph:boss_summon").customComponentParameters.params.bargaining_item_amount;
       const message = block.getComponent("ph:boss_summon").customComponentParameters.params.message;
       let transform_into_entity = block.getComponent("ph:boss_summon").customComponentParameters.params.transform_into_entity;
-      const mergedDataItem = new ItemStack5(bargaining_item, bargaining_item_amount);
+      const mergedDataItem = new ItemStack6(bargaining_item, bargaining_item_amount);
       const mainhand = player.getComponent("equippable").getEquipment("Mainhand");
       if (!bargaining_item_amount) bargaining_item_amount = 1;
       if (mainhand?.typeId === bargaining_item && mainhand?.amount >= bargaining_item_amount) {
@@ -5334,7 +5542,7 @@ function registerCustomComponents(initEvent) {
         block.dimension.spawnParticle("ph:auric_beam_small", block.west(2).center());
         block.dimension.playSound("custom_sfx.boss_summoned", block.center());
         const bossSpawnPoint = findBossSpawnPoint(block.dimension, block.center(), player);
-        system16.runTimeout(() => {
+        system17.runTimeout(() => {
           block.dimension.spawnEntity("ph:copper_mechanical_array", bossSpawnPoint);
           block.dimension.playSound("mob.zombie.woodbreak", bossSpawnPoint);
           block.dimension.spawnParticle("ph:auric_beam_small", bossSpawnPoint);
@@ -5390,7 +5598,7 @@ function registerCustomComponents(initEvent) {
       const itemCount = params.item_count ?? 1;
       const playerChargeObjective = params.player_charge_objective ?? "superchargd_copper_axe";
       const chargeMin = params.charge_min ?? 0;
-      const mergedDataItem = new ItemStack5(item, itemCount);
+      const mergedDataItem = new ItemStack6(item, itemCount);
       if (chargeType == "item") {
         if (player.getComponent("equippable")?.getEquipment("Mainhand")?.typeId != item) {
           player.sendMessage({
@@ -5469,7 +5677,7 @@ function registerCustomComponents(initEvent) {
       dimension.setBlockType(loc, "minecraft:air");
       if (dropId) {
         try {
-          dimension.spawnItem(new ItemStack5(dropId, 1), center);
+          dimension.spawnItem(new ItemStack6(dropId, 1), center);
         } catch {
         }
       }
@@ -5485,7 +5693,7 @@ function registerCustomComponents(initEvent) {
       const maxBatteryStack = params.max_battery_stack || 4;
       const soundInput = params.sound_input;
       const soundPickup = params.sound_pickup;
-      const itemData = new ItemStack5(item);
+      const itemData = new ItemStack6(item);
       const batteryCount = block.permutation.getState("ph:battery_count");
       const batteryState = block.permutation.getState("ph:battery_state");
       const mainhand = player.getComponent("equippable").getEquipmentSlot("Mainhand");
@@ -5531,13 +5739,32 @@ function registerCustomComponents(initEvent) {
       dimension.playSound("random.orb", block.center());
     }
   });
+  initEvent.blockComponentRegistry.registerCustomComponent("ph:sky_gateway", {
+    onPlayerInteract({ block, dimension }) {
+      const active = !block.permutation.getState("ph:active");
+      block.setPermutation(block.permutation.withState("ph:active", active));
+      dimension.playSound(active ? "beacon.activate" : "beacon.deactivate", block.center());
+    },
+    onTick({ block, dimension }) {
+      if (!block.permutation.getState("ph:active")) return;
+      const center = block.center();
+      dimension.spawnParticle("ph:sky_gateway_beam_up", center);
+      dimension.spawnParticle("ph:sky_gateway_beam_down", center);
+      dimension.spawnParticle("ph:sky_gateway_beam_sparkle", center);
+      for (const dir of [1, -1]) {
+        const pulse = new MolangVariableMap5();
+        pulse.setFloat("variable.dir", dir);
+        dimension.spawnParticle("ph:sky_gateway_beam_pulse", center, pulse);
+      }
+    }
+  });
 }
 
 // data/scripts/ui/commands.ts
-import { system as system19, CommandPermissionLevel, CustomCommandStatus, CustomCommandParamType } from "@minecraft/server";
+import { system as system20, CommandPermissionLevel, CustomCommandStatus, CustomCommandParamType } from "@minecraft/server";
 
 // data/scripts/ui/forms/skillUnlock.ts
-import { system as system17 } from "@minecraft/server";
+import { system as system18 } from "@minecraft/server";
 import { ActionFormData, MessageFormData } from "@minecraft/server-ui";
 function skillUnlock(player) {
   let dashLevelStatus = player.getDynamicProperty("ph:dash_level") ?? 0;
@@ -5547,7 +5774,7 @@ function skillUnlock(player) {
 \xA72Level : ${dashLevelStatus}`).button(`Extra Health
 \xA72Level : ${healthLevelStatus}`).button(`Wind Plunge
 ${plungeUnlockStatus}`).show(player).then((r) => {
-    if (r.cancelationReason == "UserBusy") system17.run(() => skillUnlock(player));
+    if (r.cancelationReason == "UserBusy") system18.run(() => skillUnlock(player));
     if (r.selection == 0) dashUnlock(player);
     if (r.selection == 1) healthUpgrade(player);
     if (r.selection == 2) plungeUnlock(player);
@@ -5637,7 +5864,7 @@ Required Level : 30`).button1("Confirm").button2("Cancel").show(player).then((r)
 }
 
 // data/scripts/ui/forms/settingsForm.ts
-import { system as system18 } from "@minecraft/server";
+import { system as system19 } from "@minecraft/server";
 import { ActionFormData as ActionFormData2 } from "@minecraft/server-ui";
 function openSettings(player) {
   const dashControl = getDashControl(player);
@@ -5645,7 +5872,7 @@ function openSettings(player) {
   const form = new ActionFormData2().title("Phantasm Settings").body("Pick the controls you want for Phantasm mechanics. Every setting is saved to you only.").button(`Passive Dash
 \xA77Currently: \xA7f${DASH_CONTROL_NAMES[dashControl]}`).button(`Legendary Weapon Skills
 \xA77Currently: \xA7f${SKILL_SWITCH_CONTROL_NAMES[skillSwitchControl]}`).button("Reset To Defaults").button("Close").show(player).then((r) => {
-    if (r.cancelationReason == "UserBusy") system18.run(() => openSettings(player));
+    if (r.cancelationReason == "UserBusy") system19.run(() => openSettings(player));
     if (r.selection == 0) dashControlMenu(player);
     if (r.selection == 1) skillSwitchControlMenu(player);
     if (r.selection == 2) resetSettings(player);
@@ -6019,7 +6246,7 @@ function developer(player) {
 }
 
 // data/scripts/ui/forms/dynamicProperties.ts
-import { ItemStack as ItemStack6 } from "@minecraft/server";
+import { ItemStack as ItemStack7 } from "@minecraft/server";
 import { CustomForm, ObservableNumber, ObservableBoolean, ObservableString } from "@minecraft/server-ui";
 function syncPlayerProperty(player, id) {
   const value = player.getDynamicProperty(id);
@@ -6049,7 +6276,7 @@ function resetPlayerProperties(player) {
   applyPropertyDefaults(player);
   for (const def of PLAYER_PROPERTIES) syncPlayerProperty(player, def.id);
   if (wasNerfed) player.removeEffect("weakness");
-  player.dimension.spawnItem(new ItemStack6("ph:guidebook"), player.location);
+  player.dimension.spawnItem(new ItemStack7("ph:guidebook"), player.location);
 }
 function formatValue(value) {
   return value === void 0 ? "\xA78(unset)" : `\xA7f${value}`;
@@ -6143,7 +6370,7 @@ function registerUiCommands(initEvent) {
     cheatsRequired: true,
     permissionLevel: CommandPermissionLevel.GameDirectors
   }, (origin) => {
-    system19.run(() => {
+    system20.run(() => {
       openDynamicPropertyMenu(origin.sourceEntity);
     });
   });
@@ -6153,7 +6380,7 @@ function registerUiCommands(initEvent) {
     cheatsRequired: false,
     permissionLevel: CommandPermissionLevel.Any
   }, (origin) => {
-    system19.run(() => {
+    system20.run(() => {
       mainGuideScreen(origin.sourceEntity);
     });
   });
@@ -6165,7 +6392,7 @@ function registerUiCommands(initEvent) {
   }, (origin) => {
     const player = origin.sourceEntity;
     if (player?.typeId !== "minecraft:player") return { status: CustomCommandStatus.Failure };
-    system19.run(() => {
+    system20.run(() => {
       openSettings(player);
     });
     return { status: CustomCommandStatus.Success };
@@ -6181,7 +6408,7 @@ function registerUiCommands(initEvent) {
   });
 }
 function openForm({ sourceEntity: player }) {
-  system19.run(() => {
+  system20.run(() => {
     skillUnlock(player);
   });
   return { status: CustomCommandStatus.Success };
@@ -6191,7 +6418,7 @@ function clearDynamicProperty({ sourceEntity }, targets) {
   if (players.length === 0) {
     return { status: CustomCommandStatus.Failure, message: "No player to reset. Run it as a player or pass a target." };
   }
-  system19.run(() => {
+  system20.run(() => {
     for (const player of players) {
       if (!player.isValid) continue;
       resetPlayerProperties(player);
@@ -6248,15 +6475,16 @@ var objectives = [
   "auric_communicator_mode",
   "seiketsu_atk"
 ];
-system20.beforeEvents.startup.subscribe((initEvent) => {
+system21.beforeEvents.startup.subscribe((initEvent) => {
   registerCustomComponents(initEvent);
   registerPolarisComponent(initEvent);
+  registerShieldComponent(initEvent);
   registerUiCommands(initEvent);
 });
-world12.afterEvents.worldLoad.subscribe(() => {
+world13.afterEvents.worldLoad.subscribe(() => {
   loadScoreboards();
 });
-world12.afterEvents.playerSpawn.subscribe(({ player, initialSpawn }) => {
+world13.afterEvents.playerSpawn.subscribe(({ player, initialSpawn }) => {
   onPlayerSpawn(player, initialSpawn);
   onDynamicLighting(player);
   onBlessingSpawn(player, initialSpawn);
@@ -6264,8 +6492,8 @@ world12.afterEvents.playerSpawn.subscribe(({ player, initialSpawn }) => {
 });
 function loadScoreboards() {
   for (const objective of objectives) {
-    if (!world12.scoreboard.getObjective(objective)) {
-      world12.scoreboard.addObjective(objective);
+    if (!world13.scoreboard.getObjective(objective)) {
+      world13.scoreboard.addObjective(objective);
     }
   }
 }
@@ -6298,14 +6526,14 @@ function onPlayerSpawn(player, initialSpawn) {
   if (!initialSpawn) return;
   loadPlayerScore(player);
   if (player.getDynamicProperty("ph:guidebook_acquired") === void 0 || player.getDynamicProperty("ph:guidebook_acquired") === false) {
-    player.dimension.spawnItem(new ItemStack7("ph:guidebook"), player.location);
+    player.dimension.spawnItem(new ItemStack8("ph:guidebook"), player.location);
     player.sendMessage("\xA7eWelcome to Phantasm! Pick up your Guidebook or use /guide to learn the features of this add-on.");
   }
   const playerInput = player.inputInfo.lastInputModeUsed;
   if (playerInput == "Touch") {
     player.sendMessage("\xA7eTouch controls? Joystick + Crosshair with the Action Button enabled makes weapons easier to use");
   }
-  system20.runTimeout(() => {
+  system21.runTimeout(() => {
     if (player.isValid) applyPropertyDefaults(player);
   }, 20);
   for (const objective of objectives) {
