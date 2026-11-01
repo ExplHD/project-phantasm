@@ -12,6 +12,9 @@
             "textures": {
                 "default": "textures/entity/titan_core"
             },
+            "particle_effects": {
+                "titan_core_radiation": "ph:titan_core_radiation"
+            },
             "animations": {
                 "hover": "animation.titan_core.hover",
                 "rings": "animation.titan_core.rings",

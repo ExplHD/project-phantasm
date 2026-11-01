@@ -49,7 +49,7 @@ function holdsCube(player: Player): boolean {
 	return false;
 }
 
-function inTitanRidge(player: Player): boolean {
+export function inTitanRidge(player: Player): boolean {
 	return player.dimension.getBiome(player.location).hasTags([TITAN_RIDGE_TAG]);
 }
 

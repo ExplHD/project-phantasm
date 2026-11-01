@@ -19,6 +19,7 @@ import { checkBlessingMilestones, onBlessingHurt, forgetWard } from '../systems/
 import { onTrooperHurt, tickTroopers, onTrooperDie, onTrooperRemove } from '../features/forge_trooper/manager'
 import { sweepSentinels } from '../features/ancient_sentinel/manager'
 import { onPolarisItemUse, cancelPolarisCharge } from '../features/polaris_power/manager'
+import { tickTitanRadiation } from '../features/titan_core/radiation'
 
 // ======================================== World Before Events ========================================
 
@@ -474,6 +475,7 @@ system.runInterval(trackMaceFall, 1);
 
 system.runInterval(tickTroopers, 4);
 system.runInterval(checkBlessingMilestones, 20);
+system.runInterval(tickTitanRadiation, 40);
 system.runInterval(tickAccessories, 100);
 // Safety net for sentinels the spawn hook never saw (world reload, restore, /clone...)
 system.runInterval(sweepSentinels, 200);

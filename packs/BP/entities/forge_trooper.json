@@ -184,7 +184,7 @@
 			"minecraft:behavior.nearest_attackable_target": {
 				"priority": 1,
 				"within_radius": 24.0,
-				"must_see": false,
+				"must_see": true,
 				"reselect_targets": true,
 				// Players and every other mob; the Titan Ridge faction (drones, Titan Core, troopers) is spared.
 				"entity_types": [
@@ -236,15 +236,15 @@
 			"minecraft:entity_spawned": {
 				"randomize": [
 					{
-						"weight": 20,
+						"weight": 1,
 						"trigger": "ph:spawn_gold"
 					},
 					{
-						"weight": 40,
+						"weight": 1,
 						"trigger": "ph:spawn_plasma"
 					},
 					{
-						"weight": 40,
+						"weight": 1,
 						"trigger": "ph:spawn_amber"
 					}
 				]
