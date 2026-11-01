@@ -1,5 +1,5 @@
 // data/scripts/events/index.ts
-import { world as world10, system as system15, ItemStack as ItemStack4, MolangVariableMap as MolangVariableMap4, EquipmentSlot as EquipmentSlot7, EntityDamageCause as EntityDamageCause8 } from "@minecraft/server";
+import { world as world11, system as system15, ItemStack as ItemStack4, MolangVariableMap as MolangVariableMap4, EquipmentSlot as EquipmentSlot8, EntityDamageCause as EntityDamageCause9 } from "@minecraft/server";
 
 // data/scripts/core/scoreboard.ts
 import { world } from "@minecraft/server";
@@ -4076,8 +4076,40 @@ function onPolarisSpawn(player, initialSpawn) {
   if (player.getDynamicProperty(CHARGING_PROPERTY) === true) release(player);
 }
 
+// data/scripts/features/titan_core/radiation.ts
+import { world as world10, GameMode as GameMode3, EntityComponentTypes as EntityComponentTypes2, EntityDamageCause as EntityDamageCause8, EquipmentSlot as EquipmentSlot7 } from "@minecraft/server";
+var CORE_ID2 = "ph:titan_core";
+var SET_TAG = "ph:xeon_plasm_tier";
+var CORE_RADIUS = 32;
+var CORE_DAMAGE = 3;
+var BIOME_DAMAGE = 1;
+var ARMOR_SLOTS = [EquipmentSlot7.Head, EquipmentSlot7.Chest, EquipmentSlot7.Legs, EquipmentSlot7.Feet];
+function hasXeonPlasmSet(player) {
+  const equippable = player.getComponent(EntityComponentTypes2.Equippable);
+  if (!equippable) return false;
+  return ARMOR_SLOTS.every((slot) => equippable.getEquipment(slot)?.hasTag(SET_TAG) === true);
+}
+function nearLivingCore(player) {
+  const cores = player.dimension.getEntities({ type: CORE_ID2, location: player.location, maxDistance: CORE_RADIUS });
+  return cores.some((core) => (core.getComponent(EntityComponentTypes2.Health)?.currentValue ?? 0) > 0);
+}
+function tickTitanRadiation() {
+  for (const player of world10.getPlayers({ excludeGameModes: [GameMode3.Creative, GameMode3.Spectator] })) {
+    try {
+      if (!player.isValid || (player.getComponent(EntityComponentTypes2.Health)?.currentValue ?? 0) <= 0) continue;
+      if (hasXeonPlasmSet(player)) continue;
+      if (nearLivingCore(player)) {
+        player.applyDamage(CORE_DAMAGE, { cause: EntityDamageCause8.magic });
+      } else if (inTitanRidge(player)) {
+        player.applyDamage(BIOME_DAMAGE, { cause: EntityDamageCause8.magic });
+      }
+    } catch {
+    }
+  }
+}
+
 // data/scripts/events/index.ts
-world10.beforeEvents.entityHurt.subscribe((acc) => {
+world11.beforeEvents.entityHurt.subscribe((acc) => {
   const hurtEntity = acc.hurtEntity;
   if (hurtEntity?.typeId !== "minecraft:player") return;
   const damagingEntity = acc.damageSource.damagingEntity;
@@ -4087,7 +4119,7 @@ world10.beforeEvents.entityHurt.subscribe((acc) => {
   if (hurtEntity.hasTag("parried")) {
     acc.cancel = true;
     system15.run(() => {
-      const mainItem = hurtEntity?.getComponent("equippable")?.getEquipment(EquipmentSlot7.Mainhand);
+      const mainItem = hurtEntity?.getComponent("equippable")?.getEquipment(EquipmentSlot8.Mainhand);
       const head = hurtEntity.getHeadLocation();
       const view = hurtEntity.getViewDirection();
       hurtEntity.runCommand(`particle ph:parry_success ^^^0.5`);
@@ -4109,16 +4141,16 @@ world10.beforeEvents.entityHurt.subscribe((acc) => {
       applyDurabilityDamage(hurtEntity, { damage: 30 });
     });
   }
-  if (accessories2.some((item) => item.typeId === "ph:the_crimson_watcher") || hurtEntity?.getComponent("equippable")?.getEquipment(EquipmentSlot7.Mainhand)?.typeId === "ph:the_bleeding_spire") {
+  if (accessories2.some((item) => item.typeId === "ph:the_crimson_watcher") || hurtEntity?.getComponent("equippable")?.getEquipment(EquipmentSlot8.Mainhand)?.typeId === "ph:the_bleeding_spire") {
     if (damagingEntity?.typeId === "ph:crimson_laser") acc.cancel = true;
   }
 });
-world10.beforeEvents.playerBreakBlock.subscribe((acc) => {
+world11.beforeEvents.playerBreakBlock.subscribe((acc) => {
   const block = acc.block;
   const player = acc.player;
   handleAccessory(player, "onBreakBlock", acc, block);
 });
-world10.beforeEvents.entityHurt.subscribe((data) => {
+world11.beforeEvents.entityHurt.subscribe((data) => {
   const player = data.hurtEntity;
   const cause = data?.damageSource?.cause;
   if (cause === "fall" || cause === "magic" || cause == "none" || cause == "selfDestruct") return;
@@ -4149,11 +4181,11 @@ world10.beforeEvents.entityHurt.subscribe((data) => {
   const finalDamage = data.damage * (1 - reductionFraction);
   data.damage -= finalDamage;
 });
-world10.beforeEvents.entityHurt.subscribe(onMaceHurt);
-world10.beforeEvents.entityHurt.subscribe(onBlessingHurt);
-world10.beforeEvents.entityHurt.subscribe(onTrooperHurt);
-world10.beforeEvents.itemUse.subscribe(onPolarisItemUse);
-world10.beforeEvents.playerBreakBlock.subscribe((e) => {
+world11.beforeEvents.entityHurt.subscribe(onMaceHurt);
+world11.beforeEvents.entityHurt.subscribe(onBlessingHurt);
+world11.beforeEvents.entityHurt.subscribe(onTrooperHurt);
+world11.beforeEvents.itemUse.subscribe(onPolarisItemUse);
+world11.beforeEvents.playerBreakBlock.subscribe((e) => {
   if (!e.block.typeId.includes("ore")) return;
   if (Math.floor(Math.random() * 100) !== 1) return;
   if (e.player.getGameMode() === "Creative") return;
@@ -4161,7 +4193,7 @@ world10.beforeEvents.playerBreakBlock.subscribe((e) => {
     e.dimension.spawnItem(new ItemStack4("ph:rust_coin", 1), e.block.location);
   });
 });
-world10.beforeEvents.playerBreakBlock.subscribe((e) => {
+world11.beforeEvents.playerBreakBlock.subscribe((e) => {
   if (e.block.typeId !== "minecraft:prismarine") return;
   const player = e.player;
   const itemStack = e.itemStack;
@@ -4176,7 +4208,7 @@ world10.beforeEvents.playerBreakBlock.subscribe((e) => {
     dimension.spawnItem(new ItemStack4("minecraft:prismarine_shard", Math.floor(Math.random() * 3 + 4)), block.location);
   });
 });
-world10.beforeEvents.playerInteractWithBlock.subscribe((event) => {
+world11.beforeEvents.playerInteractWithBlock.subscribe((event) => {
   const { player, itemStack: item, block } = event;
   vanillaBlockInteractFix(player, item, block);
 });
@@ -4243,7 +4275,7 @@ function popCrystallIfFloating(block, drop = true) {
   }
   return true;
 }
-world10.afterEvents.playerBreakBlock.subscribe((e) => {
+world11.afterEvents.playerBreakBlock.subscribe((e) => {
   const loc = e.block.location;
   const dimension = e.dimension;
   let drop = true;
@@ -4261,26 +4293,26 @@ world10.afterEvents.playerBreakBlock.subscribe((e) => {
     }
   });
 });
-world10.afterEvents.entityHitEntity.subscribe((acc) => {
+world11.afterEvents.entityHitEntity.subscribe((acc) => {
   const damagingEntity = acc.damagingEntity;
   const hitEntity = acc.hitEntity;
   handleAccessory(damagingEntity, "onHitEntity", acc, hitEntity);
   onSentinelHit(damagingEntity, hitEntity);
 });
-world10.afterEvents.entityHurt.subscribe(onDamageIndicator);
-world10.afterEvents.entityHurt.subscribe(onDummyHurt);
-world10.afterEvents.entityHurt.subscribe(onTitanCoreHurt);
-world10.afterEvents.entityHurt.subscribe(onSentinelHurt);
-world10.afterEvents.entityHurt.subscribe(({ hurtEntity, damage }) => {
+world11.afterEvents.entityHurt.subscribe(onDamageIndicator);
+world11.afterEvents.entityHurt.subscribe(onDummyHurt);
+world11.afterEvents.entityHurt.subscribe(onTitanCoreHurt);
+world11.afterEvents.entityHurt.subscribe(onSentinelHurt);
+world11.afterEvents.entityHurt.subscribe(({ hurtEntity, damage }) => {
   if (hurtEntity.typeId !== "minecraft:player" || !hurtEntity.isValid) return;
   onAbsorptionHurt(hurtEntity, damage);
 });
-world10.afterEvents.effectAdd.subscribe(({ entity, effect }) => {
+world11.afterEvents.effectAdd.subscribe(({ entity, effect }) => {
   if (entity.typeId !== "minecraft:player" || !entity.isValid) return;
   if (effect.typeId.replace("minecraft:", "") !== "absorption") return;
   onAbsorptionAdded(entity, effect.amplifier);
 });
-world10.afterEvents.playerInventoryItemChange.subscribe(({ player, itemStack, beforeItemStack }) => {
+world11.afterEvents.playerInventoryItemChange.subscribe(({ player, itemStack, beforeItemStack }) => {
   onDynamicLighting(player);
   const container = player.getComponent("inventory")?.container;
   if (container) {
@@ -4319,7 +4351,7 @@ function runControlAction(player, action) {
   else if (action === "airDash") dashRuntime(player, false);
   else if (action === "switchSkill") switchHeldWeaponSkill(player);
 }
-world10.afterEvents.playerSwingStart.subscribe(({ player, heldItemStack, swingSource }) => {
+world11.afterEvents.playerSwingStart.subscribe(({ player, heldItemStack, swingSource }) => {
   runControlAction(player, onControlSwingInput(player, swingSource));
   for (const weapon of weapons) {
     if (heldItemStack?.typeId === weapon.itemId) {
@@ -4328,14 +4360,14 @@ world10.afterEvents.playerSwingStart.subscribe(({ player, heldItemStack, swingSo
     }
   }
 });
-world10.afterEvents.playerButtonInput.subscribe(({ player: source, button, newButtonState }) => {
+world11.afterEvents.playerButtonInput.subscribe(({ player: source, button, newButtonState }) => {
   if (newButtonState != "Pressed") return;
   if (button == "Sneak") {
     windPlungeRuntime(source);
   }
   runControlAction(source, onControlButtonInput(source, button));
 });
-world10.afterEvents.itemUse.subscribe(({ source, itemStack }) => {
+world11.afterEvents.itemUse.subscribe(({ source, itemStack }) => {
   if (!itemStack) return;
   parryRuntime(source, itemStack);
   startBetterMending(source, itemStack);
@@ -4345,9 +4377,9 @@ world10.afterEvents.itemUse.subscribe(({ source, itemStack }) => {
     }
   }
 });
-world10.afterEvents.itemStopUse.subscribe(({ itemStack, source }) => cancelPolarisCharge(itemStack, source));
-world10.afterEvents.itemReleaseUse.subscribe(({ itemStack, source }) => cancelPolarisCharge(itemStack, source));
-world10.afterEvents.entityDie.subscribe(({ damageSource, deadEntity }) => {
+world11.afterEvents.itemStopUse.subscribe(({ itemStack, source }) => cancelPolarisCharge(itemStack, source));
+world11.afterEvents.itemReleaseUse.subscribe(({ itemStack, source }) => cancelPolarisCharge(itemStack, source));
+world11.afterEvents.entityDie.subscribe(({ damageSource, deadEntity }) => {
   const killer = damageSource?.damagingEntity;
   if (deadEntity?.typeId === "minecraft:player") {
     try {
@@ -4363,31 +4395,31 @@ world10.afterEvents.entityDie.subscribe(({ damageSource, deadEntity }) => {
     onSentinelDie(deadEntity);
   }
   if (!killer?.isValid) return;
-  const mainhand = killer?.getComponent("equippable")?.getEquipment(EquipmentSlot7.Mainhand);
+  const mainhand = killer?.getComponent("equippable")?.getEquipment(EquipmentSlot8.Mainhand);
   if (killer?.typeId === "minecraft:player" && mainhand?.typeId === "ph:charged_copper_axe") {
     addScore(killer, "auric_charge", 4);
     deadEntity.dimension.spawnEntity("minecraft:lightning_bolt", deadEntity.location);
   }
 });
-world10.afterEvents.entityDie.subscribe(({ deadEntity, damageSource }) => onTrooperDie(deadEntity, damageSource));
-world10.afterEvents.entityRemove.subscribe(({ removedEntityId, typeId }) => {
+world11.afterEvents.entityDie.subscribe(({ deadEntity, damageSource }) => onTrooperDie(deadEntity, damageSource));
+world11.afterEvents.entityRemove.subscribe(({ removedEntityId, typeId }) => {
   forgetWard(removedEntityId);
   onTrooperRemove(removedEntityId, typeId);
 });
-world10.afterEvents.entityHealthChanged.subscribe(({ entity }) => {
+world11.afterEvents.entityHealthChanged.subscribe(({ entity }) => {
   if (!entity.isValid) return;
   healthBarRuntime(entity, "healthChanged");
 });
-world10.afterEvents.playerDimensionChange.subscribe(({ player }) => {
+world11.afterEvents.playerDimensionChange.subscribe(({ player }) => {
   healthBarRuntime(player, "dimensionChanged");
 });
-world10.afterEvents.playerGameModeChange.subscribe(({ player, toGameMode }) => {
+world11.afterEvents.playerGameModeChange.subscribe(({ player, toGameMode }) => {
   healthBarRuntime(player, "gamemodeChanged");
 });
 var animatedTpSpeeds = new Map(
   specifiedFamilityAndSpeed.map((data) => [data.type_family, data.speed])
 );
-world10.afterEvents.entitySpawn.subscribe(({ entity, cause }) => {
+world11.afterEvents.entitySpawn.subscribe(({ entity, cause }) => {
   if (cause != "Spawned") return;
   if (!entity.isValid) return;
   const family = entity?.getComponent("minecraft:type_family")?.getTypeFamilies();
@@ -4417,14 +4449,14 @@ world10.afterEvents.entitySpawn.subscribe(({ entity, cause }) => {
     });
   }, 1);
 });
-world10.afterEvents.entitySpawn.subscribe(({ entity }) => onSentinelSpawn(entity));
-world10.beforeEvents.playerLeave.subscribe(({ player }) => {
+world11.afterEvents.entitySpawn.subscribe(({ entity }) => onSentinelSpawn(entity));
+world11.beforeEvents.playerLeave.subscribe(({ player }) => {
   clearPlayerLighting(player);
   clearControlState(player);
   clearAbsorption(player);
 });
 system15.runInterval(() => {
-  for (const player of world10.getPlayers()) {
+  for (const player of world11.getPlayers()) {
     javaSaturationRegen(player);
     syncAbsorption(player);
   }
@@ -4432,10 +4464,11 @@ system15.runInterval(() => {
 system15.runInterval(trackMaceFall, 1);
 system15.runInterval(tickTroopers, 4);
 system15.runInterval(checkBlessingMilestones, 20);
+system15.runInterval(tickTitanRadiation, 40);
 system15.runInterval(tickAccessories, 100);
 system15.runInterval(sweepSentinels, 200);
 system15.runInterval(() => {
-  for (const player of world10.getPlayers()) {
+  for (const player of world11.getPlayers()) {
     try {
       const base = player.location;
       const dimension = player.dimension;
@@ -4634,7 +4667,7 @@ function beginCollisionCheck(dasher, duration, damage, collisionRadius, spareFam
       if (dist <= collisionRadius) {
         hitEntities.add(target.id);
         target.applyDamage(damage, {
-          cause: EntityDamageCause8.entityAttack,
+          cause: EntityDamageCause9.entityAttack,
           damagingEntity: dasher
         });
       }
@@ -4668,7 +4701,7 @@ function fireLaserOnce(shooter, range, damage, width) {
     );
     if (dist <= width) {
       target.applyDamage(damage, {
-        cause: EntityDamageCause8.magic,
+        cause: EntityDamageCause9.magic,
         damagingEntity: shooter
       });
     }
@@ -4749,7 +4782,7 @@ function bossLaserBeam(boss, charge, duration, range, damagePerTick, width) {
 }
 
 // data/scripts/events/loader.ts
-import { world as world11, system as system20, ItemStack as ItemStack7 } from "@minecraft/server";
+import { world as world12, system as system20, ItemStack as ItemStack7 } from "@minecraft/server";
 
 // data/scripts/core/playerProperties.ts
 var PLAYER_PROPERTIES = [
@@ -6220,10 +6253,10 @@ system20.beforeEvents.startup.subscribe((initEvent) => {
   registerPolarisComponent(initEvent);
   registerUiCommands(initEvent);
 });
-world11.afterEvents.worldLoad.subscribe(() => {
+world12.afterEvents.worldLoad.subscribe(() => {
   loadScoreboards();
 });
-world11.afterEvents.playerSpawn.subscribe(({ player, initialSpawn }) => {
+world12.afterEvents.playerSpawn.subscribe(({ player, initialSpawn }) => {
   onPlayerSpawn(player, initialSpawn);
   onDynamicLighting(player);
   onBlessingSpawn(player, initialSpawn);
@@ -6231,8 +6264,8 @@ world11.afterEvents.playerSpawn.subscribe(({ player, initialSpawn }) => {
 });
 function loadScoreboards() {
   for (const objective of objectives) {
-    if (!world11.scoreboard.getObjective(objective)) {
-      world11.scoreboard.addObjective(objective);
+    if (!world12.scoreboard.getObjective(objective)) {
+      world12.scoreboard.addObjective(objective);
     }
   }
 }

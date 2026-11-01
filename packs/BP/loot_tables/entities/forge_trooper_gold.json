@@ -16,11 +16,11 @@
 				{
 					"type": "item",
 					"name": "ph:xeonnite_shard",
-					"weight": 10
+					"weight": 30
 				},
 				{
 					"type": "empty",
-					"weight": 90
+					"weight": 70
 				}
 			]
 		},
