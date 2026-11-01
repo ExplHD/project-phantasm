@@ -1,0 +1,28 @@
+{
+    "format_version": "1.21.100",
+    "minecraft:structure_template_feature": {
+        "description": {
+            "identifier": "ph:copper_crate_pile_5"
+        },
+        "structure_name": "mystructure:titan_ridge/tr_copper_crate_5",
+        "facing_direction": "random",
+        "adjustment_radius": 4,
+        "constraints": {
+            "grounded": {},
+            "unburied": {},
+            "block_intersection": {
+                "block_allowlist": [
+                    "minecraft:air",
+                    "minecraft:cobbled_deepslate",
+                    "minecraft:tuff",
+                    "minecraft:stone",
+                    "minecraft:deepslate",
+                    "minecraft:gravel",
+                    "minecraft:dirt",
+                    "minecraft:short_grass",
+                    "minecraft:tall_grass"
+                ]
+            }
+        }
+    }
+}

@@ -19,8 +19,13 @@
 					"weight": 50
 				},
 				{
+					"type": "item",
+					"name": "ph:titan_upgrade_smithing_template",
+					"weight": 20
+				},
+				{
 					"type": "empty",
-					"weight": 50
+					"weight": 30
 				}
 			]
 		}

@@ -25,7 +25,7 @@ Minecraft Bedrock addon (Regolith project). Behavior pack `packs/BP`, resource p
 
 ## Conventions
 
-- Use every nessecary AI Agents skill that's listed on `.agents/skills`, make sure to ALWAYS USE the `unslop`, `'clean-user-facing-text`, and `remove-ai-marks` skills after some nessescary skills
+- Use every nessecary AI Agents skill that's listed on `.agents/skills`, make sure to ALWAYS INITIALIZE AND USE the `unslop`, `clean-user-facing-text`, and `remove-ai-marks` skills after some nessescary skills
 - All custom ids use `ph:` prefix. Item descriptions are native lang keys, not script: `tile.<id>.tooltip=<line>\n<line>` in `packs/RP/texts/en_US.lang` (the `tile.` prefix is correct for items *and* blocks, matching vanilla). Comment lines in that file start with `##`. Legacy tiers live in `data/scripts/core/constants.ts` (`LEGENDARY_TIER`); scoreboard objectives are registered in `data/scripts/events/loader.ts` - add new ones there.
 - Log changes in `changes.txt` with `< - / = / + > <Removal/Changes/Addition> - <Name>` under `# Removal` / `# Changes` / `# Addition` per version.
 - `.zed/settings.json` Shows the Mojang autocompletions, the user commented it not because of it's not even usable, it's not usable for user because the user has their own schema, but usable for any AI Agents so make sure you keep using it

@@ -1,0 +1,34 @@
+{
+    "format_version": "1.21.100",
+    "minecraft:weighted_random_feature": {
+        "description": {
+            "identifier": "ph:copper_crate_pile"
+        },
+        "features": [
+            [
+                "ph:copper_crate_pile_1",
+                1
+            ],
+            [
+                "ph:copper_crate_pile_2",
+                2
+            ],
+            [
+                "ph:copper_crate_pile_3",
+                2
+            ],
+            [
+                "ph:copper_crate_pile_4",
+                3
+            ],
+            [
+                "ph:copper_crate_pile_5",
+                3
+            ],
+            [
+                "ph:copper_crate_pile_6",
+                2
+            ]
+        ]
+    }
+}
