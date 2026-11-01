@@ -8,6 +8,7 @@ import { onBlessingSpawn } from '../systems/xeonniteBlessing'
 import { registerCustomComponents } from '../features/blocks/customComponents'
 import { registerPolarisComponent, onPolarisSpawn } from '../features/polaris_power/manager'
 import { registerUiCommands } from '../ui/commands'
+import { registerShieldComponent } from '../features/shield/manager'
 
 const objectives: string[] = [
     // System Scoreboard
@@ -60,6 +61,7 @@ const objectives: string[] = [
 system.beforeEvents.startup.subscribe((initEvent) => {
     registerCustomComponents(initEvent);
     registerPolarisComponent(initEvent);
+    registerShieldComponent(initEvent);
     registerUiCommands(initEvent);
 })
 

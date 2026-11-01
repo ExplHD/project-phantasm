@@ -1,0 +1,56 @@
+{
+	"format_version": "1.26.0",
+	"minecraft:item": {
+		"description": {
+			"identifier": "ph:sentinel_shield",
+			"menu_category": {
+				"category": "equipment"
+			}
+		},
+		"components": {
+			"ph:shield": {
+				"block": "item.shield.block",
+				"delay": 0.25,
+				"disable_sound": "random.break",
+				"knockback": {
+					"x": 1.75,
+					"y": 0.4
+				}
+			},
+			"minecraft:allow_off_hand": true,
+			"minecraft:max_stack_size": 1,
+			"minecraft:rarity": "rare",
+			"minecraft:durability": {
+				"max_durability": 672
+			},
+			"minecraft:enchantable": {
+				"slot": "elytra",
+				"value": 15
+			},
+			"minecraft:repairable": {
+				"repair_items": [
+					{
+						"items": [
+							"ph:sentinel_scale"
+						],
+						"repair_amount": "query.max_durability*0.25"
+					},
+					{
+						"items": [
+							"ph:sentinel_shield"
+						],
+						"repair_amount": "context.other->query.remaining_durability+0.12*context.other->query.max_durability"
+					}
+				]
+			},
+			"minecraft:block_placer": {
+				"block": "ph:sentinel_shield",
+				"replace_block_item": true
+			},
+			"minecraft:cooldown": {
+				"category": "ph:shield",
+				"duration": 5
+			}
+		}
+	}
+}

@@ -221,6 +221,54 @@
 		},
 		"ph_titan_upgrade_smithing_template": {
 		    "textures": "textures/items/titan_upgrade_smithing_template"
+		},
+		"ph_astral_upgrade_smithing_template": {
+			"textures": "textures/items/astral_upgrade_smithing_template"
+		},
+		"ph_sentinel_scale": {
+			"textures": "textures/items/sentinel_scale"
+		},
+		"ph_scimitar": {
+			"textures": "textures/items/weapons/scimitar"
+		},
+		"ph_scimitar_2": {
+			"textures": "textures/items/weapons/scimitar_2"
+		},
+		"ph_solarium_helmet": {
+			"textures": "textures/items/solarium/solarium_helmet"
+		},
+		"ph_solarium_chestplate": {
+			"textures": "textures/items/solarium/solarium_chestplate"
+		},
+		"ph_solarium_leggings": {
+			"textures": "textures/items/solarium/solarium_leggings"
+		},
+		"ph_solarium_boots": {
+			"textures": "textures/items/solarium/solarium_boots"
+		},
+		"ph_astralium_helmet": {
+			"textures": "textures/items/astralium/astralium_helmet"
+		},
+		"ph_astralium_chestplate": {
+			"textures": "textures/items/astralium/astralium_chestplate"
+		},
+		"ph_astralium_leggings": {
+			"textures": "textures/items/astralium/astralium_leggings"
+		},
+		"ph_astralium_boots": {
+			"textures": "textures/items/astralium/astralium_boots"
+		},
+		"ph_astralith_helmet": {
+			"textures": "textures/items/astralith/astralith_helmet"
+		},
+		"ph_astralith_chestplate": {
+			"textures": "textures/items/astralith/astralith_chestplate"
+		},
+		"ph_astralith_leggings": {
+			"textures": "textures/items/astralith/astralith_leggings"
+		},
+		"ph_astralith_boots": {
+			"textures": "textures/items/astralith/astralith_boots"
 		}
 	},
 	"resource_pack_name": "Project Phantasm",

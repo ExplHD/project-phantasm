@@ -1,0 +1,29 @@
+{
+	"format_version": "1.26.0",
+	"minecraft:block": {
+		"description": {
+			"identifier": "ph:sentinel_shield"
+		},
+		"components": {
+			"minecraft:geometry": "geometry.ph.sentinel_shield_block",
+			"minecraft:material_instances": {
+				"*": {
+					"texture": "ph_sentinel_shield",
+					"render_method": "alpha_test"
+				}
+			},
+			"minecraft:placement_filter": {
+				"conditions": [
+					{
+						"allowed_faces": [
+							"up"
+						],
+						"block_filter": [
+							"air"
+						]
+					}
+				]
+			}
+		}
+	}
+}

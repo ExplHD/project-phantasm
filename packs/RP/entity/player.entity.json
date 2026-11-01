@@ -184,7 +184,9 @@
                     "variable.the_bleeding_spire = query.get_equipped_item_name(0) == 'the_bleeding_spire';",
                     "variable.peacemaker_oath = query.get_equipped_item_name(0) == 'peacemaker_oath';",
                     "variable.thunder_gale = query.get_equipped_item_name(0) == 'thunder_gale';",
-                    "variable.seiketsu = query.get_equipped_item_name(0) == 'seiketsu';"
+                    "variable.seiketsu = query.get_equipped_item_name(0) == 'seiketsu';",
+                    "variable.scimitar = query.get_equipped_item_name(0) == 'scimitar' || query.get_equipped_item_name(0) == 'scimitar_2';",
+                    "variable.scimitar_off_hand = query.get_equipped_item_name(1) == 'scimitar' || query.get_equipped_item_name(1) == 'scimitar_2';"
                 ],
                 "animate": [
                     "root",
@@ -230,6 +232,12 @@
                     },
                     {
                         "seiketsu_fpp": "variable.seiketsu&&variable.is_first_person"
+                    },
+                    {
+                        "scimitar_fpp": "variable.scimitar&&variable.is_first_person"
+                    },
+                    {
+                        "scimitar_off_hand_fpp": "variable.scimitar_off_hand&&variable.is_first_person"
                     }
                 ],
                 "should_update_effects_offscreen": "1.0"
@@ -323,7 +331,9 @@
                 "peacemaker_oath_default": "animation.peacemaker_oath.hold",
                 "peacemaker_oath_fire": "animation.peacemaker_oath.fire",
                 "seiketsu_scale": "animation.seiketsu_scale",
-                "seiketsu_fpp": "animation.weapon.fpp_1"
+                "seiketsu_fpp": "animation.weapon.fpp_1",
+                "scimitar_fpp": "animation.weapon.fpp_1",
+                "scimitar_off_hand_fpp": "animation.weapon.fpp_1_off_hand"
             },
             "render_controllers": [
                 {

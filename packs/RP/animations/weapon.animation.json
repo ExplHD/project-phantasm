@@ -25,6 +25,23 @@
                 }
             }
         },
+        "animation.weapon.fpp_1_off_hand": {
+            "loop": true,
+            "bones": {
+                "leftArm": {
+                    "rotation": [
+                        125,
+                        5,
+                        -190
+                    ],
+                    "position": [
+                        -18.5,
+                        -3,
+                        12
+                    ]
+                }
+            }
+        },
         "animation.weapon.gun": {
             "loop": true,
             "bones": {
