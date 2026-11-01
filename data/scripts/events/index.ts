@@ -20,6 +20,7 @@ import { onTrooperHurt, tickTroopers, onTrooperDie, onTrooperRemove } from '../f
 import { sweepSentinels } from '../features/ancient_sentinel/manager'
 import { onPolarisItemUse, cancelPolarisCharge } from '../features/polaris_power/manager'
 import { tickTitanRadiation } from '../features/titan_core/radiation'
+import { tickShields, onShieldHurt, onShieldEffectAdd, onShieldSneak, onShieldSwing, onShieldItemUse, clearShieldState } from '../features/shield/manager'
 
 // ======================================== World Before Events ========================================
 
@@ -123,6 +124,9 @@ world.beforeEvents.entityHurt.subscribe(onMaceHurt)
 // main.ts loads after this file, and both can cancel the hit.
 world.beforeEvents.entityHurt.subscribe(onBlessingHurt)
 world.beforeEvents.entityHurt.subscribe(onTrooperHurt)
+world.beforeEvents.entityHurt.subscribe(onShieldHurt)
+// A hit the shield blocked still tries to apply its effects (poison, wither...) right after
+world.beforeEvents.effectAdd.subscribe(onShieldEffectAdd)
 
 world.beforeEvents.itemUse.subscribe(onPolarisItemUse)
 
@@ -329,6 +333,7 @@ function runControlAction(player: Player, action: ControlAction): void {
 
 world.afterEvents.playerSwingStart.subscribe(({ player, heldItemStack, swingSource }) => {
     runControlAction(player, onControlSwingInput(player, swingSource));
+    onShieldSwing(player);
 
     for (const weapon of weapons) {
         if (heldItemStack?.typeId === weapon.itemId) {
@@ -339,6 +344,7 @@ world.afterEvents.playerSwingStart.subscribe(({ player, heldItemStack, swingSour
 })
 
 world.afterEvents.playerButtonInput.subscribe(({ player: source, button, newButtonState }) => {
+    if (button == "Sneak") onShieldSneak(source, newButtonState == "Pressed");
     if (newButtonState != "Pressed") return;
 
     if (button == "Sneak") {
@@ -361,8 +367,15 @@ world.afterEvents.itemUse.subscribe(({ source, itemStack }) => {
     }
 })
 
-world.afterEvents.itemStopUse.subscribe(({ itemStack, source }) => cancelPolarisCharge(itemStack, source))
-world.afterEvents.itemReleaseUse.subscribe(({ itemStack, source }) => cancelPolarisCharge(itemStack, source))
+world.afterEvents.itemStartUse.subscribe(({ source }) => onShieldItemUse(source, true))
+world.afterEvents.itemStopUse.subscribe(({ itemStack, source }) => {
+    cancelPolarisCharge(itemStack, source);
+    onShieldItemUse(source, false);
+})
+world.afterEvents.itemReleaseUse.subscribe(({ itemStack, source }) => {
+    cancelPolarisCharge(itemStack, source);
+    onShieldItemUse(source, false);
+})
 
 world.afterEvents.entityDie.subscribe(({ damageSource, deadEntity }) => {
     const killer = damageSource?.damagingEntity;
@@ -461,6 +474,7 @@ world.beforeEvents.playerLeave.subscribe(({ player }) => {
     clearPlayerLighting(player);
     clearControlState(player);
     clearAbsorption(player);
+    clearShieldState(player.id);
 });
 
 system.runInterval(() => {
@@ -474,6 +488,7 @@ system.runInterval(() => {
 system.runInterval(trackMaceFall, 1);
 
 system.runInterval(tickTroopers, 4);
+system.runInterval(tickShields, 1);
 system.runInterval(checkBlessingMilestones, 20);
 system.runInterval(tickTitanRadiation, 40);
 system.runInterval(tickAccessories, 100);

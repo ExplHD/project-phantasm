@@ -4,6 +4,9 @@
 	"resource_pack_name": "Project Phantasm",
 	"texture_name": "atlas.terrain",
 	"texture_data": {
+		"ph_sentinel_shield": {
+			"textures": "textures/models/shield/sentinel_shield"
+		},
 		"ph_nature_soul_altar": {
 			"textures": "textures/blocks/nature_soul_altar"
 		},

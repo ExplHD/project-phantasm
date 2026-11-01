@@ -1,0 +1,27 @@
+{
+	"format_version": "1.21.0",
+	"minecraft:attachable": {
+		"description": {
+			"identifier": "ph:scimitar",
+			"materials": {
+				"default": "entity_alphatest",
+				"enchanted": "entity_alphatest_glint"
+			},
+			"textures": {
+				"default": "textures/3ds/schimitar",
+				"enchanted": "textures/misc/enchanted_item_glint"
+			},
+			"geometry": {
+				"default": "geometry.scimitar"
+			},
+			"scripts": {
+				"pre_animation": [
+					"variable.is_off_hand = c.item_slot != 'main_hand';"
+				]
+			},
+			"render_controllers": [
+				"controller.render.ph.scimitar"
+			]
+		}
+	}
+}
