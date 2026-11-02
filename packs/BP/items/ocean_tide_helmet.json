@@ -21,15 +21,6 @@
                     "max": 100
                 }
             },
-            "minecraft:damage_absorption": {
-                "absorbable_causes": [
-                    "drowning",
-                    "suffocation",
-                    "campfire",
-                    "fire",
-                    "fire_tick"
-                ]
-            },
             "minecraft:fire_resistant": {
                 "value": true
             },
@@ -59,6 +50,7 @@
                 "tags": [
                     "minecraft:trimmable_armors",
                     "minecraft:is_armor",
+                    "minecraft:transformable_items",
                     "minecraft:netherite_tier",
                     "ph:prismatic_tier",
                     "ph:toughness-4"

@@ -195,6 +195,9 @@
 		"ph_rupture_cell": {
 			"textures": "textures/items/rupture_cell"
 		},
+		"ph_xeon_plasma": {
+			"textures": "textures/items/xeon_plasma"
+		},
 		"ph_small_crystall_bud_item": {
 			"textures": "textures/blocks/small_crystall_bud"
 		},

@@ -28,7 +28,7 @@
 			"minecraft:icon": "ph_astralium_boots",
 			"minecraft:wearable": {
 				"slot": "slot.armor.feet",
-				"protection": 3
+				"protection": 4
 			},
 			"minecraft:repairable": {
 				"repair_items": [
@@ -50,9 +50,10 @@
 				"tags": [
 					"minecraft:trimmable_armors",
 					"minecraft:is_armor",
+					"minecraft:transformable_items",
 					"minecraft:netherite_tier",
 					"ph:astralium_tier",
-					"ph:toughness-3"
+					"ph:toughness-4"
 				]
 			}
 		}

@@ -12,7 +12,12 @@
             "minecraft:fire_resistant": {
                 "value": true
             },
-            "minecraft:rarity": "rare"
+            "minecraft:rarity": "rare",
+            "minecraft:tags": {
+                "tags": [
+                    "minecraft:transform_materials"
+                ]
+            }
         }
     }
 }

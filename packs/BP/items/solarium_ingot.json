@@ -9,7 +9,12 @@
         },
         "components": {
             "minecraft:icon": "ph_solarium_ingot",
-            "minecraft:rarity": "uncommon"
+            "minecraft:rarity": "uncommon",
+            "minecraft:tags": {
+                "tags": [
+                    "minecraft:transform_materials"
+                ]
+            }
         }
     }
 }
