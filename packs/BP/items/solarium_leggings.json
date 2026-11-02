@@ -28,7 +28,7 @@
 			"minecraft:icon": "ph_solarium_leggings",
 			"minecraft:wearable": {
 				"slot": "slot.armor.legs",
-				"protection": 6
+				"protection": 7
 			},
 			"minecraft:repairable": {
 				"repair_items": [
@@ -50,9 +50,10 @@
 				"tags": [
 					"minecraft:trimmable_armors",
 					"minecraft:is_armor",
+					"minecraft:transformable_items",
 					"minecraft:netherite_tier",
 					"ph:solarium_tier",
-					"ph:toughness-2"
+					"ph:toughness-4"
 				]
 			}
 		}

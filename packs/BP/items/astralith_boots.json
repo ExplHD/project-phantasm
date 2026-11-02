@@ -28,7 +28,7 @@
 			"minecraft:icon": "ph_astralith_boots",
 			"minecraft:wearable": {
 				"slot": "slot.armor.feet",
-				"protection": 4
+				"protection": 5
 			},
 			"minecraft:repairable": {
 				"repair_items": [
@@ -51,7 +51,8 @@
 					"minecraft:is_armor",
 					"minecraft:netherite_tier",
 					"ph:astralith_tier",
-					"ph:toughness-4"
+					"minecraft:transformable_items",
+					"ph:toughness-5"
 				]
 			}
 		}

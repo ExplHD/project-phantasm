@@ -21,14 +21,6 @@
                     "max": 100
                 }
             },
-            "minecraft:damage_absorption": {
-                "absorbable_causes": [
-                    "magic",
-                    "fall",
-                    "fly_into_wall",
-                    "anvil"
-                ]
-            },
             "minecraft:fire_resistant": {
                 "value": true
             },
@@ -36,7 +28,7 @@
             "minecraft:icon": "ph:naturalist_leggings",
             "minecraft:wearable": {
                 "slot": "slot.armor.legs",
-                "protection": 3
+                "protection": 6
             },
             "minecraft:repairable": {
                 "repair_items": [
@@ -58,6 +50,7 @@
                 "tags": [
                     "minecraft:trimmable_armors",
                     "minecraft:is_armor",
+                    "minecraft:transformable_items",
                     "minecraft:netherite_tier",
                     "ph:prismatic_tier",
                     "ph:toughness-4"
