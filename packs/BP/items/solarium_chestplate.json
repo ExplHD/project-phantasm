@@ -28,7 +28,7 @@
 			"minecraft:icon": "ph_solarium_chestplate",
 			"minecraft:wearable": {
 				"slot": "slot.armor.chest",
-				"protection": 8
+				"protection": 9
 			},
 			"minecraft:repairable": {
 				"repair_items": [
@@ -50,9 +50,10 @@
 				"tags": [
 					"minecraft:trimmable_armors",
 					"minecraft:is_armor",
+					"minecraft:transformable_items",
 					"minecraft:netherite_tier",
 					"ph:solarium_tier",
-					"ph:toughness-2"
+					"ph:toughness-4"
 				]
 			}
 		}

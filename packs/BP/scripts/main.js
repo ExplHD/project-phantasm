@@ -5925,6 +5925,11 @@ function registerCustomComponents(initEvent) {
       }
     }
   });
+  initEvent.blockComponentRegistry.registerCustomComponent("ph:icon_only", {
+    beforeOnPlayerPlace(event) {
+      event.cancel = true;
+    }
+  });
 }
 
 // data/scripts/ui/commands.ts

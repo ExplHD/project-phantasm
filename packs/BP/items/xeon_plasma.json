@@ -1,0 +1,20 @@
+{
+	"format_version": "1.26.0",
+	"minecraft:item": {
+		"description": {
+			"identifier": "ph:xeon_plasma",
+			"menu_category": {
+				"category": "items"
+			}
+		},
+		"components": {
+			"minecraft:icon": "ph_xeon_plasma",
+			"minecraft:rarity": "rare",
+			"minecraft:tags": {
+				"tags": [
+					"minecraft:transform_materials"
+				]
+			}
+		}
+	}
+}

@@ -1,0 +1,15 @@
+{
+    "format_version": "1.20.10",
+    "minecraft:recipe_smithing_transform": {
+        "description": {
+            "identifier": "ph:smithing_solarium_helmet"
+        },
+        "tags": [
+            "smithing_table"
+        ],
+        "template": "ph:astral_upgrade_smithing_template",
+        "base": "ph:naturalist_helmet",
+        "addition": "ph:solarium_ingot",
+        "result": "ph:solarium_helmet"
+    }
+}
