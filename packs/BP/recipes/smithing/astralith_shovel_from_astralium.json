@@ -1,0 +1,15 @@
+{
+	"format_version": "1.20.10",
+	"minecraft:recipe_smithing_transform": {
+		"description": {
+			"identifier": "ph:smithing_astralith_shovel_from_astralium"
+		},
+		"tags": [
+			"smithing_table"
+		],
+		"template": "ph:astral_upgrade_smithing_template",
+		"base": "ph:astralium_shovel",
+		"addition": "ph:astralith_alloy",
+		"result": "ph:astralith_shovel"
+	}
+}

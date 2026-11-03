@@ -5,7 +5,9 @@ import {
     Entity,
     EntityDamageCause,
     GameMode,
-    Player
+    MolangVariableMap,
+    Player,
+    type Vector3
 } from "@minecraft/server";
 
 // ======================================== Ancient Sentinel (giant armadillo boss) ========================================
@@ -54,6 +56,10 @@ const SLAM_SMALL_DAMAGE_ENRAGED = 12;
 const ROLL_DAMAGE = 9;
 const ROLL_DAMAGE_ENRAGED = 13;
 
+const TELEGRAPH_INTERVAL = 8;       // ticks between landing-zone pulses during a Skyfall
+const CHARGE_TELEGRAPH_MARKS = 8;   // ground marks drawn ahead of a Mirror Charge
+const CHARGE_TELEGRAPH_SPACING = 1.5;
+
 type FightState = "dormant" | "awakening" | "active" | "ball" | "roll" | "unrolling";
 
 /** Per-sentinel runtime brain. Cleared on death; rebuilt by the periodic re-scan. */
@@ -72,6 +78,8 @@ interface SentinelFight {
     ballLoopId?: number;
     flightTicks?: number;
     hopsLeft?: number;
+    /** Ground height at take-off; the landing telegraph is drawn here while it is airborne. */
+    groundY?: number;
 
     // Mirror Charge machine
     rollLoopId?: number;
@@ -99,16 +107,6 @@ function getFight(entity: Entity): SentinelFight {
 }
 
 // ======================================== small utilities ========================================
-
-function announce(dimension: Dimension, location: { x: number; y: number; z: number }, message: string): void {
-    try {
-        for (const player of dimension.getPlayers({ location, maxDistance: 48 })) {
-            player.onScreenDisplay.setActionBar(message);
-        }
-    } catch {
-        // Dimension can be torn down mid-announcement; the fight continues without it.
-    }
-}
 
 function horizontalDistance(a: { x: number; y: number; z: number }, b: { x: number; y: number; z: number }): number {
     const dx = a.x - b.x;
@@ -191,6 +189,46 @@ function playAt(entity: Entity, sound: string, options?: { pitch?: number; volum
         entity.dimension.playSound(sound, entity.location, options);
     } catch {
         // Audio failure must never touch the state machine.
+    }
+}
+
+function spawnFx(dimension: Dimension, id: string, location: Vector3, radius?: number, delay?: number): void {
+    try {
+        const vars = new MolangVariableMap();
+        if (radius !== undefined) vars.setFloat("variable.radius", radius);
+        if (delay !== undefined) vars.setFloat("variable.delay", delay);
+        dimension.spawnParticle(id, location, vars);
+    } catch {
+        // Unloaded chunk or torn-down dimension; cosmetic only.
+    }
+}
+
+function slamRadius(fight: SentinelFight, big: boolean): number {
+    if (!big) return SLAM_SMALL_RADIUS;
+    return fight.enraged ? SLAM_BIG_RADIUS + 1 : SLAM_BIG_RADIUS;
+}
+
+/** Marks the area the next Skyfall landing will hit. */
+function slamTelegraph(entity: Entity, fight: SentinelFight): void {
+    const radius = slamRadius(fight, (fight.hopsLeft ?? 1) <= 1);
+    const spot = { x: entity.location.x, y: fight.groundY ?? entity.location.y, z: entity.location.z };
+    spawnFx(entity.dimension, "ph:sentinel_slam_telegraph", spot, radius);
+    spawnFx(entity.dimension, "ph:sentinel_slam_telegraph_pulse", spot, radius);
+    spawnFx(entity.dimension, "ph:sentinel_slam_telegraph_edge", spot, radius);
+}
+
+/** A lane of ground marks along the locked charge direction, lighting up outward. */
+function chargeTelegraph(entity: Entity, dir: { x: number; z: number }): void {
+    const origin = entity.location;
+    for (let i = 1; i <= CHARGE_TELEGRAPH_MARKS; i++) {
+        const step = i * CHARGE_TELEGRAPH_SPACING;
+        spawnFx(
+            entity.dimension,
+            "ph:sentinel_charge_telegraph",
+            { x: origin.x + dir.x * step, y: origin.y, z: origin.z + dir.z * step },
+            undefined,
+            i * 0.035
+        );
     }
 }
 
@@ -317,7 +355,6 @@ function beginAwaken(entity: Entity, fight: SentinelFight): void {
         // Cosmetic only.
     }
 
-    announce(entity.dimension, entity.location, "§cSomething ancient is stirring... the thousand-year sleeper is waking up!");
     system.runTimeout(() => finishAwaken(entity, fight), 52);
 }
 
@@ -352,19 +389,6 @@ function finishAwaken(entity: Entity, fight: SentinelFight): void {
     const now = Date.now();
     fight.ballCd = now + 4000;
     fight.rollCd = now + 8000;
-
-    announce(entity.dimension, entity.location, "§4[BOSS] The Ancient Sentinel has awakened after a thousand years!");
-    system.runTimeout(() => {
-        try {
-            announce(
-                entity.dimension,
-                entity.location,
-                "§7Tip: JUMP when the Sentinel slams down - HIT the rolling ball to bat its charge away."
-            );
-        } catch {
-            // Cosmetic only.
-        }
-    }, 60);
 }
 
 // ======================================== attack 1: Skyfall Slam ========================================
@@ -384,9 +408,14 @@ function startBall(entity: Entity, fight: SentinelFight): void {
     const now = Date.now();
     fight.ballCd = now + (fight.enraged ? BALL_CD_ENRAGED : BALL_CD_NORMAL);
     fight.hopsLeft = fight.enraged ? 2 : 1;
+    fight.groundY = entity.location.y;
+
+    slamTelegraph(entity, fight);
+    system.runTimeout(() => {
+        if (entity.isValid && fight.state === "ball") slamTelegraph(entity, fight);
+    }, TELEGRAPH_INTERVAL);
 
     playAt(entity, "mob.armadillo.roll", { pitch: 1.1, volume: 1 });
-    announce(entity.dimension, entity.location, "§cThe Ancient Sentinel curls up and leaps skyward!");
 
     system.runTimeout(() => {
         if (!entity.isValid || fight.state !== "ball") return;
@@ -412,6 +441,7 @@ function ballTick(entity: Entity, fight: SentinelFight): void {
     }
 
     fight.flightTicks = (fight.flightTicks ?? 0) + 1;
+    if (fight.flightTicks % TELEGRAPH_INTERVAL === 0) slamTelegraph(entity, fight);
 
     const velocity = entity.getVelocity();
     const grounded = Math.abs(velocity.y) < 0.03 && isStandingOnGround(entity);
@@ -430,6 +460,8 @@ function ballTick(entity: Entity, fight: SentinelFight): void {
         // Enraged second bounce: small shock first, then it hops again for the finisher.
         shockwave(entity, fight, false);
         fight.flightTicks = 0;
+        fight.groundY = entity.location.y;
+        slamTelegraph(entity, fight);
         try {
             entity.applyImpulse({ x: 0, y: RELAUNCH_VELOCITY, z: 0 });
             entity.playAnimation("animation.ph.sentinel.launch");
@@ -455,28 +487,21 @@ function ballTick(entity: Entity, fight: SentinelFight): void {
 
 function shockwave(entity: Entity, fight: SentinelFight, big: boolean): void {
     const center = { x: entity.location.x, y: entity.location.y + 0.4, z: entity.location.z };
-    const radius = big ? (fight.enraged ? SLAM_BIG_RADIUS + 1 : SLAM_BIG_RADIUS) : SLAM_SMALL_RADIUS;
+    const radius = slamRadius(fight, big);
     const damage = big
         ? (fight.enraged ? SLAM_BIG_DAMAGE_ENRAGED : SLAM_BIG_DAMAGE)
         : (fight.enraged ? SLAM_SMALL_DAMAGE_ENRAGED : SLAM_SMALL_DAMAGE);
 
     try {
         entity.dimension.playSound("random.explode", center, { pitch: big ? 0.9 : 1.1, volume: 1 });
-        entity.dimension.spawnParticle("minecraft:huge_explosion_emitter", center);
         entity.dimension.spawnParticle("minecraft:knockback_roar_particle", center);
-        if (big) {
-            for (let i = 0; i < 10; i++) {
-                const angle = (i / 10) * Math.PI * 2;
-                entity.dimension.spawnParticle("minecraft:basic_smoke_particle", {
-                    x: center.x + Math.cos(angle) * 2.4,
-                    y: center.y + 0.2,
-                    z: center.z + Math.sin(angle) * 2.4
-                });
-            }
-        }
     } catch {
         // Cosmetics can fail; the damage application below is the important part.
     }
+    const ground = entity.location;
+    spawnFx(entity.dimension, "ph:sentinel_impact_ring", ground, radius);
+    spawnFx(entity.dimension, "ph:sentinel_impact_dust", ground, radius);
+    spawnFx(entity.dimension, "ph:sentinel_impact_debris", ground, radius);
 
     let victims: Entity[] = [];
     try {
@@ -490,11 +515,6 @@ function shockwave(entity: Entity, fight: SentinelFight, big: boolean): void {
 
         if (victim.typeId === "minecraft:player" && isAerialPlayer(victim as Player)) {
             // The counter: jumping players ride out the shockwave untouched.
-            try {
-                (victim as Player).onScreenDisplay.setActionBar("§aDODGED! You jumped over the shockwave!");
-            } catch {
-                // Cosmetic only.
-            }
             continue;
         }
 
@@ -555,8 +575,8 @@ function startRoll(entity: Entity, fight: SentinelFight, target: Player): void {
     fight.hitLocks = new Map();
 
     faceRollDirection(entity, fight);
+    chargeTelegraph(entity, fight.rollDir);
     playAt(entity, "mob.armadillo.roll", { pitch: 0.8, volume: 1 });
-    announce(entity.dimension, entity.location, "§cThe Ancient Sentinel locks into a barrage charge!");
 
     system.runTimeout(() => {
         if (!entity.isValid || fight.state !== "roll") return;
@@ -809,7 +829,6 @@ export function onSentinelHurt(event: {
             // Best effort; the enrage flags below still flip.
         }
         playAt(sentinel, "mob.ravager.roar", { pitch: 0.8, volume: 1 });
-        announce(sentinel.dimension, sentinel.location, "§4The Ancient Sentinel goes berserk!");
     }
 
     // Being struck while dormant wakes it immediately ("something" disturbed the sleep).

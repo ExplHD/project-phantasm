@@ -9,6 +9,7 @@ import { registerCustomComponents } from '../features/blocks/customComponents'
 import { registerPolarisComponent, onPolarisSpawn } from '../features/polaris_power/manager'
 import { registerUiCommands } from '../ui/commands'
 import { registerShieldComponent } from '../features/shield/manager'
+import { trackLootItem } from '../systems/lootBeam'
 
 const objectives: string[] = [
     // System Scoreboard
@@ -67,6 +68,12 @@ system.beforeEvents.startup.subscribe((initEvent) => {
 
 world.afterEvents.worldLoad.subscribe(() => {
     loadScoreboards()
+    // Items already lying in loaded chunks never fire entitySpawn/entityLoad for this script run
+    for (const id of ["overworld", "nether", "the_end"]) {
+        for (const entity of world.getDimension(id).getEntities({ type: "minecraft:item" })) {
+            trackLootItem(entity)
+        }
+    }
 })
 
 world.afterEvents.playerSpawn.subscribe(({ player, initialSpawn }) => {

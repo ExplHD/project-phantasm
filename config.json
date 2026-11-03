@@ -9,6 +9,10 @@
 	"regolith": {
 		"dataPath": "data",
 		"filterDefinitions": {
+			"item_rarity": {
+				"runWith": "nodejs",
+				"script": "./filters/item_rarity/main.mjs"
+			},
 			"esbuild": {
 				"url": "github.com/ink0rr/regolith-filters",
 				"version": "0.3.1"
@@ -32,6 +36,9 @@
 				},
 				"filters": [
 					{
+						"filter": "item_rarity"
+					},
+					{
 						"filter": "esbuild"
 					}
 				]
@@ -41,6 +48,9 @@
 					"target": "none"
 				},
 				"filters": [
+					{
+						"filter": "item_rarity"
+					},
 					{
 						"filter": "esbuild"
 					},

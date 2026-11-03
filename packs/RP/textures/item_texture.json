@@ -223,7 +223,7 @@
 			"textures": "textures/items/a_part_of_polaris_power"
 		},
 		"ph_titan_upgrade_smithing_template": {
-		    "textures": "textures/items/titan_upgrade_smithing_template"
+			"textures": "textures/items/titan_upgrade_smithing_template"
 		},
 		"ph_astral_upgrade_smithing_template": {
 			"textures": "textures/items/astral_upgrade_smithing_template"
@@ -272,6 +272,60 @@
 		},
 		"ph_astralith_boots": {
 			"textures": "textures/items/astralith/astralith_boots"
+		},
+		"ph_astralium_sword": {
+			"textures": "textures/items/astralium/astralium_sword"
+		},
+		"ph_astralium_axe": {
+			"textures": "textures/items/astralium/astralium_axe"
+		},
+		"ph_astralium_pickaxe": {
+			"textures": "textures/items/astralium/astralium_pickaxe"
+		},
+		"ph_astralium_shovel": {
+			"textures": "textures/items/astralium/astralium_shovel"
+		},
+		"ph_astralium_hoe": {
+			"textures": "textures/items/astralium/astralium_hoe"
+		},
+		"ph_astralium_spear": {
+			"textures": "textures/items/astralium/astralium_spear"
+		},
+		"ph_solarium_sword": {
+			"textures": "textures/items/solarium/solarium_sword"
+		},
+		"ph_solarium_axe": {
+			"textures": "textures/items/solarium/solarium_axe"
+		},
+		"ph_solarium_pickaxe": {
+			"textures": "textures/items/solarium/solarium_pickaxe"
+		},
+		"ph_solarium_shovel": {
+			"textures": "textures/items/solarium/solarium_shovel"
+		},
+		"ph_solarium_hoe": {
+			"textures": "textures/items/solarium/solarium_hoe"
+		},
+		"ph_solarium_spear": {
+			"textures": "textures/items/solarium/solarium_spear"
+		},
+		"ph_astralith_sword": {
+			"textures": "textures/items/astralith/astralith_sword"
+		},
+		"ph_astralith_axe": {
+			"textures": "textures/items/astralith/astralith_axe"
+		},
+		"ph_astralith_pickaxe": {
+			"textures": "textures/items/astralith/astralith_pickaxe"
+		},
+		"ph_astralith_shovel": {
+			"textures": "textures/items/astralith/astralith_shovel"
+		},
+		"ph_astralith_hoe": {
+			"textures": "textures/items/astralith/astralith_hoe"
+		},
+		"ph_astralith_spear": {
+			"textures": "textures/items/astralith/astralith_spear"
 		}
 	},
 	"resource_pack_name": "Project Phantasm",

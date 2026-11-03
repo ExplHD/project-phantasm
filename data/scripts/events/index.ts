@@ -22,6 +22,7 @@ import { onPolarisItemUse, cancelPolarisCharge } from '../features/polaris_power
 import { tickTitanRadiation } from '../features/titan_core/radiation'
 import { tickShields, onShieldHurt, onShieldEffectAdd, onShieldSneak, onShieldSwing, onShieldItemUse, clearShieldState } from '../features/shield/manager'
 import { tickTitanRidgeSites } from '../features/titan_core/sites'
+import { trackLootItem, tickLootBeams } from '../systems/lootBeam'
 
 // ======================================== World Before Events ========================================
 
@@ -430,6 +431,10 @@ world.afterEvents.entitySpawn.subscribe(({ entity, cause }) => {
 // structure reload through the safety rescan) feeds its dormant -> berserk state machine.
 world.afterEvents.entitySpawn.subscribe(({ entity }) => onSentinelSpawn(entity))
 
+// Every dropped item gets a beam in its rarity color (systems/lootBeam.ts)
+world.afterEvents.entitySpawn.subscribe(({ entity }) => trackLootItem(entity))
+world.afterEvents.entityLoad.subscribe(({ entity }) => trackLootItem(entity))
+
 world.beforeEvents.playerLeave.subscribe(({ player }) => {
     clearPlayerLighting(player);
     clearControlState(player);
@@ -451,6 +456,8 @@ system.runInterval(tickTroopers, 4);
 system.runInterval(tickShields, 1);
 system.runInterval(checkBlessingMilestones, 20);
 system.runInterval(tickTitanRadiation, 40);
+// Every tick so each item renews its beam exactly 1s after the last one
+system.runInterval(tickLootBeams, 1);
 // Places the one tr_core + tr_gateway pair of each Titan Ridge the first time a player walks in
 system.runInterval(tickTitanRidgeSites, 100);
 system.runInterval(tickAccessories, 100);
