@@ -25,6 +25,14 @@
 			],
 			"subtitle": "subtitles.weapons.slash_heavy"
 		},
+		"weapon_slash.parry_success": {
+			"category": "player",
+			"max_distance": 32,
+			"sounds": [
+				"sounds/weapons/parry_success"
+			],
+			"subtitle": "subtitles.weapons.parry"
+		},
 		"weapon_slash.slash_clash": {
 			"category": "player",
 			"max_distance": 32,

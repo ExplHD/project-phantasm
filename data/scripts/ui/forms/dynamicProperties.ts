@@ -10,6 +10,8 @@ export function syncPlayerProperty(player: Player, id: string): void {
 	switch (id) {
 		case "ph:dash_control":
 		case "ph:skill_switch_control":
+		case "ph:parry_control":
+		case "ph:parry_sound":
 			clearControlState(player);
 			break;
 		case "ph:health_level": {

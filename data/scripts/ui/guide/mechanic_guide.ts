@@ -82,8 +82,8 @@ function windPlunge(player: Player): void {
 		.title(guideTitle("Wind Plunging"))
 		.header("Wind Plunge Attack")
 		.divider()
-		.label("This skill lets you plunge down fast when falling a long distance. It greatly reduces fall damage and explodes on landing, damaging everything nearby.")
-		.label("Sneak while falling more than 10 blocks to plunge.")
+		.label("Sneak while falling more than 10 blocks above the ground. You hang in the air for a moment, then dive straight down.")
+		.label("Landing sends out a wind shockwave that deals 10 damage to everything within 6 blocks. You take no fall damage from a plunge.")
 		.divider()
 		.button("Back")
 		.show(player).then(r => {
@@ -113,6 +113,7 @@ function legendaryItems(player: Player): void {
 		.label("Legendary weapons and items can be complicated. Here is how to use them:")
 		.label("Attack: left-click (or tap Attack).\nSkill: Interact / right-click.\nSwitch skill: Sneak.")
 		.label("Use /setting to change how you switch skill: Sneak, Sneak + Attack, or Double Sneak.")
+		.label("Epic and Legendary melee weapons can parry. Press Sneak to block the next hit for a short moment. Use /setting to change the parry control or turn it off.")
 		.divider()
 		.button("Back")
 		.show(player).then(r => {

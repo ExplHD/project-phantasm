@@ -12,6 +12,13 @@ export const SKILL_SWITCH_CONTROL = {
     DOUBLE_SNEAK: 2
 } as const
 
+export const PARRY_CONTROL = {
+    SNEAK: 0,
+    SNEAK_ATTACK: 1,
+    DOUBLE_SNEAK: 2,
+    DISABLED: 3
+} as const
+
 export const DASH_CONTROL_NAMES: string[] = [
     "Double-tap Jump",
     "Sprint + Jump",
@@ -32,8 +39,37 @@ export const DASH_CONTROL_HINTS: string[] = [
 
 export const SKILL_SWITCH_CONTROL_HINTS: string[] = [
     "§aSneak §7- Press Sneak while holding a Legendary weapon.",
-    "§aSneak + Attack §7- Press Sneak, then Attack while holding a Legendary weapon.",
+    "§aSneak + Attack §7- Attack while sneaking (or right after tapping Sneak) with a Legendary weapon.",
     "§aDouble Sneak §7- Press Sneak twice quickly while holding a Legendary weapon."
+]
+
+export const PARRY_CONTROL_NAMES: string[] = [
+    "Sneak",
+    "Sneak + Attack",
+    "Double Sneak",
+    "Disabled"
+]
+
+export const PARRY_CONTROL_HINTS: string[] = [
+    "§aSneak §7- Press Sneak while holding an Epic or Legendary weapon.",
+    "§aSneak + Attack §7- Attack while sneaking (or right after tapping Sneak) with an Epic or Legendary weapon.",
+    "§aDouble Sneak §7- Press Sneak twice quickly while holding an Epic or Legendary weapon.",
+    "§aDisabled §7- Epic and Legendary weapons never parry from Sneak."
+]
+
+export const PARRY_SOUND = {
+    PHANTASM: 0,
+    LUNA: 1
+} as const
+
+export const PARRY_SOUND_NAMES: string[] = [
+    "Phantasm",
+    "Luna"
+]
+
+export const PARRY_SOUND_HINTS: string[] = [
+    "§aPhantasm §7- The Phantasm blade clash.",
+    "§aLuna §7- The parry sound from Project Luna."
 ]
 
 const DOUBLE_TAP_WINDOW = 300;
@@ -42,6 +78,8 @@ const COMBO_WINDOW = 500;
 interface ControlState {
     dash: number;
     skill: number;
+    parry: number;
+    parrySound: number;
     jumpAt: number;
     sneakAt: number;
 }
@@ -59,6 +97,8 @@ function getState(player: Player): ControlState {
     const state: ControlState = {
         dash: readControl(player, "ph:dash_control", DASH_CONTROL_NAMES.length),
         skill: readControl(player, "ph:skill_switch_control", SKILL_SWITCH_CONTROL_NAMES.length),
+        parry: readControl(player, "ph:parry_control", PARRY_CONTROL_NAMES.length),
+        parrySound: readControl(player, "ph:parry_sound", PARRY_SOUND_NAMES.length),
         jumpAt: -Infinity,
         sneakAt: -Infinity
     };
@@ -89,14 +129,32 @@ export function setSkillSwitchControl(player: Player, control: number): void {
     getState(player).skill = control;
 }
 
+export function getParryControl(player: Player): number {
+    return getState(player).parry;
+}
+
+export function setParryControl(player: Player, control: number): void {
+    player.setDynamicProperty("ph:parry_control", control);
+    getState(player).parry = control;
+}
+
+export function getParrySound(player: Player): number {
+    return getState(player).parrySound;
+}
+
+export function setParrySound(player: Player, sound: number): void {
+    player.setDynamicProperty("ph:parry_sound", sound);
+    getState(player).parrySound = sound;
+}
+
 export function clearControlState(player: Player): void {
     states.delete(player.id);
 }
 
-export type ControlAction = "dash" | "airDash" | "switchSkill" | undefined;
+export type ControlAction = "dash" | "airDash" | "switchSkill" | "parry";
 
-export function onControlButtonInput(player: Player, button: string): ControlAction {
-    if (button != "Jump" && button != "Sneak") return;
+export function onControlButtonInput(player: Player, button: string): ControlAction[] {
+    if (button != "Jump" && button != "Sneak") return [];
 
     const now = Date.now();
     const state = getState(player);
@@ -106,11 +164,11 @@ export function onControlButtonInput(player: Player, button: string): ControlAct
         state.jumpAt = now;
 
         if (state.dash == DASH_CONTROL.SPRINT_JUMP) {
-            if (player.isSprinting) return "dash";
+            if (player.isSprinting) return ["dash"];
         } else if (state.dash == DASH_CONTROL.DOUBLE_TAP_JUMP && doubleTapped) {
-            return "dash";
+            return ["dash"];
         }
-        return;
+        return [];
     }
 
     const doubleTapped = elapsed(now, state.sneakAt) <= DOUBLE_TAP_WINDOW;
@@ -119,26 +177,42 @@ export function onControlButtonInput(player: Player, button: string): ControlAct
     if (state.dash == DASH_CONTROL.JUMP_SNEAK && elapsed(now, state.jumpAt) <= COMBO_WINDOW) {
         state.jumpAt = -Infinity;
 
-        return "airDash";
+        return ["airDash"];
     }
+
+    const actions: ControlAction[] = [];
 
     if (state.skill == SKILL_SWITCH_CONTROL.SNEAK) {
-        return player.isSneaking ? "switchSkill" : undefined;
+        if (player.isSneaking) actions.push("switchSkill");
+    } else if (state.skill == SKILL_SWITCH_CONTROL.DOUBLE_SNEAK && doubleTapped) {
+        actions.push("switchSkill");
     }
 
-    if (state.skill == SKILL_SWITCH_CONTROL.DOUBLE_SNEAK && doubleTapped) {
-        state.sneakAt = -Infinity;
-        return "switchSkill";
+    if (state.parry == PARRY_CONTROL.SNEAK || (state.parry == PARRY_CONTROL.DOUBLE_SNEAK && doubleTapped)) {
+        actions.push("parry");
     }
+
+    // a used double sneak must not chain into the next press
+    const usedDoubleSneak = doubleTapped && (
+        (state.skill == SKILL_SWITCH_CONTROL.DOUBLE_SNEAK && actions.includes("switchSkill")) ||
+        (state.parry == PARRY_CONTROL.DOUBLE_SNEAK && actions.includes("parry"))
+    );
+    if (usedDoubleSneak) state.sneakAt = -Infinity;
+
+    return actions;
 }
 
-export function onControlSwingInput(player: Player, swingSource: string): ControlAction {
-    if (swingSource != "Mine" && swingSource != "Attack") return;
+export function onControlSwingInput(player: Player, swingSource: string): ControlAction[] {
+    if (swingSource != "Mine" && swingSource != "Attack") return [];
 
     const state = getState(player);
-    if (state.skill != SKILL_SWITCH_CONTROL.SNEAK_ATTACK) return;
-    if (elapsed(Date.now(), state.sneakAt) > COMBO_WINDOW) return;
+    const actions: ControlAction[] = [];
+    // holding Sneak counts every attack, a quick Sneak tap counts for COMBO_WINDOW
+    if (!player.isSneaking && elapsed(Date.now(), state.sneakAt) > COMBO_WINDOW) return actions;
 
-    state.sneakAt = -Infinity;
-    return "switchSkill";
+    if (state.skill == SKILL_SWITCH_CONTROL.SNEAK_ATTACK) actions.push("switchSkill");
+    if (state.parry == PARRY_CONTROL.SNEAK_ATTACK) actions.push("parry");
+    if (actions.length) state.sneakAt = -Infinity;
+
+    return actions;
 }

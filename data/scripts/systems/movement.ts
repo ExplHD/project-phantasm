@@ -1,7 +1,9 @@
-import { world, system, Player, Block, EquipmentSlot, ItemStack, type EntityHealthComponent } from '@minecraft/server'
+import { world, system, Player, Block, EquipmentSlot, ItemStack, EntityDamageCause, type EntityHealthComponent, type EntityHurtBeforeEvent } from '@minecraft/server'
 import { setScore } from '../core/scoreboard'
 import { runUntilMoved } from '../core/player'
 import { applyDurabilityDamage } from '../core/items'
+import { getItemRarity } from '../core/itemRarity'
+import { LEGENDARY_TIER } from '../core/constants'
 
 export function dashRuntime(player: Player): void {
     const scoreboard_dash = world.scoreboard.getObjective("dash_cd");
@@ -44,56 +46,127 @@ export function dashRuntime(player: Player): void {
     }
 }
 
-export function windPlungeRuntime(player: Player): void {
-    if (!player.isFalling || player.getDynamicProperty("ph:plunge_unlock") == false || player.getDynamicProperty("ph:plunge_unlock") == undefined) return;
+// Wind Plunge, merged with the Luna plunge attack: short hang in the air, straight
+// dive, area hit on landing. Fall damage is cancelled from the start of the plunge
+// until NO_FALL_GRACE_TICKS after landing (onPlungeFallHurt), the fall damage event
+// can arrive before or after tickPlunges sees the landing.
+const PLUNGE_MIN_HEIGHT = 10;
+const PLUNGE_RADIUS = 6;
+const PLUNGE_DAMAGE = 10;
+const PLUNGE_HANG_TICKS = 4; // matches the 0.2s windup of animation.player_extend.plunge_attack
+const PLUNGE_DIVE_SPEED = 1.6;
+const PLUNGE_MAX_TICKS = 100;
+const NO_FALL_GRACE_TICKS = 5;
+const PLUNGE_ANIM_OPTS = { controller: "ph_plunge", blendOutTime: 0.15 };
 
-    const { x, y, z } = player.location;
-    const checkHeights = [1, 2, 3, 4, 6, 8, 10];
-    const minHeight = player.dimension.heightRange.min;
+const plunging = new Map<string, number>(); // player id -> plunge start tick
+const noFallUntil = new Map<string, number>(); // player id -> last tick without fall damage
 
-    const isHighEnough = checkHeights.every((i) => {
-        const location = { x: Math.floor(x), y: Math.floor(y) - i, z: Math.floor(z) };
-        if (location.y < minHeight) return true;
-        const block = player.dimension.getBlock(location);
-        return !block || block.typeId === "minecraft:air";
-    });
-
-    if (!isHighEnough) return;
-    if (player.hasTag('windPlunge')) return;
-
-    function impact(): void {
-        if (!player.isValid || !player.getComponent("minecraft:health")) return;
-
-        if (player.hasTag("windPlunge")) {
-            player.removeEffect("resistance");
-            player.dimension.spawnParticle("minecraft:breeze_wind_explosion_emitter", player.location)
-            player.runCommand("damage @e[r=6,rm=0.1] 10 entity_explosion entity @s")
-            player.dimension.playSound("random.explode", player.location);
-            player.removeTag("windPlunge");
-        }
+function heightAboveGround(player: Player): number {
+    try {
+        const hit = player.dimension.getBlockFromRay(player.location, { x: 0, y: -1, z: 0 }, {
+            maxDistance: 64,
+            includeLiquidBlocks: true,
+            includePassableBlocks: false
+        });
+        return hit ? player.location.y - (hit.block.location.y + hit.faceLocation.y) : Infinity;
+    } catch {
+        return 0;
     }
+}
 
-    const runInterval = system.runInterval(() => {
-        if (!player.isValid) {
-            system.clearRun(runInterval);
-            return;
-        }
-        if (!player.isOnGround) return;
-        system.run(impact);
-        system.clearRun(runInterval);
-    }, 2)
+export function isPlunging(player: Player): boolean {
+    return plunging.has(player.id);
+}
 
-    player.applyKnockback({ x: 0, z: 0 }, -2);
+export function windPlungeRuntime(player: Player): boolean {
+    if (player.getDynamicProperty("ph:plunge_unlock") !== true) return false;
+    if (plunging.has(player.id)) return false;
+    if (!player.isFalling || player.isOnGround || player.isInWater || player.isGliding || player.isFlying) return false;
+    if (heightAboveGround(player) <= PLUNGE_MIN_HEIGHT) return false;
+
+    plunging.set(player.id, system.currentTick);
+    noFallUntil.set(player.id, Infinity);
+    player.playAnimation("animation.player_extend.plunge_attack", PLUNGE_ANIM_OPTS);
     player.dimension.spawnParticle("minecraft:wind_explosion_emitter", player.location);
-    player.playAnimation("animation.player_extend.plunge", {
-        stopExpression: "query.is_on_ground"
-    });
     player.dimension.playSound("wind_charge.burst", player.location);
-    player.addTag("windPlunge");
-    player.addEffect("resistance", 20000000, {
-        amplifier: 3,
-        showParticles: false
-    })
+    player.playSound("mob.enderdragon.flap", { volume: 0.5, pitch: 1.8 });
+    return true;
+}
+
+function plungeImpact(player: Player): void {
+    const dimension = player.dimension;
+    const location = player.location;
+    player.playAnimation("animation.player_extend.plunge_land", PLUNGE_ANIM_OPTS);
+    try {
+        dimension.playSound("random.explode", location, { volume: 0.5, pitch: 1.6 });
+        dimension.playSound("dig.stone", location, { volume: 1, pitch: 0.6 });
+        dimension.spawnParticle("minecraft:breeze_wind_explosion_emitter", location);
+        dimension.spawnParticle("ph:plunge_shockwave", location);
+        dimension.spawnParticle("minecraft:critical_hit_emitter", { x: location.x, y: location.y + 0.2, z: location.z });
+        player.runCommand("camerashake add @s 0.25 0.15 positional");
+    } catch { }
+
+    // other players only take the hit when the pvp gamerule is on
+    let pvp = true;
+    try {
+        pvp = world.gameRules.pvp;
+    } catch { }
+    const excludeTypes = ["minecraft:item", "minecraft:armor_stand"];
+    if (!pvp) excludeTypes.push("minecraft:player");
+
+    const targets = dimension.getEntities({
+        location,
+        maxDistance: PLUNGE_RADIUS,
+        excludeTypes,
+        excludeFamilies: ["inanimate"]
+    });
+    for (const target of targets) {
+        if (target.id === player.id) continue;
+        try {
+            target.applyDamage(PLUNGE_DAMAGE, { cause: EntityDamageCause.entityAttack, damagingEntity: player });
+        } catch { }
+    }
+}
+
+export function tickPlunges(): void {
+    const now = system.currentTick;
+    for (const [id, start] of plunging) {
+        const player = world.getEntity(id) as Player | undefined;
+        if (!player?.isValid) {
+            plunging.delete(id);
+            noFallUntil.delete(id);
+            continue;
+        }
+
+        const elapsedTicks = now - start;
+        if (player.isOnGround || player.isInWater || elapsedTicks > PLUNGE_MAX_TICKS) {
+            plunging.delete(id);
+            noFallUntil.set(id, now + NO_FALL_GRACE_TICKS);
+            if (player.isOnGround) plungeImpact(player);
+            else player.playAnimation("animation.player_extend.plunge_land", PLUNGE_ANIM_OPTS);
+            continue;
+        }
+
+        try {
+            if (elapsedTicks < PLUNGE_HANG_TICKS) player.applyKnockback({ x: 0, z: 0 }, 0.04);
+            else player.applyKnockback({ x: 0, z: 0 }, -PLUNGE_DIVE_SPEED);
+        } catch { }
+    }
+}
+
+export function onPlungeFallHurt(event: EntityHurtBeforeEvent): void {
+    if (event.damageSource.cause !== EntityDamageCause.fall) return;
+    const id = event.hurtEntity.id;
+    const until = noFallUntil.get(id);
+    if (until === undefined) return;
+    if (system.currentTick <= until) event.cancel = true;
+    else noFallUntil.delete(id);
+}
+
+export function clearPlungeState(playerId: string): void {
+    plunging.delete(playerId);
+    noFallUntil.delete(playerId);
 }
 
 function strippingSound(typeId: string): string | undefined {
@@ -184,6 +257,31 @@ export function parryRuntime(source: Player, itemStack: ItemStack | undefined): 
         if (source.hasTag("parried")) source.removeTag("parried");
         source.inputPermissions.setPermissionCategory(2, true);
     }, 6)
+}
+
+const CUSTOM_WEAPON_TAGS = ["minecraft:is_sword", "minecraft:is_axe", "minecraft:is_spear"];
+const CUSTOM_PARRY_TICKS = 8;
+
+function isEpicCustomWeapon(item: ItemStack | undefined): boolean {
+    if (!item?.typeId.startsWith("ph:")) return false;
+    const rarity = getItemRarity(item);
+    if (rarity !== "epic" && rarity !== "legendary") return false;
+    return (LEGENDARY_TIER as readonly string[]).includes(item.typeId) || CUSTOM_WEAPON_TAGS.some(tag => item.hasTag(tag));
+}
+
+// Parry for Epic+ custom weapons, triggered by the parry control (ph:parry_control)
+export function customWeaponParry(player: Player): void {
+    const item = player.getComponent("minecraft:equippable")?.getEquipment(EquipmentSlot.Mainhand);
+    if (!isEpicCustomWeapon(item)) return;
+    if (player.hasTag("parried") || plunging.has(player.id)) return;
+
+    player.playAnimation("animation.player_extend.parry");
+    player.dimension.spawnParticle("ph:parry_prepare", player.location);
+    player.dimension.playSound("item.spear.use", player.location);
+    player.addTag("parried");
+    system.runTimeout(() => {
+        if (player.isValid && player.hasTag("parried")) player.removeTag("parried");
+    }, CUSTOM_PARRY_TICKS);
 }
 
 export function startBetterMending(source: Player, itemStack: ItemStack | undefined): void {

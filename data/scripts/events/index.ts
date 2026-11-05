@@ -11,8 +11,8 @@ import { onDummyHurt } from '../systems/combatDummy'
 import { onTitanCoreHurt, onTitanCoreDie } from '../features/titan_core/manager'
 import { onSentinelSpawn, onSentinelHurt, onSentinelHit, onSentinelDie } from '../features/ancient_sentinel/manager'
 import { clearPlayerLighting, onDynamicLighting } from '../systems/lighting'
-import { windPlungeRuntime, dashRuntime, vanillaBlockInteractFix, parryRuntime, startBetterMending, javaSaturationRegen, healthBarRuntime, specifiedFamilityAndSpeed, onAbsorptionAdded, onAbsorptionHurt, syncAbsorption, clearAbsorption } from '../systems/movement'
-import { onControlButtonInput, onControlSwingInput, clearControlState, type ControlAction } from '../systems/controls'
+import { windPlungeRuntime, tickPlunges, onPlungeFallHurt, clearPlungeState, customWeaponParry, dashRuntime, vanillaBlockInteractFix, parryRuntime, startBetterMending, javaSaturationRegen, healthBarRuntime, specifiedFamilityAndSpeed, onAbsorptionAdded, onAbsorptionHurt, syncAbsorption, clearAbsorption } from '../systems/movement'
+import { onControlButtonInput, onControlSwingInput, clearControlState, getParrySound, PARRY_SOUND, type ControlAction } from '../systems/controls'
 import { weapons, switchHeldWeaponSkill } from '../features/weapons/weapons'
 import { onMaceHurt, trackMaceFall } from '../features/mace/detection'
 import { tickAccessories } from '../systems/accessories'
@@ -54,7 +54,8 @@ world.beforeEvents.entityHurt.subscribe((acc) => {
                 }
             )
             hurtEntity.runCommand('camerashake add @s 1 0.1 positional');
-            hurtEntity.dimension.playSound("weapon_slash.slash_clash", hurtEntity.location);
+            const parrySound = getParrySound(player) === PARRY_SOUND.LUNA ? "weapon_slash.parry_success" : "weapon_slash.slash_clash";
+            hurtEntity.dimension.playSound(parrySound, hurtEntity.location);
             hurtEntity.removeTag("parried");
             if (mainItem?.typeId === "ph:seiketsu") {
                 applyDurabilityDamage(player, { damage: 1 });
@@ -117,6 +118,7 @@ world.beforeEvents.entityHurt.subscribe(data => {
 });
 
 world.beforeEvents.entityHurt.subscribe(onMaceHurt)
+world.beforeEvents.entityHurt.subscribe(onPlungeFallHurt)
 
 world.beforeEvents.entityHurt.subscribe(onBlessingHurt)
 world.beforeEvents.entityHurt.subscribe(onTrooperHurt)
@@ -234,13 +236,16 @@ world.afterEvents.playerInventoryItemChange.subscribe(({ player, itemStack, befo
     healthBarRuntime(player, "inventoryItemChanged", beforeItemStack, itemStack);
 })
 
-function runControlAction(player: Player, action: ControlAction): void {
-    if (action === "dash" || action === "airDash") dashRuntime(player);
-    else if (action === "switchSkill") switchHeldWeaponSkill(player);
+function runControlActions(player: Player, actions: ControlAction[], plunged: boolean = false): void {
+    for (const action of actions) {
+        if (action === "dash" || action === "airDash") dashRuntime(player);
+        else if (action === "switchSkill") switchHeldWeaponSkill(player);
+        else if (action === "parry" && !plunged) customWeaponParry(player);
+    }
 }
 
 world.afterEvents.playerSwingStart.subscribe(({ player, heldItemStack, swingSource }) => {
-    runControlAction(player, onControlSwingInput(player, swingSource));
+    runControlActions(player, onControlSwingInput(player, swingSource));
     onShieldSwing(player);
 
     for (const weapon of weapons) {
@@ -255,11 +260,9 @@ world.afterEvents.playerButtonInput.subscribe(({ player: source, button, newButt
     if (button == "Sneak") onShieldSneak(source, newButtonState == "Pressed");
     if (newButtonState != "Pressed") return;
 
-    if (button == "Sneak") {
-        windPlungeRuntime(source);
-    }
+    const plunged = button == "Sneak" && windPlungeRuntime(source);
 
-    runControlAction(source, onControlButtonInput(source, button));
+    runControlActions(source, onControlButtonInput(source, button), plunged);
 })
 
 world.afterEvents.itemUse.subscribe(({ source, itemStack }) => {
@@ -368,6 +371,7 @@ world.afterEvents.entityLoad.subscribe(({ entity }) => trackLootItem(entity))
 world.beforeEvents.playerLeave.subscribe(({ player }) => {
     clearPlayerLighting(player);
     clearControlState(player);
+    clearPlungeState(player.id);
     clearAbsorption(player);
     clearShieldState(player.id);
 });
@@ -380,6 +384,7 @@ system.runInterval(() => {
 }, 6);
 
 system.runInterval(trackMaceFall, 1);
+system.runInterval(tickPlunges, 1);
 
 system.runInterval(tickTroopers, 4);
 system.runInterval(tickShields, 1);

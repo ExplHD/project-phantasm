@@ -41,8 +41,8 @@
                 "seiketsu": "geometry.seiketsu"
             },
             "particle_effects": {
-                "solaris_verdant_attack_1": "ph:solaris_verdant_attack_1",
-                "solaris_verdant_attack_2": "ph:solaris_verdant_attack_2",
+                "solaris_verdant_attack_1": "ph:aura_slash_test_attack_1",
+                "solaris_verdant_attack_2": "ph:aura_slash_test_attack_2",
                 "supercharged_copper_axe_attack_1": "ph:supercharged_copper_axe_attack_1",
                 "supercharged_copper_axe_attack_2": "ph:supercharged_copper_axe_attack_2",
                 "supercharged_copper_axe_attack_3": "ph:supercharged_copper_axe_attack_3",

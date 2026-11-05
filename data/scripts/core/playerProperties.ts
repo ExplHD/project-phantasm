@@ -14,6 +14,8 @@ export const PLAYER_PROPERTIES: PlayerPropertyDef[] = [
 
     { id: "ph:dash_control", label: "Passive Dash control", type: "number", group: "Settings", default: 0 },
     { id: "ph:skill_switch_control", label: "Skill switch control", type: "number", group: "Settings", default: 0 },
+    { id: "ph:parry_control", label: "Weapon parry control", type: "number", group: "Settings", default: 0 },
+    { id: "ph:parry_sound", label: "Parry sound (0 Phantasm, 1 Luna)", type: "number", group: "Settings", default: 0 },
 
     { id: "ph:dash_level", label: "Dash level", type: "number", group: "Progress", default: 0 },
     { id: "ph:health_level", label: "Health level", type: "number", group: "Progress", default: 0 },

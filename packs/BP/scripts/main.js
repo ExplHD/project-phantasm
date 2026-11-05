@@ -1182,6 +1182,13 @@ var weaponSkills = [solarisverdantSkill, superchargedCopperAxeSkill, prismWeaver
 import { world as world2, system as system5, ItemStack as ItemStack2, Player as Player6, EquipmentSlot as EquipmentSlot3, GameMode as GameMode2 } from "@minecraft/server";
 
 // data/scripts/core/constants.ts
+var LEGENDARY_TIER = [
+  "ph:solaris_verdant",
+  "ph:prism_weaver",
+  "ph:the_bleeding_spire",
+  "ph:supercharged_copper_axe",
+  "ph:auric_photonizer"
+];
 var ORE_DROPS = /* @__PURE__ */ new Map([
   ["minecraft:coal_ore", "minecraft:coal"],
   ["minecraft:deepslate_coal_ore", "minecraft:coal"],
@@ -2388,7 +2395,223 @@ function onDynamicLighting(player) {
 }
 
 // data/scripts/systems/movement.ts
-import { world as world5, system as system10, EquipmentSlot as EquipmentSlot4 } from "@minecraft/server";
+import { world as world5, system as system10, EquipmentSlot as EquipmentSlot4, EntityDamageCause as EntityDamageCause4 } from "@minecraft/server";
+
+// data/scripts/core/itemRarity.ts
+import "@minecraft/server";
+var RARITY = /* @__PURE__ */ new Map([
+  ["ph:a_part_of_polaris_power", "epic"],
+  ["ph:astral_upgrade_smithing_template", "rare"],
+  ["ph:astralith_alloy", "rare"],
+  ["ph:astralith_axe", "epic"],
+  ["ph:astralith_boots", "epic"],
+  ["ph:astralith_chestplate", "epic"],
+  ["ph:astralith_helmet", "epic"],
+  ["ph:astralith_hoe", "epic"],
+  ["ph:astralith_leggings", "epic"],
+  ["ph:astralith_pickaxe", "epic"],
+  ["ph:astralith_shovel", "epic"],
+  ["ph:astralith_spear", "epic"],
+  ["ph:astralith_sword", "epic"],
+  ["ph:astralium", "uncommon"],
+  ["ph:astralium_axe", "rare"],
+  ["ph:astralium_boots", "rare"],
+  ["ph:astralium_chestplate", "rare"],
+  ["ph:astralium_helmet", "rare"],
+  ["ph:astralium_hoe", "rare"],
+  ["ph:astralium_leggings", "rare"],
+  ["ph:astralium_pickaxe", "rare"],
+  ["ph:astralium_shovel", "rare"],
+  ["ph:astralium_spear", "rare"],
+  ["ph:astralium_sword", "rare"],
+  ["ph:auric_charging_module", "rare"],
+  ["ph:auric_communicator", "epic"],
+  ["ph:auric_photonizer", "legendary"],
+  ["ph:auric_proton", "epic"],
+  ["ph:auric_star", "rare"],
+  ["ph:auric_stock_battery", "rare"],
+  ["ph:charged_copper_axe", "epic"],
+  ["ph:condensed_sea_nature", "epic"],
+  ["ph:copper_mechanical_array_treasure_bag", "epic"],
+  ["ph:cruxshaper", "epic"],
+  ["ph:fire_bracelet", "epic"],
+  ["ph:flow_channeler", "epic"],
+  ["ph:guidebook", "uncommon"],
+  ["ph:hell_charge", "uncommon"],
+  ["ph:impulse_booster", "epic"],
+  ["ph:naturalist_boots", "rare"],
+  ["ph:naturalist_chestplate", "rare"],
+  ["ph:naturalist_helmet", "rare"],
+  ["ph:naturalist_leggings", "rare"],
+  ["ph:nature_staff", "epic"],
+  ["ph:ocean_tide_boots", "rare"],
+  ["ph:ocean_tide_chestplate", "rare"],
+  ["ph:ocean_tide_helmet", "rare"],
+  ["ph:ocean_tide_leggings", "rare"],
+  ["ph:peacemaker_oath", "epic"],
+  ["ph:prism_weaver", "legendary"],
+  ["ph:prismatic_axe", "rare"],
+  ["ph:prismatic_hoe", "rare"],
+  ["ph:prismatic_ingot", "rare"],
+  ["ph:prismatic_pickaxe", "rare"],
+  ["ph:prismatic_shovel", "rare"],
+  ["ph:prismatic_spear", "rare"],
+  ["ph:prismatic_sword", "rare"],
+  ["ph:punicea_crimson_eye_treasure_bag", "epic"],
+  ["ph:rust_coin", "epic"],
+  ["ph:scimitar", "rare"],
+  ["ph:scimitar_2", "rare"],
+  ["ph:seiketsu", "epic"],
+  ["ph:sentinel_scale", "rare"],
+  ["ph:sentinel_shield", "rare"],
+  ["ph:solaris_verdant", "legendary"],
+  ["ph:solarium_axe", "rare"],
+  ["ph:solarium_boots", "uncommon"],
+  ["ph:solarium_chestplate", "uncommon"],
+  ["ph:solarium_helmet", "uncommon"],
+  ["ph:solarium_hoe", "rare"],
+  ["ph:solarium_ingot", "uncommon"],
+  ["ph:solarium_leggings", "uncommon"],
+  ["ph:solarium_pickaxe", "rare"],
+  ["ph:solarium_shovel", "rare"],
+  ["ph:solarium_spear", "rare"],
+  ["ph:solarium_sword", "rare"],
+  ["ph:soul_of_nature_treasure_bag", "epic"],
+  ["ph:spectral_arrow", "uncommon"],
+  ["ph:spectric_bow", "epic"],
+  ["ph:supercharged_copper_axe", "legendary"],
+  ["ph:suspicious_mushroom", "epic"],
+  ["ph:the_bleeding_spire", "legendary"],
+  ["ph:the_crimson_watcher", "epic"],
+  ["ph:thunder_gale", "epic"],
+  ["ph:time_polarizer", "epic"],
+  ["ph:titan_upgrade_smithing_template", "rare"],
+  ["ph:weeping_repair", "epic"],
+  ["ph:wither_treasure_bag", "epic"],
+  ["ph:xeon_plasm_axe", "epic"],
+  ["ph:xeon_plasm_boots", "epic"],
+  ["ph:xeon_plasm_chestplate", "epic"],
+  ["ph:xeon_plasm_helmet", "epic"],
+  ["ph:xeon_plasm_hoe", "epic"],
+  ["ph:xeon_plasm_leggings", "epic"],
+  ["ph:xeon_plasm_pickaxe", "epic"],
+  ["ph:xeon_plasm_shovel", "epic"],
+  ["ph:xeon_plasm_spear", "epic"],
+  ["ph:xeon_plasm_sword", "epic"],
+  ["ph:xeon_plasma", "rare"],
+  ["ph:xeonnite_cube", "rare"],
+  ["ph:xeonnite_shard", "uncommon"],
+  ["minecraft:creeper_banner_pattern", "uncommon"],
+  ["minecraft:piglin_banner_pattern", "uncommon"],
+  ["minecraft:book", "uncommon"],
+  ["minecraft:sniffer_egg", "uncommon"],
+  ["minecraft:chainmail_helmet", "uncommon"],
+  ["minecraft:chainmail_chestplate", "uncommon"],
+  ["minecraft:chainmail_leggings", "uncommon"],
+  ["minecraft:chainmail_boots", "uncommon"],
+  ["minecraft:recovery_compass", "uncommon"],
+  ["minecraft:disc_fragment_5", "uncommon"],
+  ["minecraft:nautilus_shell", "uncommon"],
+  ["minecraft:echo_shard", "uncommon"],
+  ["minecraft:goat_horn", "uncommon"],
+  ["minecraft:ominous_bottle", "uncommon"],
+  ["minecraft:netherite_upgrade_smithing_template", "uncommon"],
+  ["minecraft:totem_of_undying", "uncommon"],
+  ["minecraft:experience_bottle", "uncommon"],
+  ["minecraft:conduit", "uncommon"],
+  ["minecraft:heart_of_the_sea", "uncommon"],
+  ["minecraft:dragon_breath", "uncommon"],
+  ["minecraft:player_head", "uncommon"],
+  ["minecraft:zombie_head", "uncommon"],
+  ["minecraft:creeper_head", "uncommon"],
+  ["minecraft:skeleton_skull", "uncommon"],
+  ["minecraft:piglin_head", "uncommon"],
+  ["minecraft:angler_pottery_sherd", "uncommon"],
+  ["minecraft:archer_pottery_sherd", "uncommon"],
+  ["minecraft:arms_up_pottery_sherd", "uncommon"],
+  ["minecraft:blade_pottery_sherd", "uncommon"],
+  ["minecraft:brewer_pottery_sherd", "uncommon"],
+  ["minecraft:burn_pottery_sherd", "uncommon"],
+  ["minecraft:danger_pottery_sherd", "uncommon"],
+  ["minecraft:explorer_pottery_sherd", "uncommon"],
+  ["minecraft:flow_pottery_sherd", "uncommon"],
+  ["minecraft:friend_pottery_sherd", "uncommon"],
+  ["minecraft:guster_pottery_sherd", "uncommon"],
+  ["minecraft:heart_pottery_sherd", "uncommon"],
+  ["minecraft:heartbreak_pottery_sherd", "uncommon"],
+  ["minecraft:howl_pottery_sherd", "uncommon"],
+  ["minecraft:miner_pottery_sherd", "uncommon"],
+  ["minecraft:mourner_pottery_sherd", "uncommon"],
+  ["minecraft:plenty_pottery_sherd", "uncommon"],
+  ["minecraft:prize_pottery_sherd", "uncommon"],
+  ["minecraft:scrape_pottery_sherd", "uncommon"],
+  ["minecraft:sheaf_pottery_sherd", "uncommon"],
+  ["minecraft:shelter_pottery_sherd", "uncommon"],
+  ["minecraft:skull_pottery_sherd", "uncommon"],
+  ["minecraft:snort_pottery_sherd", "uncommon"],
+  ["minecraft:sentry_armor_trim_smithing_template", "uncommon"],
+  ["minecraft:dune_armor_trim_smithing_template", "uncommon"],
+  ["minecraft:coast_armor_trim_smithing_template", "uncommon"],
+  ["minecraft:wild_armor_trim_smithing_template", "uncommon"],
+  ["minecraft:tide_armor_trim_smithing_template", "uncommon"],
+  ["minecraft:snout_armor_trim_smithing_template", "uncommon"],
+  ["minecraft:rib_armor_trim_smithing_template", "uncommon"],
+  ["minecraft:wayfinder_armor_trim_smithing_template", "uncommon"],
+  ["minecraft:shaper_armor_trim_smithing_template", "uncommon"],
+  ["minecraft:raiser_armor_trim_smithing_template", "uncommon"],
+  ["minecraft:host_armor_trim_smithing_template", "uncommon"],
+  ["minecraft:flow_armor_trim_smithing_template", "uncommon"],
+  ["minecraft:bolt_armor_trim_smithing_template", "uncommon"],
+  ["minecraft:music_disc_13", "uncommon"],
+  ["minecraft:music_disc_cat", "uncommon"],
+  ["minecraft:music_disc_blocks", "uncommon"],
+  ["minecraft:music_disc_chirp", "uncommon"],
+  ["minecraft:music_disc_far", "uncommon"],
+  ["minecraft:music_disc_mall", "uncommon"],
+  ["minecraft:music_disc_mellohi", "uncommon"],
+  ["minecraft:music_disc_stal", "uncommon"],
+  ["minecraft:music_disc_strad", "uncommon"],
+  ["minecraft:music_disc_ward", "uncommon"],
+  ["minecraft:music_disc_11", "uncommon"],
+  ["minecraft:music_disc_wait", "uncommon"],
+  ["minecraft:music_disc_5", "uncommon"],
+  ["minecraft:music_disc_relic", "uncommon"],
+  ["minecraft:music_disc_creator_music_box", "uncommon"],
+  ["minecraft:music_disc_precipice", "uncommon"],
+  ["minecraft:music_disc_tears", "uncommon"],
+  ["minecraft:music_disc_lava_chicken", "uncommon"],
+  ["minecraft:flow_banner_pattern", "rare"],
+  ["minecraft:guster_banner_pattern", "rare"],
+  ["minecraft:skull_banner_pattern", "rare"],
+  ["minecraft:mojang_banner_pattern", "rare"],
+  ["minecraft:enchanted_golden_apple", "rare"],
+  ["minecraft:trident", "rare"],
+  ["minecraft:nether_star", "rare"],
+  ["minecraft:wither_skeleton_skull", "rare"],
+  ["minecraft:beacon", "rare"],
+  ["minecraft:ward_armor_trim_smithing_template", "rare"],
+  ["minecraft:eye_armor_trim_smithing_template", "rare"],
+  ["minecraft:vex_armor_trim_smithing_template", "rare"],
+  ["minecraft:spire_armor_trim_smithing_template", "rare"],
+  ["minecraft:music_disc_pigstep", "rare"],
+  ["minecraft:music_disc_otherside", "rare"],
+  ["minecraft:music_disc_creator", "rare"],
+  ["minecraft:elytra", "epic"],
+  ["minecraft:dragon_head", "epic"],
+  ["minecraft:dragon_egg", "epic"],
+  ["minecraft:heavy_core", "epic"],
+  ["minecraft:mace", "epic"],
+  ["minecraft:silence_armor_trim_smithing_template", "epic"]
+]);
+var UPGRADE = { common: "rare", uncommon: "rare", rare: "epic", epic: "epic", legendary: "legendary" };
+function getItemRarity(item) {
+  const base = RARITY.get(item.typeId) ?? "common";
+  if (base === "epic" || base === "legendary" || item.typeId === "minecraft:enchanted_book") return base;
+  const enchanted = (item.getComponent("minecraft:enchantable")?.getEnchantments().length ?? 0) > 0;
+  return enchanted ? UPGRADE[base] : base;
+}
+
+// data/scripts/systems/movement.ts
 function dashRuntime(player) {
   const scoreboard_dash = world5.scoreboard.getObjective("dash_cd");
   if (!scoreboard_dash || (scoreboard_dash.getScore(player) ?? 0) > 0) return;
@@ -2424,49 +2647,110 @@ function dashRuntime(player) {
     });
   }
 }
+var PLUNGE_MIN_HEIGHT = 10;
+var PLUNGE_RADIUS = 6;
+var PLUNGE_DAMAGE = 10;
+var PLUNGE_HANG_TICKS = 4;
+var PLUNGE_DIVE_SPEED = 1.6;
+var PLUNGE_MAX_TICKS = 100;
+var NO_FALL_GRACE_TICKS = 5;
+var PLUNGE_ANIM_OPTS = { controller: "ph_plunge", blendOutTime: 0.15 };
+var plunging = /* @__PURE__ */ new Map();
+var noFallUntil = /* @__PURE__ */ new Map();
+function heightAboveGround(player) {
+  try {
+    const hit = player.dimension.getBlockFromRay(player.location, { x: 0, y: -1, z: 0 }, {
+      maxDistance: 64,
+      includeLiquidBlocks: true,
+      includePassableBlocks: false
+    });
+    return hit ? player.location.y - (hit.block.location.y + hit.faceLocation.y) : Infinity;
+  } catch {
+    return 0;
+  }
+}
 function windPlungeRuntime(player) {
-  if (!player.isFalling || player.getDynamicProperty("ph:plunge_unlock") == false || player.getDynamicProperty("ph:plunge_unlock") == void 0) return;
-  const { x, y, z } = player.location;
-  const checkHeights = [1, 2, 3, 4, 6, 8, 10];
-  const minHeight = player.dimension.heightRange.min;
-  const isHighEnough = checkHeights.every((i) => {
-    const location = { x: Math.floor(x), y: Math.floor(y) - i, z: Math.floor(z) };
-    if (location.y < minHeight) return true;
-    const block = player.dimension.getBlock(location);
-    return !block || block.typeId === "minecraft:air";
+  if (player.getDynamicProperty("ph:plunge_unlock") !== true) return false;
+  if (plunging.has(player.id)) return false;
+  if (!player.isFalling || player.isOnGround || player.isInWater || player.isGliding || player.isFlying) return false;
+  if (heightAboveGround(player) <= PLUNGE_MIN_HEIGHT) return false;
+  plunging.set(player.id, system10.currentTick);
+  noFallUntil.set(player.id, Infinity);
+  player.playAnimation("animation.player_extend.plunge_attack", PLUNGE_ANIM_OPTS);
+  player.dimension.spawnParticle("minecraft:wind_explosion_emitter", player.location);
+  player.dimension.playSound("wind_charge.burst", player.location);
+  player.playSound("mob.enderdragon.flap", { volume: 0.5, pitch: 1.8 });
+  return true;
+}
+function plungeImpact(player) {
+  const dimension = player.dimension;
+  const location = player.location;
+  player.playAnimation("animation.player_extend.plunge_land", PLUNGE_ANIM_OPTS);
+  try {
+    dimension.playSound("random.explode", location, { volume: 0.5, pitch: 1.6 });
+    dimension.playSound("dig.stone", location, { volume: 1, pitch: 0.6 });
+    dimension.spawnParticle("minecraft:breeze_wind_explosion_emitter", location);
+    dimension.spawnParticle("ph:plunge_shockwave", location);
+    dimension.spawnParticle("minecraft:critical_hit_emitter", { x: location.x, y: location.y + 0.2, z: location.z });
+    player.runCommand("camerashake add @s 0.25 0.15 positional");
+  } catch {
+  }
+  let pvp = true;
+  try {
+    pvp = world5.gameRules.pvp;
+  } catch {
+  }
+  const excludeTypes = ["minecraft:item", "minecraft:armor_stand"];
+  if (!pvp) excludeTypes.push("minecraft:player");
+  const targets = dimension.getEntities({
+    location,
+    maxDistance: PLUNGE_RADIUS,
+    excludeTypes,
+    excludeFamilies: ["inanimate"]
   });
-  if (!isHighEnough) return;
-  if (player.hasTag("windPlunge")) return;
-  function impact2() {
-    if (!player.isValid || !player.getComponent("minecraft:health")) return;
-    if (player.hasTag("windPlunge")) {
-      player.removeEffect("resistance");
-      player.dimension.spawnParticle("minecraft:breeze_wind_explosion_emitter", player.location);
-      player.runCommand("damage @e[r=6,rm=0.1] 10 entity_explosion entity @s");
-      player.dimension.playSound("random.explode", player.location);
-      player.removeTag("windPlunge");
+  for (const target of targets) {
+    if (target.id === player.id) continue;
+    try {
+      target.applyDamage(PLUNGE_DAMAGE, { cause: EntityDamageCause4.entityAttack, damagingEntity: player });
+    } catch {
     }
   }
-  const runInterval = system10.runInterval(() => {
-    if (!player.isValid) {
-      system10.clearRun(runInterval);
-      return;
+}
+function tickPlunges() {
+  const now = system10.currentTick;
+  for (const [id, start] of plunging) {
+    const player = world5.getEntity(id);
+    if (!player?.isValid) {
+      plunging.delete(id);
+      noFallUntil.delete(id);
+      continue;
     }
-    if (!player.isOnGround) return;
-    system10.run(impact2);
-    system10.clearRun(runInterval);
-  }, 2);
-  player.applyKnockback({ x: 0, z: 0 }, -2);
-  player.dimension.spawnParticle("minecraft:wind_explosion_emitter", player.location);
-  player.playAnimation("animation.player_extend.plunge", {
-    stopExpression: "query.is_on_ground"
-  });
-  player.dimension.playSound("wind_charge.burst", player.location);
-  player.addTag("windPlunge");
-  player.addEffect("resistance", 2e7, {
-    amplifier: 3,
-    showParticles: false
-  });
+    const elapsedTicks = now - start;
+    if (player.isOnGround || player.isInWater || elapsedTicks > PLUNGE_MAX_TICKS) {
+      plunging.delete(id);
+      noFallUntil.set(id, now + NO_FALL_GRACE_TICKS);
+      if (player.isOnGround) plungeImpact(player);
+      else player.playAnimation("animation.player_extend.plunge_land", PLUNGE_ANIM_OPTS);
+      continue;
+    }
+    try {
+      if (elapsedTicks < PLUNGE_HANG_TICKS) player.applyKnockback({ x: 0, z: 0 }, 0.04);
+      else player.applyKnockback({ x: 0, z: 0 }, -PLUNGE_DIVE_SPEED);
+    } catch {
+    }
+  }
+}
+function onPlungeFallHurt(event) {
+  if (event.damageSource.cause !== EntityDamageCause4.fall) return;
+  const id = event.hurtEntity.id;
+  const until = noFallUntil.get(id);
+  if (until === void 0) return;
+  if (system10.currentTick <= until) event.cancel = true;
+  else noFallUntil.delete(id);
+}
+function clearPlungeState(playerId) {
+  plunging.delete(playerId);
+  noFallUntil.delete(playerId);
 }
 function strippingSound(typeId) {
   if (typeId === "minecraft:cherry_log") return "step.cherry_wood";
@@ -2540,6 +2824,26 @@ function parryRuntime(source, itemStack) {
     if (source.hasTag("parried")) source.removeTag("parried");
     source.inputPermissions.setPermissionCategory(2, true);
   }, 6);
+}
+var CUSTOM_WEAPON_TAGS = ["minecraft:is_sword", "minecraft:is_axe", "minecraft:is_spear"];
+var CUSTOM_PARRY_TICKS = 8;
+function isEpicCustomWeapon(item) {
+  if (!item?.typeId.startsWith("ph:")) return false;
+  const rarity = getItemRarity(item);
+  if (rarity !== "epic" && rarity !== "legendary") return false;
+  return LEGENDARY_TIER.includes(item.typeId) || CUSTOM_WEAPON_TAGS.some((tag) => item.hasTag(tag));
+}
+function customWeaponParry(player) {
+  const item = player.getComponent("minecraft:equippable")?.getEquipment(EquipmentSlot4.Mainhand);
+  if (!isEpicCustomWeapon(item)) return;
+  if (player.hasTag("parried") || plunging.has(player.id)) return;
+  player.playAnimation("animation.player_extend.parry");
+  player.dimension.spawnParticle("ph:parry_prepare", player.location);
+  player.dimension.playSound("item.spear.use", player.location);
+  player.addTag("parried");
+  system10.runTimeout(() => {
+    if (player.isValid && player.hasTag("parried")) player.removeTag("parried");
+  }, CUSTOM_PARRY_TICKS);
 }
 function startBetterMending(source, itemStack) {
   if (!source.isSneaking || !itemStack) return;
@@ -2701,6 +3005,12 @@ var SKILL_SWITCH_CONTROL = {
   SNEAK_ATTACK: 1,
   DOUBLE_SNEAK: 2
 };
+var PARRY_CONTROL = {
+  SNEAK: 0,
+  SNEAK_ATTACK: 1,
+  DOUBLE_SNEAK: 2,
+  DISABLED: 3
+};
 var DASH_CONTROL_NAMES = [
   "Double-tap Jump",
   "Sprint + Jump",
@@ -2718,8 +3028,32 @@ var DASH_CONTROL_HINTS = [
 ];
 var SKILL_SWITCH_CONTROL_HINTS = [
   "\xA7aSneak \xA77- Press Sneak while holding a Legendary weapon.",
-  "\xA7aSneak + Attack \xA77- Press Sneak, then Attack while holding a Legendary weapon.",
+  "\xA7aSneak + Attack \xA77- Attack while sneaking (or right after tapping Sneak) with a Legendary weapon.",
   "\xA7aDouble Sneak \xA77- Press Sneak twice quickly while holding a Legendary weapon."
+];
+var PARRY_CONTROL_NAMES = [
+  "Sneak",
+  "Sneak + Attack",
+  "Double Sneak",
+  "Disabled"
+];
+var PARRY_CONTROL_HINTS = [
+  "\xA7aSneak \xA77- Press Sneak while holding an Epic or Legendary weapon.",
+  "\xA7aSneak + Attack \xA77- Attack while sneaking (or right after tapping Sneak) with an Epic or Legendary weapon.",
+  "\xA7aDouble Sneak \xA77- Press Sneak twice quickly while holding an Epic or Legendary weapon.",
+  "\xA7aDisabled \xA77- Epic and Legendary weapons never parry from Sneak."
+];
+var PARRY_SOUND = {
+  PHANTASM: 0,
+  LUNA: 1
+};
+var PARRY_SOUND_NAMES = [
+  "Phantasm",
+  "Luna"
+];
+var PARRY_SOUND_HINTS = [
+  "\xA7aPhantasm \xA77- The Phantasm blade clash.",
+  "\xA7aLuna \xA77- The parry sound from Project Luna."
 ];
 var DOUBLE_TAP_WINDOW = 300;
 var COMBO_WINDOW = 500;
@@ -2734,6 +3068,8 @@ function getState(player) {
   const state = {
     dash: readControl(player, "ph:dash_control", DASH_CONTROL_NAMES.length),
     skill: readControl(player, "ph:skill_switch_control", SKILL_SWITCH_CONTROL_NAMES.length),
+    parry: readControl(player, "ph:parry_control", PARRY_CONTROL_NAMES.length),
+    parrySound: readControl(player, "ph:parry_sound", PARRY_SOUND_NAMES.length),
     jumpAt: -Infinity,
     sneakAt: -Infinity
   };
@@ -2758,44 +3094,65 @@ function setSkillSwitchControl(player, control) {
   player.setDynamicProperty("ph:skill_switch_control", control);
   getState(player).skill = control;
 }
+function getParryControl(player) {
+  return getState(player).parry;
+}
+function setParryControl(player, control) {
+  player.setDynamicProperty("ph:parry_control", control);
+  getState(player).parry = control;
+}
+function getParrySound(player) {
+  return getState(player).parrySound;
+}
+function setParrySound(player, sound) {
+  player.setDynamicProperty("ph:parry_sound", sound);
+  getState(player).parrySound = sound;
+}
 function clearControlState(player) {
   states.delete(player.id);
 }
 function onControlButtonInput(player, button) {
-  if (button != "Jump" && button != "Sneak") return;
+  if (button != "Jump" && button != "Sneak") return [];
   const now = Date.now();
   const state = getState(player);
   if (button == "Jump") {
     const doubleTapped2 = elapsed(now, state.jumpAt) <= DOUBLE_TAP_WINDOW;
     state.jumpAt = now;
     if (state.dash == DASH_CONTROL.SPRINT_JUMP) {
-      if (player.isSprinting) return "dash";
+      if (player.isSprinting) return ["dash"];
     } else if (state.dash == DASH_CONTROL.DOUBLE_TAP_JUMP && doubleTapped2) {
-      return "dash";
+      return ["dash"];
     }
-    return;
+    return [];
   }
   const doubleTapped = elapsed(now, state.sneakAt) <= DOUBLE_TAP_WINDOW;
   state.sneakAt = now;
   if (state.dash == DASH_CONTROL.JUMP_SNEAK && elapsed(now, state.jumpAt) <= COMBO_WINDOW) {
     state.jumpAt = -Infinity;
-    return "airDash";
+    return ["airDash"];
   }
+  const actions = [];
   if (state.skill == SKILL_SWITCH_CONTROL.SNEAK) {
-    return player.isSneaking ? "switchSkill" : void 0;
+    if (player.isSneaking) actions.push("switchSkill");
+  } else if (state.skill == SKILL_SWITCH_CONTROL.DOUBLE_SNEAK && doubleTapped) {
+    actions.push("switchSkill");
   }
-  if (state.skill == SKILL_SWITCH_CONTROL.DOUBLE_SNEAK && doubleTapped) {
-    state.sneakAt = -Infinity;
-    return "switchSkill";
+  if (state.parry == PARRY_CONTROL.SNEAK || state.parry == PARRY_CONTROL.DOUBLE_SNEAK && doubleTapped) {
+    actions.push("parry");
   }
+  const usedDoubleSneak = doubleTapped && (state.skill == SKILL_SWITCH_CONTROL.DOUBLE_SNEAK && actions.includes("switchSkill") || state.parry == PARRY_CONTROL.DOUBLE_SNEAK && actions.includes("parry"));
+  if (usedDoubleSneak) state.sneakAt = -Infinity;
+  return actions;
 }
 function onControlSwingInput(player, swingSource) {
-  if (swingSource != "Mine" && swingSource != "Attack") return;
+  if (swingSource != "Mine" && swingSource != "Attack") return [];
   const state = getState(player);
-  if (state.skill != SKILL_SWITCH_CONTROL.SNEAK_ATTACK) return;
-  if (elapsed(Date.now(), state.sneakAt) > COMBO_WINDOW) return;
-  state.sneakAt = -Infinity;
-  return "switchSkill";
+  const actions = [];
+  if (!player.isSneaking && elapsed(Date.now(), state.sneakAt) > COMBO_WINDOW) return actions;
+  if (state.skill == SKILL_SWITCH_CONTROL.SNEAK_ATTACK) actions.push("switchSkill");
+  if (state.parry == PARRY_CONTROL.SNEAK_ATTACK) actions.push("parry");
+  if (actions.length) state.sneakAt = -Infinity;
+  return actions;
 }
 
 // data/scripts/features/weapons/weapons.ts
@@ -2990,7 +3347,7 @@ function switchHeldWeaponSkill(player) {
 }
 
 // data/scripts/features/mace/detection.ts
-import { world as world6, system as system11, EquipmentSlot as EquipmentSlot7, Player as Player12, EntityDamageCause as EntityDamageCause4 } from "@minecraft/server";
+import { world as world6, system as system11, EquipmentSlot as EquipmentSlot7, Player as Player12, EntityDamageCause as EntityDamageCause5 } from "@minecraft/server";
 
 // data/scripts/features/mace/manager.ts
 import { EntityEquippableComponent, EquipmentSlot as EquipmentSlot6 } from "@minecraft/server";
@@ -3043,7 +3400,7 @@ var recentSwingHit = /* @__PURE__ */ new Set();
 var playerFallData = /* @__PURE__ */ new Map();
 function onMaceHurt(event) {
   const { damageSource, hurtEntity: victim } = event;
-  if (damageSource.cause === EntityDamageCause4.maceSmash) return;
+  if (damageSource.cause === EntityDamageCause5.maceSmash) return;
   const attacker = damageSource.damagingEntity;
   if (!(attacker instanceof Player12)) return;
   if (recentSwingHit.has(attacker.id)) return;
@@ -3095,7 +3452,7 @@ function executeMaceSlam(attacker, victim, fallDistance, item, wbLevel = 0) {
     const dmg = fallDistance <= 3 ? fallDistance * 8 : fallDistance <= 8 ? 24 + (fallDistance - 3) * 4 : 44 + (fallDistance - 8) * 2;
     const density = enchantable?.getEnchantment("density")?.level ?? 0;
     const totalDmg = Math.floor(dmg + density * 1 * fallDistance);
-    if (victim.isValid) victim.applyDamage(totalDmg, { cause: EntityDamageCause4.maceSmash, damagingEntity: attacker });
+    if (victim.isValid) victim.applyDamage(totalDmg, { cause: EntityDamageCause5.maceSmash, damagingEntity: attacker });
     playerFallData.delete(attacker.id);
   });
 }
@@ -3169,7 +3526,7 @@ import {
   Player as Player14,
   EasingType,
   EntityComponentTypes,
-  EntityDamageCause as EntityDamageCause5,
+  EntityDamageCause as EntityDamageCause6,
   InputPermissionCategory,
   MolangVariableMap as MolangVariableMap4
 } from "@minecraft/server";
@@ -3340,7 +3697,7 @@ function onBlessingSpawn(player, initialSpawn) {
 function damageDealer(acc) {
   const { damagingEntity, damagingProjectile, cause } = acc.damageSource;
   if (damagingEntity ?? damagingProjectile) return damagingEntity ?? damagingProjectile;
-  if (cause !== EntityDamageCause5.lightning) return void 0;
+  if (cause !== EntityDamageCause6.lightning) return void 0;
   const { location, dimension } = acc.hurtEntity;
   return dimension.getEntities({ type: "minecraft:lightning_bolt", location, maxDistance: 6, closest: 1 })[0];
 }
@@ -3398,7 +3755,7 @@ function forgetWard(removedEntityId) {
 import {
   world as world8,
   system as system13,
-  EntityDamageCause as EntityDamageCause6
+  EntityDamageCause as EntityDamageCause7
 } from "@minecraft/server";
 var TROOPER_ID = "ph:forge_trooper";
 var NERF_PROPERTY = "ph:forge_parry_nerf_until";
@@ -3527,7 +3884,7 @@ function startSweep(trooper, st) {
       if (target.id === trooper.id || !isValidTarget2(target)) continue;
       if (!trooper.isValid) return;
       target.applyDamage(damage, {
-        cause: EntityDamageCause6.entityAttack,
+        cause: EntityDamageCause7.entityAttack,
         damagingEntity: trooper
       });
     }
@@ -3638,7 +3995,7 @@ function onTrooperRemove(removedEntityId, typeId) {
 // data/scripts/features/polaris_power/manager.ts
 import {
   system as system14,
-  EntityDamageCause as EntityDamageCause7,
+  EntityDamageCause as EntityDamageCause8,
   GameMode as GameMode4,
   InputPermissionCategory as InputPermissionCategory2
 } from "@minecraft/server";
@@ -3756,7 +4113,7 @@ function fireBeam(player) {
   for (const target of targets) {
     if (!isInBeam(target, start, dir, length)) continue;
     if (!player.isValid) break;
-    target.applyDamage(BEAM_DAMAGE, { cause: EntityDamageCause7.magic, damagingEntity: player });
+    target.applyDamage(BEAM_DAMAGE, { cause: EntityDamageCause8.magic, damagingEntity: player });
   }
   if (player.isValid) player.removeTag(STRIKE_TAG);
 }
@@ -3812,7 +4169,7 @@ function onPolarisSpawn(player, initialSpawn) {
 }
 
 // data/scripts/features/titan_core/radiation.ts
-import { world as world9, GameMode as GameMode5, EntityComponentTypes as EntityComponentTypes2, EntityDamageCause as EntityDamageCause8, EquipmentSlot as EquipmentSlot8 } from "@minecraft/server";
+import { world as world9, GameMode as GameMode5, EntityComponentTypes as EntityComponentTypes2, EntityDamageCause as EntityDamageCause9, EquipmentSlot as EquipmentSlot8 } from "@minecraft/server";
 var CORE_ID2 = "ph:titan_core";
 var SET_TAG = "ph:xeon_plasm_tier";
 var CORE_RADIUS = 32;
@@ -3833,9 +4190,9 @@ function tickTitanRadiation() {
     if (!player.isValid || (player.getComponent(EntityComponentTypes2.Health)?.currentValue ?? 0) <= 0) continue;
     if (hasXeonPlasmSet(player)) continue;
     if (nearLivingCore(player)) {
-      player.applyDamage(CORE_DAMAGE, { cause: EntityDamageCause8.magic });
+      player.applyDamage(CORE_DAMAGE, { cause: EntityDamageCause9.magic });
     } else if (inTitanRidge(player)) {
-      player.applyDamage(BIOME_DAMAGE, { cause: EntityDamageCause8.magic });
+      player.applyDamage(BIOME_DAMAGE, { cause: EntityDamageCause9.magic });
     }
   }
 }
@@ -3844,7 +4201,7 @@ function tickTitanRadiation() {
 import {
   system as system15,
   world as world10,
-  EntityDamageCause as EntityDamageCause9,
+  EntityDamageCause as EntityDamageCause10,
   EntityEquippableComponent as EntityEquippableComponent2,
   EntityOnFireComponent,
   EquipmentSlot as EquipmentSlot9,
@@ -3965,14 +4322,14 @@ function onShieldHurt(data) {
     for (const slot of [EquipmentSlot9.Head, EquipmentSlot9.Chest, EquipmentSlot9.Legs, EquipmentSlot9.Feet]) {
       const ench = equippable.getEquipment(slot)?.getComponent(ItemEnchantableComponent.componentId);
       protection += ench?.getEnchantment("protection")?.level ?? 0;
-      if (source.cause === EntityDamageCause9.projectile) protection += ench?.getEnchantment("projectile_protection")?.level ?? 0;
+      if (source.cause === EntityDamageCause10.projectile) protection += ench?.getEnchantment("projectile_protection")?.level ?? 0;
     }
     const armor = Math.min(equippable.totalArmor, 20);
     if (armor) rawDamage /= 1 - armor * 0.04;
     if (protection) rawDamage /= 1 - Math.min(protection, 20) * 0.04;
   }
   const attacker = source.damagingEntity;
-  const disables = !!attacker && (attacker.typeId === "minecraft:vindicator" || attacker.typeId === "minecraft:piglin_brute" || attacker.typeId === "minecraft:warden" && source.cause === EntityDamageCause9.entityAttack || !!attacker.getComponent(EntityEquippableComponent2.componentId)?.getEquipment(EquipmentSlot9.Mainhand)?.hasTag("minecraft:is_axe"));
+  const disables = !!attacker && (attacker.typeId === "minecraft:vindicator" || attacker.typeId === "minecraft:piglin_brute" || attacker.typeId === "minecraft:warden" && source.cause === EntityDamageCause10.entityAttack || !!attacker.getComponent(EntityEquippableComponent2.componentId)?.getEquipment(EquipmentSlot9.Mainhand)?.hasTag("minecraft:is_axe"));
   const hadFire = player.getComponent(EntityOnFireComponent.componentId) !== void 0;
   data.cancel = true;
   cancelledEffects.add(id);
@@ -3982,7 +4339,7 @@ function onShieldHurt(data) {
     const shield = getHeldShield(player);
     if (!shield) return;
     const params = getParams(shield.item);
-    if (attacker?.isValid && attacker.typeId === "minecraft:ravager" && source.cause === EntityDamageCause9.entityAttack) {
+    if (attacker?.isValid && attacker.typeId === "minecraft:ravager" && source.cause === EntityDamageCause10.entityAttack) {
       attacker.triggerEvent("minecraft:become_stunned");
     }
     if (!hadFire && player.getComponent(EntityOnFireComponent.componentId)) player.extinguishFire();
@@ -4218,222 +4575,6 @@ function tickTitanRidgeSites() {
 
 // data/scripts/systems/lootBeam.ts
 import { MolangVariableMap as MolangVariableMap5, system as system16 } from "@minecraft/server";
-
-// data/scripts/core/itemRarity.ts
-import "@minecraft/server";
-var RARITY = /* @__PURE__ */ new Map([
-  ["ph:a_part_of_polaris_power", "epic"],
-  ["ph:astral_upgrade_smithing_template", "rare"],
-  ["ph:astralith_alloy", "rare"],
-  ["ph:astralith_axe", "epic"],
-  ["ph:astralith_boots", "epic"],
-  ["ph:astralith_chestplate", "epic"],
-  ["ph:astralith_helmet", "epic"],
-  ["ph:astralith_hoe", "epic"],
-  ["ph:astralith_leggings", "epic"],
-  ["ph:astralith_pickaxe", "epic"],
-  ["ph:astralith_shovel", "epic"],
-  ["ph:astralith_spear", "epic"],
-  ["ph:astralith_sword", "epic"],
-  ["ph:astralium", "uncommon"],
-  ["ph:astralium_axe", "rare"],
-  ["ph:astralium_boots", "rare"],
-  ["ph:astralium_chestplate", "rare"],
-  ["ph:astralium_helmet", "rare"],
-  ["ph:astralium_hoe", "rare"],
-  ["ph:astralium_leggings", "rare"],
-  ["ph:astralium_pickaxe", "rare"],
-  ["ph:astralium_shovel", "rare"],
-  ["ph:astralium_spear", "rare"],
-  ["ph:astralium_sword", "rare"],
-  ["ph:auric_charging_module", "rare"],
-  ["ph:auric_communicator", "epic"],
-  ["ph:auric_photonizer", "legendary"],
-  ["ph:auric_proton", "epic"],
-  ["ph:auric_star", "rare"],
-  ["ph:auric_stock_battery", "rare"],
-  ["ph:charged_copper_axe", "epic"],
-  ["ph:condensed_sea_nature", "epic"],
-  ["ph:copper_mechanical_array_treasure_bag", "epic"],
-  ["ph:cruxshaper", "epic"],
-  ["ph:fire_bracelet", "epic"],
-  ["ph:flow_channeler", "epic"],
-  ["ph:guidebook", "uncommon"],
-  ["ph:hell_charge", "uncommon"],
-  ["ph:impulse_booster", "epic"],
-  ["ph:naturalist_boots", "rare"],
-  ["ph:naturalist_chestplate", "rare"],
-  ["ph:naturalist_helmet", "rare"],
-  ["ph:naturalist_leggings", "rare"],
-  ["ph:nature_staff", "epic"],
-  ["ph:ocean_tide_boots", "rare"],
-  ["ph:ocean_tide_chestplate", "rare"],
-  ["ph:ocean_tide_helmet", "rare"],
-  ["ph:ocean_tide_leggings", "rare"],
-  ["ph:peacemaker_oath", "epic"],
-  ["ph:prism_weaver", "legendary"],
-  ["ph:prismatic_axe", "rare"],
-  ["ph:prismatic_hoe", "rare"],
-  ["ph:prismatic_ingot", "rare"],
-  ["ph:prismatic_pickaxe", "rare"],
-  ["ph:prismatic_shovel", "rare"],
-  ["ph:prismatic_spear", "rare"],
-  ["ph:prismatic_sword", "rare"],
-  ["ph:punicea_crimson_eye_treasure_bag", "epic"],
-  ["ph:rust_coin", "epic"],
-  ["ph:scimitar", "rare"],
-  ["ph:scimitar_2", "rare"],
-  ["ph:seiketsu", "epic"],
-  ["ph:sentinel_scale", "rare"],
-  ["ph:sentinel_shield", "rare"],
-  ["ph:solaris_verdant", "legendary"],
-  ["ph:solarium_axe", "rare"],
-  ["ph:solarium_boots", "uncommon"],
-  ["ph:solarium_chestplate", "uncommon"],
-  ["ph:solarium_helmet", "uncommon"],
-  ["ph:solarium_hoe", "rare"],
-  ["ph:solarium_ingot", "uncommon"],
-  ["ph:solarium_leggings", "uncommon"],
-  ["ph:solarium_pickaxe", "rare"],
-  ["ph:solarium_shovel", "rare"],
-  ["ph:solarium_spear", "rare"],
-  ["ph:solarium_sword", "rare"],
-  ["ph:soul_of_nature_treasure_bag", "epic"],
-  ["ph:spectral_arrow", "uncommon"],
-  ["ph:spectric_bow", "epic"],
-  ["ph:supercharged_copper_axe", "legendary"],
-  ["ph:suspicious_mushroom", "epic"],
-  ["ph:the_bleeding_spire", "legendary"],
-  ["ph:the_crimson_watcher", "epic"],
-  ["ph:thunder_gale", "epic"],
-  ["ph:time_polarizer", "epic"],
-  ["ph:titan_upgrade_smithing_template", "rare"],
-  ["ph:weeping_repair", "epic"],
-  ["ph:wither_treasure_bag", "epic"],
-  ["ph:xeon_plasm_axe", "epic"],
-  ["ph:xeon_plasm_boots", "epic"],
-  ["ph:xeon_plasm_chestplate", "epic"],
-  ["ph:xeon_plasm_helmet", "epic"],
-  ["ph:xeon_plasm_hoe", "epic"],
-  ["ph:xeon_plasm_leggings", "epic"],
-  ["ph:xeon_plasm_pickaxe", "epic"],
-  ["ph:xeon_plasm_shovel", "epic"],
-  ["ph:xeon_plasm_spear", "epic"],
-  ["ph:xeon_plasm_sword", "epic"],
-  ["ph:xeon_plasma", "rare"],
-  ["ph:xeonnite_cube", "rare"],
-  ["ph:xeonnite_shard", "uncommon"],
-  ["minecraft:creeper_banner_pattern", "uncommon"],
-  ["minecraft:piglin_banner_pattern", "uncommon"],
-  ["minecraft:book", "uncommon"],
-  ["minecraft:sniffer_egg", "uncommon"],
-  ["minecraft:chainmail_helmet", "uncommon"],
-  ["minecraft:chainmail_chestplate", "uncommon"],
-  ["minecraft:chainmail_leggings", "uncommon"],
-  ["minecraft:chainmail_boots", "uncommon"],
-  ["minecraft:recovery_compass", "uncommon"],
-  ["minecraft:disc_fragment_5", "uncommon"],
-  ["minecraft:nautilus_shell", "uncommon"],
-  ["minecraft:echo_shard", "uncommon"],
-  ["minecraft:goat_horn", "uncommon"],
-  ["minecraft:ominous_bottle", "uncommon"],
-  ["minecraft:netherite_upgrade_smithing_template", "uncommon"],
-  ["minecraft:totem_of_undying", "uncommon"],
-  ["minecraft:experience_bottle", "uncommon"],
-  ["minecraft:conduit", "uncommon"],
-  ["minecraft:heart_of_the_sea", "uncommon"],
-  ["minecraft:dragon_breath", "uncommon"],
-  ["minecraft:player_head", "uncommon"],
-  ["minecraft:zombie_head", "uncommon"],
-  ["minecraft:creeper_head", "uncommon"],
-  ["minecraft:skeleton_skull", "uncommon"],
-  ["minecraft:piglin_head", "uncommon"],
-  ["minecraft:angler_pottery_sherd", "uncommon"],
-  ["minecraft:archer_pottery_sherd", "uncommon"],
-  ["minecraft:arms_up_pottery_sherd", "uncommon"],
-  ["minecraft:blade_pottery_sherd", "uncommon"],
-  ["minecraft:brewer_pottery_sherd", "uncommon"],
-  ["minecraft:burn_pottery_sherd", "uncommon"],
-  ["minecraft:danger_pottery_sherd", "uncommon"],
-  ["minecraft:explorer_pottery_sherd", "uncommon"],
-  ["minecraft:flow_pottery_sherd", "uncommon"],
-  ["minecraft:friend_pottery_sherd", "uncommon"],
-  ["minecraft:guster_pottery_sherd", "uncommon"],
-  ["minecraft:heart_pottery_sherd", "uncommon"],
-  ["minecraft:heartbreak_pottery_sherd", "uncommon"],
-  ["minecraft:howl_pottery_sherd", "uncommon"],
-  ["minecraft:miner_pottery_sherd", "uncommon"],
-  ["minecraft:mourner_pottery_sherd", "uncommon"],
-  ["minecraft:plenty_pottery_sherd", "uncommon"],
-  ["minecraft:prize_pottery_sherd", "uncommon"],
-  ["minecraft:scrape_pottery_sherd", "uncommon"],
-  ["minecraft:sheaf_pottery_sherd", "uncommon"],
-  ["minecraft:shelter_pottery_sherd", "uncommon"],
-  ["minecraft:skull_pottery_sherd", "uncommon"],
-  ["minecraft:snort_pottery_sherd", "uncommon"],
-  ["minecraft:sentry_armor_trim_smithing_template", "uncommon"],
-  ["minecraft:dune_armor_trim_smithing_template", "uncommon"],
-  ["minecraft:coast_armor_trim_smithing_template", "uncommon"],
-  ["minecraft:wild_armor_trim_smithing_template", "uncommon"],
-  ["minecraft:tide_armor_trim_smithing_template", "uncommon"],
-  ["minecraft:snout_armor_trim_smithing_template", "uncommon"],
-  ["minecraft:rib_armor_trim_smithing_template", "uncommon"],
-  ["minecraft:wayfinder_armor_trim_smithing_template", "uncommon"],
-  ["minecraft:shaper_armor_trim_smithing_template", "uncommon"],
-  ["minecraft:raiser_armor_trim_smithing_template", "uncommon"],
-  ["minecraft:host_armor_trim_smithing_template", "uncommon"],
-  ["minecraft:flow_armor_trim_smithing_template", "uncommon"],
-  ["minecraft:bolt_armor_trim_smithing_template", "uncommon"],
-  ["minecraft:music_disc_13", "uncommon"],
-  ["minecraft:music_disc_cat", "uncommon"],
-  ["minecraft:music_disc_blocks", "uncommon"],
-  ["minecraft:music_disc_chirp", "uncommon"],
-  ["minecraft:music_disc_far", "uncommon"],
-  ["minecraft:music_disc_mall", "uncommon"],
-  ["minecraft:music_disc_mellohi", "uncommon"],
-  ["minecraft:music_disc_stal", "uncommon"],
-  ["minecraft:music_disc_strad", "uncommon"],
-  ["minecraft:music_disc_ward", "uncommon"],
-  ["minecraft:music_disc_11", "uncommon"],
-  ["minecraft:music_disc_wait", "uncommon"],
-  ["minecraft:music_disc_5", "uncommon"],
-  ["minecraft:music_disc_relic", "uncommon"],
-  ["minecraft:music_disc_creator_music_box", "uncommon"],
-  ["minecraft:music_disc_precipice", "uncommon"],
-  ["minecraft:music_disc_tears", "uncommon"],
-  ["minecraft:music_disc_lava_chicken", "uncommon"],
-  ["minecraft:flow_banner_pattern", "rare"],
-  ["minecraft:guster_banner_pattern", "rare"],
-  ["minecraft:skull_banner_pattern", "rare"],
-  ["minecraft:mojang_banner_pattern", "rare"],
-  ["minecraft:enchanted_golden_apple", "rare"],
-  ["minecraft:trident", "rare"],
-  ["minecraft:nether_star", "rare"],
-  ["minecraft:wither_skeleton_skull", "rare"],
-  ["minecraft:beacon", "rare"],
-  ["minecraft:ward_armor_trim_smithing_template", "rare"],
-  ["minecraft:eye_armor_trim_smithing_template", "rare"],
-  ["minecraft:vex_armor_trim_smithing_template", "rare"],
-  ["minecraft:spire_armor_trim_smithing_template", "rare"],
-  ["minecraft:music_disc_pigstep", "rare"],
-  ["minecraft:music_disc_otherside", "rare"],
-  ["minecraft:music_disc_creator", "rare"],
-  ["minecraft:elytra", "epic"],
-  ["minecraft:dragon_head", "epic"],
-  ["minecraft:dragon_egg", "epic"],
-  ["minecraft:heavy_core", "epic"],
-  ["minecraft:mace", "epic"],
-  ["minecraft:silence_armor_trim_smithing_template", "epic"]
-]);
-var UPGRADE = { common: "rare", uncommon: "rare", rare: "epic", epic: "epic", legendary: "legendary" };
-function getItemRarity(item) {
-  const base = RARITY.get(item.typeId) ?? "common";
-  if (base === "epic" || base === "legendary" || item.typeId === "minecraft:enchanted_book") return base;
-  const enchanted = (item.getComponent("minecraft:enchantable")?.getEnchantments().length ?? 0) > 0;
-  return enchanted ? UPGRADE[base] : base;
-}
-
-// data/scripts/systems/lootBeam.ts
 var BEAMS = {
   common: { color: hex(16777215), height: 0.75, alpha: 0.4 },
   uncommon: { color: hex(16777044), height: 1, alpha: 0.85 },
@@ -4483,7 +4624,7 @@ function tickLootBeams() {
 }
 
 // data/scripts/features/bosses/attacks.ts
-import { EntityDamageCause as EntityDamageCause10, system as system17 } from "@minecraft/server";
+import { EntityDamageCause as EntityDamageCause11, system as system17 } from "@minecraft/server";
 var UNHITTABLE = {
   excludeTypes: ["minecraft:item", "minecraft:xp_orb"],
   excludeFamilies: ["inanimate"]
@@ -4581,7 +4722,7 @@ function beginCollisionCheck(dasher, duration, damage, collisionRadius, spareFam
       if (distancePointToSegment(target.location, prevPos, currentPos) > collisionRadius) continue;
       hitEntities.add(target.id);
       if (!dasher.isValid) return;
-      target.applyDamage(damage, { cause: EntityDamageCause10.entityAttack, damagingEntity: dasher });
+      target.applyDamage(damage, { cause: EntityDamageCause11.entityAttack, damagingEntity: dasher });
     }
     prevPos = currentPos;
     if (tick >= duration) system17.clearRun(interval);
@@ -4601,7 +4742,7 @@ function laserOnce(shooter, message) {
     if (spare && hasFamily(target, spare)) continue;
     if (distancePointToSegment(target.location, start, end) > halfWidth) continue;
     if (!shooter.isValid) return;
-    target.applyDamage(num(damage), { cause: EntityDamageCause10.magic, damagingEntity: shooter });
+    target.applyDamage(num(damage), { cause: EntityDamageCause11.magic, damagingEntity: shooter });
   }
   playBossSound(shooter, str(sound));
 }
@@ -4672,7 +4813,8 @@ world12.beforeEvents.entityHurt.subscribe((acc) => {
         }
       );
       hurtEntity.runCommand("camerashake add @s 1 0.1 positional");
-      hurtEntity.dimension.playSound("weapon_slash.slash_clash", hurtEntity.location);
+      const parrySound = getParrySound(player) === PARRY_SOUND.LUNA ? "weapon_slash.parry_success" : "weapon_slash.slash_clash";
+      hurtEntity.dimension.playSound(parrySound, hurtEntity.location);
       hurtEntity.removeTag("parried");
       if (mainItem?.typeId === "ph:seiketsu") {
         applyDurabilityDamage(player, { damage: 1 });
@@ -4720,6 +4862,7 @@ world12.beforeEvents.entityHurt.subscribe((data) => {
   data.damage -= finalDamage;
 });
 world12.beforeEvents.entityHurt.subscribe(onMaceHurt);
+world12.beforeEvents.entityHurt.subscribe(onPlungeFallHurt);
 world12.beforeEvents.entityHurt.subscribe(onBlessingHurt);
 world12.beforeEvents.entityHurt.subscribe(onTrooperHurt);
 world12.beforeEvents.entityHurt.subscribe(onShieldHurt);
@@ -4820,12 +4963,15 @@ world12.afterEvents.playerInventoryItemChange.subscribe(({ player, itemStack, be
   onDynamicLighting(player);
   healthBarRuntime(player, "inventoryItemChanged", beforeItemStack, itemStack);
 });
-function runControlAction(player, action) {
-  if (action === "dash" || action === "airDash") dashRuntime(player);
-  else if (action === "switchSkill") switchHeldWeaponSkill(player);
+function runControlActions(player, actions, plunged = false) {
+  for (const action of actions) {
+    if (action === "dash" || action === "airDash") dashRuntime(player);
+    else if (action === "switchSkill") switchHeldWeaponSkill(player);
+    else if (action === "parry" && !plunged) customWeaponParry(player);
+  }
 }
 world12.afterEvents.playerSwingStart.subscribe(({ player, heldItemStack, swingSource }) => {
-  runControlAction(player, onControlSwingInput(player, swingSource));
+  runControlActions(player, onControlSwingInput(player, swingSource));
   onShieldSwing(player);
   for (const weapon of weapons) {
     if (heldItemStack?.typeId === weapon.itemId) {
@@ -4837,10 +4983,8 @@ world12.afterEvents.playerSwingStart.subscribe(({ player, heldItemStack, swingSo
 world12.afterEvents.playerButtonInput.subscribe(({ player: source, button, newButtonState }) => {
   if (button == "Sneak") onShieldSneak(source, newButtonState == "Pressed");
   if (newButtonState != "Pressed") return;
-  if (button == "Sneak") {
-    windPlungeRuntime(source);
-  }
-  runControlAction(source, onControlButtonInput(source, button));
+  const plunged = button == "Sneak" && windPlungeRuntime(source);
+  runControlActions(source, onControlButtonInput(source, button), plunged);
 });
 world12.afterEvents.itemUse.subscribe(({ source, itemStack }) => {
   if (!itemStack) return;
@@ -4929,6 +5073,7 @@ world12.afterEvents.entityLoad.subscribe(({ entity }) => trackLootItem(entity));
 world12.beforeEvents.playerLeave.subscribe(({ player }) => {
   clearPlayerLighting(player);
   clearControlState(player);
+  clearPlungeState(player.id);
   clearAbsorption(player);
   clearShieldState(player.id);
 });
@@ -4939,6 +5084,7 @@ system18.runInterval(() => {
   }
 }, 6);
 system18.runInterval(trackMaceFall, 1);
+system18.runInterval(tickPlunges, 1);
 system18.runInterval(tickTroopers, 4);
 system18.runInterval(tickShields, 1);
 system18.runInterval(checkBlessingMilestones, 20);
@@ -5032,6 +5178,8 @@ import { world as world13, system as system23, ItemStack as ItemStack11 } from "
 var PLAYER_PROPERTIES = [
   { id: "ph:dash_control", label: "Passive Dash control", type: "number", group: "Settings", default: 0 },
   { id: "ph:skill_switch_control", label: "Skill switch control", type: "number", group: "Settings", default: 0 },
+  { id: "ph:parry_control", label: "Weapon parry control", type: "number", group: "Settings", default: 0 },
+  { id: "ph:parry_sound", label: "Parry sound (0 Phantasm, 1 Luna)", type: "number", group: "Settings", default: 0 },
   { id: "ph:dash_level", label: "Dash level", type: "number", group: "Progress", default: 0 },
   { id: "ph:health_level", label: "Health level", type: "number", group: "Progress", default: 0 },
   { id: "ph:plunge_unlock", label: "Wind Plunge unlocked", type: "boolean", group: "Progress", default: false },
@@ -5861,13 +6009,19 @@ import { ActionFormData as ActionFormData2 } from "@minecraft/server-ui";
 function openSettings(player) {
   const dashControl = getDashControl(player);
   const skillSwitchControl = getSkillSwitchControl(player);
+  const parryControl = getParryControl(player);
+  const parrySound = getParrySound(player);
   new ActionFormData2().title("Phantasm Settings").body("Pick the controls you want for Phantasm mechanics. Every setting is saved to you only.").button(`Passive Dash
 \xA77Currently: \xA7f${DASH_CONTROL_NAMES[dashControl]}`).button(`Legendary Weapon Skills
-\xA77Currently: \xA7f${SKILL_SWITCH_CONTROL_NAMES[skillSwitchControl]}`).button("Reset To Defaults").button("Close").show(player).then((r) => {
+\xA77Currently: \xA7f${SKILL_SWITCH_CONTROL_NAMES[skillSwitchControl]}`).button(`Weapon Parry
+\xA77Currently: \xA7f${PARRY_CONTROL_NAMES[parryControl]}`).button(`Parry Sound
+\xA77Currently: \xA7f${PARRY_SOUND_NAMES[parrySound]}`).button("Reset To Defaults").button("Close").show(player).then((r) => {
     if (r.cancelationReason == "UserBusy") system21.run(() => openSettings(player));
     if (r.selection == 0) dashControlMenu(player);
     if (r.selection == 1) skillSwitchControlMenu(player);
-    if (r.selection == 2) resetSettings(player);
+    if (r.selection == 2) parryControlMenu(player);
+    if (r.selection == 3) parrySoundMenu(player);
+    if (r.selection == 4) resetSettings(player);
   });
 }
 function dashControlMenu(player) {
@@ -5902,11 +6056,45 @@ function skillSwitchControlMenu(player) {
     openSettings(player);
   });
 }
+function parryControlMenu(player) {
+  const current = getParryControl(player);
+  const form = new ActionFormData2().title("Weapon Parry Control").body(PARRY_CONTROL_HINTS.join("\n\n") + "\n\n\xA77If this uses the same control as skill switching, a Legendary weapon parries and switches skill on the same press.");
+  PARRY_CONTROL_NAMES.forEach((name, index) => {
+    form.button(index == current ? `\xA7a${name}
+\xA77Currently selected` : name);
+  });
+  form.button("\xA7cBack").show(player).then((r) => {
+    if (r.canceled) return openSettings(player);
+    if (r.selection == PARRY_CONTROL_NAMES.length) return openSettings(player);
+    setParryControl(player, r.selection);
+    player.playSound("random.levelup");
+    player.sendMessage(`\xA7aWeapon parry control set to \xA7f${PARRY_CONTROL_NAMES[r.selection]}`);
+    openSettings(player);
+  });
+}
+function parrySoundMenu(player) {
+  const current = getParrySound(player);
+  const form = new ActionFormData2().title("Parry Sound").body(PARRY_SOUND_HINTS.join("\n\n"));
+  PARRY_SOUND_NAMES.forEach((name, index) => {
+    form.button(index == current ? `\xA7a${name}
+\xA77Currently selected` : name);
+  });
+  form.button("\xA7cBack").show(player).then((r) => {
+    if (r.canceled) return openSettings(player);
+    if (r.selection == PARRY_SOUND_NAMES.length) return openSettings(player);
+    setParrySound(player, r.selection);
+    player.playSound(r.selection == 1 ? "weapon_slash.parry_success" : "weapon_slash.slash_clash");
+    player.sendMessage(`\xA7aParry sound set to \xA7f${PARRY_SOUND_NAMES[r.selection]}`);
+    openSettings(player);
+  });
+}
 function resetSettings(player) {
   setDashControl(player, 0);
   setSkillSwitchControl(player, 0);
+  setParryControl(player, 0);
+  setParrySound(player, 0);
   player.playSound("random.levelup");
-  player.sendMessage("\xA7aSettings reset to defaults: \xA7fDouble-tap Jump\xA77 and \xA7fSneak");
+  player.sendMessage("\xA7aSettings reset. Dash: \xA7fDouble-tap Jump\xA7a, skill switch: \xA7fSneak\xA7a, parry: \xA7fSneak\xA7a, parry sound: \xA7fPhantasm");
   openSettings(player);
 }
 
@@ -6047,7 +6235,7 @@ function extraHealth(player) {
   });
 }
 function windPlunge(player) {
-  new ActionFormData4().title(guideTitle("Wind Plunging")).header("Wind Plunge Attack").divider().label("This skill lets you plunge down fast when falling a long distance. It greatly reduces fall damage and explodes on landing, damaging everything nearby.").label("Sneak while falling more than 10 blocks to plunge.").divider().button("Back").show(player).then((r) => {
+  new ActionFormData4().title(guideTitle("Wind Plunging")).header("Wind Plunge Attack").divider().label("Sneak while falling more than 10 blocks above the ground. You hang in the air for a moment, then dive straight down.").label("Landing sends out a wind shockwave that deals 10 damage to everything within 6 blocks. You take no fall damage from a plunge.").divider().button("Back").show(player).then((r) => {
     if (r.selection == 0 || r.canceled) mechanicsList(player);
   });
 }
@@ -6057,7 +6245,7 @@ function dynamicLighting(player) {
   });
 }
 function legendaryItems(player) {
-  new ActionFormData4().title(guideTitle("Legendary Items")).header("Legendary Mechanics").divider().label("Legendary weapons and items can be complicated. Here is how to use them:").label("Attack: left-click (or tap Attack).\nSkill: Interact / right-click.\nSwitch skill: Sneak.").label("Use /setting to change how you switch skill: Sneak, Sneak + Attack, or Double Sneak.").divider().button("Back").show(player).then((r) => {
+  new ActionFormData4().title(guideTitle("Legendary Items")).header("Legendary Mechanics").divider().label("Legendary weapons and items can be complicated. Here is how to use them:").label("Attack: left-click (or tap Attack).\nSkill: Interact / right-click.\nSwitch skill: Sneak.").label("Use /setting to change how you switch skill: Sneak, Sneak + Attack, or Double Sneak.").label("Epic and Legendary melee weapons can parry. Press Sneak to block the next hit for a short moment. Use /setting to change the parry control or turn it off.").divider().button("Back").show(player).then((r) => {
     if (r.selection == 0 || r.canceled) mechanicsList(player);
   });
 }
@@ -6245,6 +6433,8 @@ function syncPlayerProperty(player, id) {
   switch (id) {
     case "ph:dash_control":
     case "ph:skill_switch_control":
+    case "ph:parry_control":
+    case "ph:parry_sound":
       clearControlState(player);
       break;
     case "ph:health_level": {

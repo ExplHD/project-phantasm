@@ -1,0 +1,99 @@
+{
+	"format_version": "1.10.0",
+	"particle_effect": {
+		"description": {
+			"identifier": "ph:aura_slash_test_attack_1",
+			"basic_render_parameters": {
+				"material": "particles_add",
+				"texture": "textures/particle/aura_slash_test/aura_slash_aura"
+			}
+		},
+		"events": {
+			"spawn_core": {
+				"particle_effect": {
+					"effect": "ph:aura_slash_test_attack_1_core",
+					"type": "emitter_bound"
+				}
+			}
+		},
+		"components": {
+			"minecraft:emitter_initialization": {
+				"creation_expression": "v.tint_r = v.aura_r ?? 0.4; v.tint_g = v.aura_g ?? 1.0; v.tint_b = v.aura_b ?? 0.5;"
+			},
+			"minecraft:emitter_local_space": {
+				"position": true,
+				"rotation": true,
+				"velocity": true
+			},
+			"minecraft:emitter_rate_instant": {
+				"num_particles": 1
+			},
+			"minecraft:emitter_lifetime_once": {
+				"active_time": 0.367
+			},
+			"minecraft:emitter_shape_point": {
+				"offset": [
+					0,
+					0,
+					0
+				]
+			},
+			"minecraft:particle_lifetime_expression": {
+				"max_lifetime": 0.367
+			},
+			"minecraft:particle_initial_spin": {
+				"rotation": -30
+			},
+			"minecraft:particle_initial_speed": 0.0001,
+			"minecraft:particle_motion_dynamic": {
+				"linear_acceleration": [
+					0.1,
+					2,
+					0
+				]
+			},
+			"minecraft:particle_appearance_billboard": {
+				"size": [
+					4,
+					4
+				],
+				"facing_camera_mode": "direction_y",
+				"direction": {
+					"mode": "derive_from_velocity",
+					"min_speed_threshold": 0.0001
+				},
+				"uv": {
+					"texture_width": 64,
+					"texture_height": 704,
+					"flipbook": {
+						"base_UV": [
+							0,
+							0
+						],
+						"size_UV": [
+							64,
+							64
+						],
+						"step_UV": [
+							0,
+							64
+						],
+						"max_frame": 11,
+						"stretch_to_lifetime": true
+					}
+				}
+			},
+			"minecraft:particle_appearance_tinting": {
+				"color": [
+					"v.tint_r",
+					"v.tint_g",
+					"v.tint_b",
+					1
+				]
+			},
+			"minecraft:emitter_lifetime_events": {
+				"creation_event": "spawn_core"
+			}
+		}
+	}
+}
