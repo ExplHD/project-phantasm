@@ -3,8 +3,8 @@ import type { Player } from "@minecraft/server";
 import { mainGuideScreen } from "./main_guide";
 import { guideTitle } from "./guidebookTitle";
 
-export default function guideItems(player: Player) {
-	const form = new ActionFormData()
+export default function guideItems(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Items"))
 		.label("Usable items. Anything not listed here is recipe-only.")
 		.button("Auric Communicator", "textures/items/auric_communicator")
@@ -25,8 +25,8 @@ export default function guideItems(player: Player) {
 		})
 }
 
-function auricCommunicator(player: Player) {
-	const form = new ActionFormData()
+function auricCommunicator(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Auric Communicator"))
 		.label("The Auric Communicator calls an Orbital Strike using your Auric Charges.")
 		.label("It has 2 modes: Stab Shot for a direct strike, Nuke Shot for a spread strike.")
@@ -38,8 +38,8 @@ function auricCommunicator(player: Player) {
 		})
 }
 
-function auricStockBattery(player: Player) {
-	const form = new ActionFormData()
+function auricStockBattery(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Auric Stock Battery"))
 		.label("The Auric Stock Battery recharges your Auric Charges in one click.")
 		.label("2 uses. Each restores up to 100 Auric Charges.")
@@ -51,8 +51,8 @@ function auricStockBattery(player: Player) {
 		})
 }
 
-function combatDummy(player: Player) {
-	const form = new ActionFormData()
+function combatDummy(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Combat Dummy"))
 		.label("The Combat Dummy tests your combat skills and max damage output.")
 		.label("Place it down and hit it with your best weapon.")
@@ -64,8 +64,8 @@ function combatDummy(player: Player) {
 		})
 }
 
-function flowChanneler(player: Player) {
-	const form = new ActionFormData()
+function flowChanneler(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Flow Channeler"))
 		.label("The Flow Channeler is Active Support. It dashes you forward, away from enemies.")
 		.label("Interact to dash. Enchantable with Mending and Unbreaking.")
@@ -76,8 +76,8 @@ function flowChanneler(player: Player) {
 		})
 }
 
-function hellCharge(player: Player) {
-	const form = new ActionFormData()
+function hellCharge(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Hell Charge"))
 		.label("Hell Charge is Active Support. It boosts your mobility.")
 		.label("Interact for a mobility boost. Spam interact to fly or fall slowly. Tune your controls to get the most out of it.")
@@ -89,8 +89,8 @@ function hellCharge(player: Player) {
 		})
 }
 
-function suspiciousMushroom(player: Player) {
-	const form = new ActionFormData()
+function suspiciousMushroom(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Suspicious Mushroom"))
 		.label("The Suspicious Mushroom is Active Support. It slightly boosts all your stats.")
 		.label("Eat it for 10 minutes of boosted stats, no side effects.")

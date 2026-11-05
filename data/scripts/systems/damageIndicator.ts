@@ -1,4 +1,4 @@
-import { /* [UNUSED] world, system */ MolangVariableMap, EntityHurtAfterEvent, Player } from '@minecraft/server'
+import { MolangVariableMap, EntityHurtAfterEvent, Player } from '@minecraft/server'
 
 const VarSets: Record<string, { icon: Record<string, number>; color: { red: number; green: number; blue: number } }> = {
     physical: {
@@ -74,10 +74,6 @@ const VarSets: Record<string, { icon: Record<string, number>; color: { red: numb
     }
 }
 
-// ======================
-// BUILD DAMAGE LOOKUP
-// ======================
-
 const DamageTypes: Record<string, { icon: number; color: { red: number; green: number; blue: number } }> = {};
 
 for (const [, data] of Object.entries(VarSets)) {
@@ -94,13 +90,14 @@ export function onDamageIndicator({ hurtEntity, damageSource, damage }: EntityHu
     const damageData = DamageTypes[damageSource.cause] ?? DamageTypes["none"];
     if (!hurtEntity || !hurtEntity.isValid) return;
     const { center, extent } = hurtEntity.getAABB();
-    // Horizontal half-diagonal of the hitbox, so the number clears it from any angle
+
     const radius = Math.hypot(extent.x, extent.z) + 0.3;
 	const players = hurtEntity.dimension.getEntities({ type: "minecraft:player", location: center, maxDistance: 64 });
-	// console.warn(`HURT FIRED: ${hurtEntity.typeId} dmg=${damageValue} cause=${damageSource.cause} tick=${system.currentTick}`);
-	
+
     for (const ent of players) {
         const player = ent as Player;
+        if (!player.isValid) continue;
+        if (!player.dimension.isChunkLoaded(center)) continue;
         let dx = player.location.x - center.x;
         let dz = player.location.z - center.z;
         let len = Math.hypot(dx, dz);
@@ -116,13 +113,11 @@ export function onDamageIndicator({ hurtEntity, damageSource, damage }: EntityHu
             z: center.z + (dz / len) * radius
         };
 		const iconMolang = new MolangVariableMap();
-        let absDamage = Math.abs(damageValue);
-        if (absDamage > 999999)
-            absDamage = 999999;
+        const absDamage = Math.min(Math.abs(damageValue), 999999);
         iconMolang.setFloat("variable.length", 1.5);
         iconMolang.setFloat("variable.icon_offset", damageData.icon ?? 14);
 		iconMolang.setColorRGB("variable.damagecolor", damageData.color);
-        // One emitter per digit, laid out along the viewer's screen-left axis (ones digit on the right)
+
         const leftX = -dz / len;
         const leftZ = dx / len;
         const digits = `${absDamage}`;
@@ -132,14 +127,8 @@ export function onDamageIndicator({ hurtEntity, damageSource, damage }: EntityHu
             molang.setFloat("variable.length", 1.5);
             molang.setFloat("variable.digit", Number(digits[i]));
             molang.setColorRGB("variable.damagecolor", damageData.color);
-            try {
-                player.spawnParticle("ph:damage_number", { x: loc.x + leftX * offset, y: loc.y, z: loc.z + leftZ * offset }, molang);
-            }
-            catch { }
+            player.spawnParticle("ph:damage_number", { x: loc.x + leftX * offset, y: loc.y, z: loc.z + leftZ * offset }, molang);
         }
-        try {
-            player.spawnParticle("ph:damage_icons", {x: loc.x, y: loc.y + 0.6, z:loc.z}, iconMolang);
-        }
-        catch { }
+        player.spawnParticle("ph:damage_icons", { x: loc.x, y: loc.y + 0.6, z: loc.z }, iconMolang);
     }
 }

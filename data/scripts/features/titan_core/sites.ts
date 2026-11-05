@@ -1,23 +1,14 @@
 import { world, Dimension, StructureRotation, type Vector3 } from "@minecraft/server";
 import { inTitanRidge } from "../../systems/xeonniteBlessing";
-
-// ======================================== Titan Ridge sites ========================================
-// Every Titan Ridge gets exactly one tr_core and one tr_gateway. Worldgen can only spread
-// structures on a grid, it can't count them per biome, so the script places the pair the
-// first time a player stands in a ridge that has none, on flat bare ground nobody built on.
-//
-// A ridge is remembered as the set of chunks known to belong to it (one world dynamic
-// property per ridge). Each pass flood-fills the loaded Titan Ridge chunks around the
-// player: touching a stored ridge means it already has its pair (and the new chunks are
-// added to it), touching none means a new ridge.
+import { isLoadedLocation } from "../../core/location";
 
 const RIDGE_TAG = "ph:titan_ridge";
 const PROPERTY_PREFIX = "ph:titan_ridge_site_";
 
 const CORE_NAMES = ["mystructure:titan_ridge/tr_core", "titan_ridge:tr_core"];
 const GATEWAY_NAMES = ["mystructure:titan_ridge/tr_gateway", "titan_ridge:tr_gateway"];
-const CORE_SIZE = 9;     // tr_core is 9x10x9
-const GATEWAY_SIZE = 11; // tr_gateway is 11x4x11
+const CORE_SIZE = 9;
+const GATEWAY_SIZE = 11;
 
 const GROUND = new Set([
 	"minecraft:cobbled_deepslate",
@@ -33,26 +24,26 @@ const GROUND = new Set([
 ]);
 const FILL_BLOCK = "minecraft:cobbled_deepslate";
 
-const MAX_SCAN_CELLS = 1024;   // flood fill cap per pass, in chunks
-const MAX_STORED_CELLS = 2500; // keeps one ridge's property well under the 32k string limit
-const NEARBY_SITE = 256;       // a partly loaded ridge this close to a stored pair waits instead of placing
-const MAX_STEP = 2;            // ground height spread allowed under a footprint
-const MIN_GAP = 32;            // blocks between the core and the gateway
-const PLAYER_CLEARANCE = 8;    // never drop a structure on top of a player
-const MAX_CANDIDATES = 48;     // chunks tried per pass
+const MAX_SCAN_CELLS = 1024;
+const MAX_STORED_CELLS = 2500;
+const NEARBY_SITE = 256;
+const MAX_STEP = 2;
+const MIN_GAP = 32;
+const PLAYER_CLEARANCE = 8;
+const MAX_CANDIDATES = 48;
 
 const ROTATIONS = [StructureRotation.None, StructureRotation.Rotate90, StructureRotation.Rotate180, StructureRotation.Rotate270];
 
 interface RidgeData {
-	core: Vector3;
-	gateway: Vector3;
+	readonly core: Vector3;
+	readonly gateway: Vector3;
 	cells: string[];
 }
 
 interface Ridge {
-	id: string;
-	data: RidgeData;
-	cells: Set<string>;
+	readonly id: string;
+	readonly data: RidgeData;
+	readonly cells: Set<string>;
 }
 
 let ridges: Ridge[] | undefined;
@@ -64,13 +55,10 @@ function loadRidges(): Ridge[] {
 	for (const id of world.getDynamicPropertyIds()) {
 		if (!id.startsWith(PROPERTY_PREFIX)) continue;
 		const raw = world.getDynamicProperty(id);
-		if (typeof raw !== "string") continue;
-		try {
-			const data = JSON.parse(raw) as RidgeData;
-			ridges.push({ id, data, cells: new Set(data.cells) });
-		} catch {
-			// A broken entry is skipped; its ridge can get a new pair.
-		}
+		if (typeof raw !== "string" || !raw.startsWith("{") || !raw.endsWith("}")) continue;
+		const data = JSON.parse(raw) as Partial<RidgeData>;
+		if (!data.core || !data.gateway || !Array.isArray(data.cells)) continue;
+		ridges.push({ id, data: data as RidgeData, cells: new Set(data.cells) });
 	}
 	return ridges;
 }
@@ -89,8 +77,6 @@ function cellCenter(key: string): { x: number; z: number } {
 	return { x: cx * 16 + 8, z: cz * 16 + 8 };
 }
 
-// Flood fill over chunk centers. `complete` is false when the fill ran into unloaded
-// chunks, so part of the ridge may lie outside what was scanned.
 function scanRidge(dimension: Dimension, origin: Vector3): { cells: Set<string>; complete: boolean } {
 	const start = cellKey(Math.floor(origin.x / 16), Math.floor(origin.z / 16));
 	const cells = new Set<string>([start]);
@@ -103,16 +89,11 @@ function scanRidge(dimension: Dimension, origin: Vector3): { cells: Set<string>;
 		const [cx, cz] = key.split(",").map(Number);
 		if (key !== start) {
 			const center = { x: cx * 16 + 8, y: origin.y, z: cz * 16 + 8 };
-			if (!dimension.isChunkLoaded(center)) {
+			if (!isLoadedLocation(dimension, center)) {
 				complete = false;
 				continue;
 			}
-			try {
-				if (!dimension.getBiome(center).hasTags([RIDGE_TAG])) continue;
-			} catch {
-				complete = false;
-				continue;
-			}
+			if (!dimension.getBiome(center).hasTags([RIDGE_TAG])) continue;
 			cells.add(key);
 			if (cells.size >= MAX_SCAN_CELLS) return { cells, complete: false };
 		}
@@ -130,24 +111,19 @@ function horizontalDistance(a: { x: number; z: number }, b: { x: number; z: numb
 	return Math.hypot(a.x - b.x, a.z - b.z);
 }
 
-// Flat, bare ground for a size x size footprint centered on (x, z), one block of margin
-// around it. Returns the corner to place at (one block above the highest ground column).
 function findSpot(dimension: Dimension, x: number, z: number, size: number, players: Vector3[]): Vector3 | undefined {
 	const x0 = x - Math.floor(size / 2);
 	const z0 = z - Math.floor(size / 2);
 	const middle = { x: x0 + size / 2, z: z0 + size / 2 };
 	if (players.some(p => horizontalDistance(p, middle) < size / 2 + PLAYER_CLEARANCE)) return undefined;
 
+	const minY = dimension.heightRange.min;
 	let highest = -Infinity;
 	let lowest = Infinity;
 	for (let bx = x0 - 1; bx <= x0 + size; bx++) {
 		for (let bz = z0 - 1; bz <= z0 + size; bz++) {
-			let block;
-			try {
-				block = dimension.getTopmostBlock({ x: bx, z: bz });
-			} catch {
-				return undefined;
-			}
+			if (!dimension.isChunkLoaded({ x: bx, y: minY, z: bz })) return undefined;
+			const block = dimension.getTopmostBlock({ x: bx, z: bz });
 			if (!block || !GROUND.has(block.typeId)) return undefined;
 			highest = Math.max(highest, block.location.y);
 			lowest = Math.min(lowest, block.location.y);
@@ -157,7 +133,6 @@ function findSpot(dimension: Dimension, x: number, z: number, size: number, play
 	return { x: x0, y: highest + 1, z: z0 };
 }
 
-// Raises every lower column under the footprint to the floor height, so nothing hangs.
 function fillUnder(dimension: Dimension, corner: Vector3, size: number): void {
 	for (let x = corner.x; x < corner.x + size; x++) {
 		for (let z = corner.z; z < corner.z + size; z++) {
@@ -169,23 +144,28 @@ function fillUnder(dimension: Dimension, corner: Vector3, size: number): void {
 	}
 }
 
+function areaLoaded(dimension: Dimension, corner: Vector3, size: number): boolean {
+	const far = { x: corner.x + size - 1, y: corner.y, z: corner.z + size - 1 };
+	return isLoadedLocation(dimension, corner) && isLoadedLocation(dimension, far)
+		&& dimension.isChunkLoaded({ x: far.x, y: corner.y, z: corner.z })
+		&& dimension.isChunkLoaded({ x: corner.x, y: corner.y, z: far.z });
+}
+
 function placeStructure(names: string[], dimension: Dimension, corner: Vector3, size: number): boolean {
 	const rotation = ROTATIONS[Math.floor(Math.random() * ROTATIONS.length)];
-	// Before placing: afterwards the topmost block of each column is the structure itself.
-	fillUnder(dimension, corner, size);
-	for (const name of names) {
-		try {
-			world.structureManager.place(name, dimension, corner, { rotation });
-			return true;
-		} catch {
-			// Try the next id form.
+	const name = names.find(candidate => world.structureManager.get(candidate) !== undefined);
+	if (!name) {
+		if (!warnedMissing) {
+			warnedMissing = true;
+			console.warn(`[Titan Ridge] could not place ${names[0]}`);
 		}
+		return false;
 	}
-	if (!warnedMissing) {
-		warnedMissing = true;
-		console.warn(`[Titan Ridge] could not place ${names[0]}`);
-	}
-	return false;
+	if (!areaLoaded(dimension, corner, size)) return false;
+
+	fillUnder(dimension, corner, size);
+	world.structureManager.place(name, dimension, corner, { rotation });
+	return true;
 }
 
 function placePair(dimension: Dimension, cells: Set<string>): void {
@@ -208,7 +188,7 @@ function placePair(dimension: Dimension, cells: Set<string>): void {
 		gateway = findSpot(dimension, center.x, center.z, GATEWAY_SIZE, players);
 		if (gateway) break;
 	}
-	// No room yet: try again next pass, once more of the ridge has loaded.
+
 	if (!core || !gateway) return;
 
 	if (!placeStructure(CORE_NAMES, dimension, core, CORE_SIZE)) return;
@@ -220,34 +200,30 @@ function placePair(dimension: Dimension, cells: Set<string>): void {
 	saveRidge(ridge);
 }
 
-// Run every 100 ticks from events/index.ts.
 export function tickTitanRidgeSites(): void {
 	const scanned = new Set<string>();
 	for (const player of world.getPlayers()) {
-		try {
-			const dimension = player.dimension;
-			if (dimension.id !== "minecraft:overworld" || !inTitanRidge(player)) continue;
+		if (!player.isValid) continue;
+		const dimension = player.dimension;
+		if (dimension.id !== "minecraft:overworld" || !inTitanRidge(player)) continue;
 
-			const startKey = cellKey(Math.floor(player.location.x / 16), Math.floor(player.location.z / 16));
-			if (scanned.has(startKey)) continue;
-			const scan = scanRidge(dimension, player.location);
-			scan.cells.forEach(cell => scanned.add(cell));
+		const startKey = cellKey(Math.floor(player.location.x / 16), Math.floor(player.location.z / 16));
+		if (scanned.has(startKey)) continue;
+		const scan = scanRidge(dimension, player.location);
+		scan.cells.forEach(cell => scanned.add(cell));
 
-			const known = loadRidges().find(ridge => [...scan.cells].some(cell => ridge.cells.has(cell)));
-			if (known) {
-				const before = known.cells.size;
-				for (const cell of scan.cells) {
-					if (known.cells.size >= MAX_STORED_CELLS) break;
-					known.cells.add(cell);
-				}
-				if (known.cells.size !== before) saveRidge(known);
-				continue;
+		const known = loadRidges().find(ridge => [...scan.cells].some(cell => ridge.cells.has(cell)));
+		if (known) {
+			const before = known.cells.size;
+			for (const cell of scan.cells) {
+				if (known.cells.size >= MAX_STORED_CELLS) break;
+				known.cells.add(cell);
 			}
-			if (!scan.complete && loadRidges().some(ridge => horizontalDistance(ridge.data.core, player.location) < NEARBY_SITE)) continue;
-
-			placePair(dimension, scan.cells);
-		} catch {
-			// Players mid-respawn or mid-dimension-change have no readable biome; next pass retries.
+			if (known.cells.size !== before) saveRidge(known);
+			continue;
 		}
+		if (!scan.complete && loadRidges().some(ridge => horizontalDistance(ridge.data.core, player.location) < NEARBY_SITE)) continue;
+
+		placePair(dimension, scan.cells);
 	}
 }

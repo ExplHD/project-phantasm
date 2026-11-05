@@ -1,7 +1,6 @@
-import { world, system, EquipmentSlot, Player, Entity, ItemStack, EntityDamageCause, EntityHurtBeforeEvent, /* [UNUSED] EntityComponentTypes */ } from "@minecraft/server";
+import { world, system, EquipmentSlot, Player, Entity, ItemStack, EntityDamageCause, EntityHurtBeforeEvent, type Dimension, type Vector3 } from "@minecraft/server";
 import * as Manager from "./manager";
 
-// Your custom mace identifier
 const CustomMaceItems: Set<string> = new Set([
     "ph:cruxshaper"
 ]);
@@ -10,26 +9,18 @@ function isCustomMace(item: ItemStack | undefined): boolean {
     return !!item && CustomMaceItems.has(item?.typeId);
 }
 
-// Handle fall distance
 const FallDistance: number = 1.5;
 const HeavySoundFallDistance: number = 5.5;
 
-// Handle range
-const MaceSmashHitRange: number = 6;
 const MaceSmashRadius: number = 5;
 
-// Handle impulse
 const SmashHorizontalImpulse: number = 0.25;
 const SmashVerticalImpulse: number = 0.5;
 
-// Handler sounds and particles
 const SmashAirSound: string = "mace.smash_air";
 const SmashGroundSound: string = "mace.smash_ground";
 const SmashHeavyGroundSound: string = "mace.heavy_smash_ground";
 
-// Wind burst constants
-const WindBurstSound: string = "wind_charge.burst";
-const WindBurstParticle: string = "minecraft:wind_explosion_emitter";
 const WindBurstLevelImpulse: { [key: number]: number } = {
     1: 1.1,
     2: 1.65,
@@ -39,17 +30,14 @@ const WindBurstLevelImpulse: { [key: number]: number } = {
 const recentSwingHit: Set<string> = new Set();
 const playerFallData: Map<string, number> = new Map();
 
-// Swaps a falling mace hit for the slam (fall damage, density, wind burst). Subscribed in events/index.ts
 export function onMaceHurt(event: EntityHurtBeforeEvent): void {
     const { damageSource, hurtEntity: victim } = event;
 
-    // The slam's own applyDamage comes back through here
     if (damageSource.cause === EntityDamageCause.maceSmash) return;
 
     const attacker = damageSource.damagingEntity;
     if (!(attacker instanceof Player)) return;
 
-    // If the playerSwingStart event got the slam it stops
     if (recentSwingHit.has(attacker.id)) return;
 
     const item = attacker.getComponent("minecraft:equippable")?.getEquipment(EquipmentSlot.Mainhand);
@@ -66,13 +54,18 @@ export function onMaceHurt(event: EntityHurtBeforeEvent): void {
     executeMaceSlam(attacker, victim, fallDistance, item, windBurst);
 }
 
-// Executes the slam
-function executeMaceSlam(attacker: Player, victim: Entity, fallDistance: number, item: ItemStack, wbLevel: number = 0, firstHit?: boolean): void {
+function solidAt(dimension: Dimension, location: Vector3): boolean {
+    if (location.y < dimension.heightRange.min) return false;
+    const block = dimension.getBlock(location);
+    return !!block && !block.isAir && !block.isLiquid;
+}
+
+function executeMaceSlam(attacker: Player, victim: Entity, fallDistance: number, item: ItemStack, wbLevel: number = 0): void {
     if (!attacker.isValid || !victim.isValid) return;
 
     system.run(() => {
-        // Reset fall damage
-        (attacker.getComponent("minecraft:fall_damage") as any)?.setCurrentValue(0);
+        if (!attacker.isValid || !victim.isValid) return;
+        if (!victim.dimension.isChunkLoaded(victim.location)) return;
 
         if (wbLevel === 0) {
             attacker.clearVelocity();
@@ -86,21 +79,15 @@ function executeMaceSlam(attacker: Player, victim: Entity, fallDistance: number,
         const soundLoc = victim.location;
         attacker.dimension.playSound(fallDistance > HeavySoundFallDistance ? SmashHeavyGroundSound : SmashGroundSound, soundLoc);
 
-        const blockBelow1 = victim.dimension.getBlock({ x: victim.location.x, y: victim.location.y - 1, z: victim.location.z });
-        const blockBelow2 = victim.dimension.getBlock({ x: victim.location.x, y: victim.location.y - 2, z: victim.location.z });
-
-        const isNearGround: boolean = (!!(blockBelow1 && !blockBelow1.isAir && !blockBelow1.isLiquid)) ||
-            (!!(blockBelow2 && !blockBelow2.isAir && !blockBelow2.isLiquid));
+        const { x, y, z } = victim.location;
+        const isNearGround: boolean = solidAt(victim.dimension, { x, y: y - 1, z }) || solidAt(victim.dimension, { x, y: y - 2, z });
 
         if (!attacker.isOnGround && !victim.isOnGround && !isNearGround) {
-            // If the slam happened high in the air (no ground within 2 blocks)
             attacker.dimension.playSound(SmashAirSound, soundLoc);
             attacker.dimension.spawnParticle("minecraft:critical_hit_emitter", soundLoc);
         } else {
-            try {
-                attacker.dimension.spawnEntity("ph:mace_slam", soundLoc);
-                attacker.dimension.spawnParticle("minecraft:critical_hit_emitter", soundLoc);
-            } catch (e) { }
+            attacker.dimension.spawnEntity("ph:mace_slam", soundLoc);
+            attacker.dimension.spawnParticle("minecraft:critical_hit_emitter", soundLoc);
         }
 
         if (wbLevel > 0) {
@@ -109,15 +96,12 @@ function executeMaceSlam(attacker: Player, victim: Entity, fallDistance: number,
             handleStandardSlam(attacker, victim, soundLoc);
         }
 
-        // 4. Damage calculation
         const enchantable = item.getComponent("minecraft:enchantable");
-        let dmg: number = fallDistance <= 3 ? fallDistance * 8 : (fallDistance <= 8 ? 24 + (fallDistance - 3) * 4 : 44 + (fallDistance - 8) * 2);
+        const dmg: number = fallDistance <= 3 ? fallDistance * 8 : (fallDistance <= 8 ? 24 + (fallDistance - 3) * 4 : 44 + (fallDistance - 8) * 2);
         const density: number = (enchantable?.getEnchantment("density")?.level ?? 0) as number;
         const totalDmg: number = Math.floor(dmg + (density * 1.0 * fallDistance));
 
-        try {
-            victim.applyDamage(totalDmg, { cause: EntityDamageCause.maceSmash, damagingEntity: attacker });
-        } catch (e) { }
+        if (victim.isValid) victim.applyDamage(totalDmg, { cause: EntityDamageCause.maceSmash, damagingEntity: attacker });
 
         playerFallData.delete(attacker.id);
     })
@@ -178,13 +162,8 @@ function handleWindBurst(attacker: Player, victim: Entity, vLoc: { x: number; y:
     }
 }
 
-// Fall Detection, run every tick from events/index.ts
-// I wouldn't touch this code since these cancel the slam
 export function trackMaceFall(): void {
     for (const player of world.getAllPlayers()) {
-        // This runs every tick for every player, so the cheap entity-state checks run first
-        // and the block query (the only expensive call here) only happens for a player who
-        // is actually falling with a mace. Same condition as before, just short-circuited.
         const item: ItemStack | undefined = player.getComponent("minecraft:equippable")?.getEquipment(EquipmentSlot.Mainhand);
 
         const isFallingWithMace =

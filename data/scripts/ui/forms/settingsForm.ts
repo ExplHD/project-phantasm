@@ -16,7 +16,7 @@ export function openSettings(player: Player): void {
     const dashControl = getDashControl(player);
     const skillSwitchControl = getSkillSwitchControl(player);
 
-    const form = new ActionFormData()
+    new ActionFormData()
         .title("Phantasm Settings")
         .body("Pick the controls you want for Phantasm mechanics. Every setting is saved to you only.")
         .button(`Passive Dash\n§7Currently: §f${DASH_CONTROL_NAMES[dashControl]}`)

@@ -3,8 +3,8 @@ import type { Player } from "@minecraft/server";
 import { mainGuideScreen } from "./main_guide";
 import { guideTitle } from "./guidebookTitle";
 
-export default function mechanicsList(player: Player) {
-	const form = new ActionFormData()
+export default function mechanicsList(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Mechanics"))
 		.body("The mechanics in Phantasm, from simplest to most complex.")
 		.button("Skill Unlock")
@@ -33,8 +33,8 @@ export default function mechanicsList(player: Player) {
 		})
 }
 
-function skillUnlockGuide(player: Player) { 
-	const form = new ActionFormData()
+function skillUnlockGuide(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Unlock Skill"))
 		.header("Skill Unlocking")
 		.divider()
@@ -45,13 +45,13 @@ function skillUnlockGuide(player: Player) {
 		.button("Back")
 		.show(player).then(r => {
 			if (r.selection == 1 || r.canceled) mechanicsList(player);
-			// Same as typing /unlockskill, so the guide doesn't import ui/forms directly
+
 			if(r.selection == 0) player.runCommand("ph:unlockskill")
 		})
 }
 
-function passiveDash(player: Player) { 
-	const form = new ActionFormData()
+function passiveDash(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Passive Dash"))
 		.header("Passive Dash")
 		.divider()
@@ -64,8 +64,8 @@ function passiveDash(player: Player) {
 		})
 }
 
-function extraHealth(player: Player) { 
-	const form = new ActionFormData()
+function extraHealth(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Extra Health"))
 		.header("Extra Health")
 		.divider()
@@ -77,8 +77,8 @@ function extraHealth(player: Player) {
 		})
 }
 
-function windPlunge(player: Player) { 
-	const form = new ActionFormData()
+function windPlunge(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Wind Plunging"))
 		.header("Wind Plunge Attack")
 		.divider()
@@ -91,8 +91,8 @@ function windPlunge(player: Player) {
 		})
 }
 
-function dynamicLighting(player: Player) { 
-	const form = new ActionFormData()
+function dynamicLighting(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Dynamic Light"))
 		.header("Phantasm Light System")
 		.divider()
@@ -105,8 +105,8 @@ function dynamicLighting(player: Player) {
 		})
 }
 
-function legendaryItems(player: Player) { 
-	const form = new ActionFormData()
+function legendaryItems(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Legendary Items"))
 		.header("Legendary Mechanics")
 		.divider()
@@ -120,8 +120,8 @@ function legendaryItems(player: Player) {
 		})
 }
 
-function upgradingItems(player: Player) { 
-	const form = new ActionFormData()
+function upgradingItems(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Item Upgrade"))
 		.header("Upgrading Item")
 		.divider()
@@ -134,8 +134,8 @@ function upgradingItems(player: Player) {
 		})
 }
 
-function betterMending(player: Player) { 
-	const form = new ActionFormData()
+function betterMending(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Better Mending"))
 		.header("Mending QoL")
 		.divider()
@@ -148,8 +148,8 @@ function betterMending(player: Player) {
 		})
 }
 
-function accessories(player: Player) { 
-	const form = new ActionFormData()
+function accessories(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Accessories"))
 		.header("Accessories")
 		.divider()
@@ -162,8 +162,8 @@ function accessories(player: Player) {
 		})
 }
 
-function auricCharges(player: Player) { 
-	const form = new ActionFormData()
+function auricCharges(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Auric Charge"))
 		.header("Auric Charge")
 		.divider()

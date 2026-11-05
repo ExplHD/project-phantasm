@@ -11,8 +11,7 @@ function setAxisDelta(map: MolangVariableMap, a: { x: number; y: number; z: numb
     map.setFloat("variable.z", b.z - a.z);
 }
 
-// Solaris Verdant (Animitta)
-let solarisverdantSkill = new SkillHandler("ph:solaris_verdant", "solaris_verdant")
+const solarisverdantSkill = new SkillHandler("ph:solaris_verdant", "solaris_verdant")
 solarisverdantSkill.addSkill(1, {
     name: "§aAnimirra",
     type: "Ability",
@@ -108,7 +107,7 @@ solarisverdantSkill.addSkill(3, {
     }
 })
 
-let superchargedCopperAxeSkill = new SkillHandler("ph:supercharged_copper_axe", "supercharged_copper_axe")
+const superchargedCopperAxeSkill = new SkillHandler("ph:supercharged_copper_axe", "supercharged_copper_axe")
 superchargedCopperAxeSkill.addSkill(1, {
     name: "§6Charge",
     type: "Ability",
@@ -258,7 +257,7 @@ superchargedCopperAxeSkill.addSkill(4, {
     }
 })
 
-let prismWeaverSkill = new SkillHandler("ph:prism_weaver", "prism_weaver")
+const prismWeaverSkill = new SkillHandler("ph:prism_weaver", "prism_weaver")
 prismWeaverSkill.addSkill(1, {
     name: "§3Bubble Barrage",
     type: "Skill",
@@ -268,8 +267,8 @@ prismWeaverSkill.addSkill(1, {
     action: (source: Player) => {
         source.runCommand('inputpermission set @s movement disabled');
         source.playAnimation("animation.prism_weaver.skill_1");
-        // Six volleys, one every 7 ticks, of four bubbles from around the player towards the crosshair.
-        const volley = (src: Player) => {
+
+        const volley = (src: Player): void => {
             for (const [side, up] of [[-1.1, 0.5], [1.1, 0.5], [-0.7, -0.3], [0.7, -0.3]]) fireProjectile(src, prismBubble(side, up));
             src.dimension.playSound("custom_sfx.animirra_summon", src.location);
         };
@@ -337,37 +336,21 @@ prismWeaverSkill.addSkill(3, {
         }
         entities.forEach((entity: Entity) => {
             if (!entity || !entity.isValid) return;
-            if (entity.id === source.id) return; // jangan tarik diri sendiri
-            // ignore items / inanimate if you want
+            if (entity.id === source.id) return;
+
             if (entity.typeId?.startsWith("minecraft:item")) return;
 
-            // compute vector from entity -> source (pull towards source)
             const dx = source.location.x - entity.location.x;
             const dy = source.location.y - entity.location.y;
             const dz = source.location.z - entity.location.z;
 
             const dir = normalize({ x: dx, y: dy, z: dz });
 
-            // scale force (sesuaikan kekuatan)
-            const pullStrength = 4.5; // coba 1.6, ubah sesuai kebutuhan
+            const pullStrength = 4.5;
             const impulse = { x: dir.x * pullStrength, y: Math.max(dir.y * 0.7, 0.1), z: dir.z * pullStrength };
 
-            // apply impulse (tarik)
-            try {
-                if (typeof entity.applyImpulse === "function") {
-                    entity.applyImpulse(impulse);
-                    entity.addEffect("slowness", 60, { amplifier: 255 })
-                } else {
-                    // fallback: teleport sedikit ke arah source (jika applyImpulse tidak tersedia)
-                    entity.teleport({
-                        x: entity.location.x + impulse.x,
-                        y: entity.location.y + impulse.y,
-                        z: entity.location.z + impulse.z
-                    });
-                }
-            } catch (e) {
-                console.warn("Failed to apply impulse:", e);
-            }
+            entity.applyImpulse(impulse);
+            entity.addEffect("slowness", 60, { amplifier: 255 });
         });
         applyCustomDamage(source, 40, 32);
         source.dimension.spawnParticle("ph:vortex_prism", source.location);
@@ -389,36 +372,21 @@ prismWeaverSkill.addSkill(3, {
                     }
                     entities.forEach((entity: Entity) => {
                         if (!entity || !entity.isValid) return;
-                        if (entity.id === source.id) return; // jangan tarik diri sendiri
-                        // ignore items / inanimate if you want
+                        if (!source.isValid) return;
+                        if (entity.id === source.id) return;
+
                         if (entity.typeId?.startsWith("minecraft:item")) return;
 
-                        // compute vector from entity -> source (pull towards source)
                         const dx = source.location.x - entity.location.x;
                         const dy = source.location.y - entity.location.y;
                         const dz = source.location.z - entity.location.z;
 
                         const dir = normalize({ x: dx, y: dy, z: dz });
 
-                        // scale force (sesuaikan kekuatan)
-                        const pullStrength = 8.6; // coba 1.6, ubah sesuai kebutuhan
+                        const pullStrength = 8.6;
                         const impulse = { x: dir.x * pullStrength, y: Math.max(dir.y * 0.7, 0.1), z: dir.z * -pullStrength };
 
-                        // apply impulse (tarik)
-                        try {
-                            if (typeof entity.applyImpulse === "function") {
-                                entity.applyImpulse(impulse);
-                            } else {
-                                // fallback: teleport sedikit ke arah source (jika applyImpulse tidak tersedia)
-                                entity.teleport({
-                                    x: entity.location.x + impulse.x,
-                                    y: entity.location.y + impulse.y,
-                                    z: entity.location.z + impulse.z
-                                });
-                            }
-                        } catch (e) {
-                            console.warn("Failed to apply impulse:", e);
-                        }
+                        entity.applyImpulse(impulse);
                     });
                     applyCustomDamage(src, 55, 55);
                     src.dimension.playSound("custom_sfx.prism_fire", src.location);
@@ -435,7 +403,7 @@ prismWeaverSkill.addSkill(3, {
     }
 })
 
-let auricPhotonizerSkill = new SkillHandler("ph:auric_photonizer", "auric_photonizer")
+const auricPhotonizerSkill = new SkillHandler("ph:auric_photonizer", "auric_photonizer")
 auricPhotonizerSkill.addSkill(1, {
     name: "§eStab",
     type: "Skill",
@@ -533,7 +501,7 @@ auricPhotonizerSkill.addSkill(4, {
     }
 })
 
-let theBleedingSpireSkill = new SkillHandler("ph:the_bleeding_spire", "the_bleeding_spire")
+const theBleedingSpireSkill = new SkillHandler("ph:the_bleeding_spire", "the_bleeding_spire")
 theBleedingSpireSkill.addSkill(1, {
     name: "§4Carnage",
     type: "Skill",
@@ -571,6 +539,7 @@ theBleedingSpireSkill.addSkill(2, {
             setScore(source, "the_bleeding_spire_s2", 0);
         }
         for (const entity of entities) {
+            if (!entity.isValid) continue;
             entity.applyDamage(28, {
                 damagingEntity: source,
                 cause: EntityDamageCause.magic
@@ -578,6 +547,7 @@ theBleedingSpireSkill.addSkill(2, {
             source.addEffect("instant_health", 2, {
                 amplifier: 2
             })
+            if (!entity.isValid) continue;
             if (entity?.typeId != "minecraft:player") {
                 entity.addEffect("slowness", 100, {
                     amplifier: 255
@@ -589,6 +559,7 @@ theBleedingSpireSkill.addSkill(2, {
                 entity.runCommand("inputpermission set @s jump disabled");
                 entity.runCommand('tellraw @s {"rawtext":[{"text":"You have been stunned for 5 seconds."}]}');
                 system.runTimeout(() => {
+                    if (!entity.isValid) return;
                     entity.runCommand('tellraw @s {"rawtext":[{"text":"Stunned effect is gone!"}]}');
                     entity.runCommand("inputpermission set @s jump enabled");
                 }, 100);
@@ -628,6 +599,7 @@ theBleedingSpireSkill.addSkill(3, {
             setScore(source, "the_bleeding_spire_s2", 0);
         }
         for (const entity of entities) {
+            if (!entity.isValid) continue;
             entity.applyDamage(12, {
                 damagingEntity: source,
                 cause: EntityDamageCause.magic
@@ -635,6 +607,7 @@ theBleedingSpireSkill.addSkill(3, {
             source.addEffect("instant_health", 1, {
                 amplifier: 2
             })
+            if (!entity.isValid) continue;
             if (entity?.typeId != "minecraft:player") {
                 entity.addEffect("slowness", 100, {
                     amplifier: 255
@@ -646,6 +619,7 @@ theBleedingSpireSkill.addSkill(3, {
                 entity.runCommand("inputpermission set @s jump disabled");
                 entity.runCommand('tellraw @s {"rawtext":[{"text":"You have been stunned for 5 seconds."}]}');
                 system.runTimeout(() => {
+                    if (!entity.isValid) return;
                     entity.runCommand('tellraw @s {"rawtext":[{"text":"Stunned effect is gone!"}]}');
                     entity.runCommand("inputpermission set @s jump enabled");
                 }, 100);
@@ -658,6 +632,7 @@ theBleedingSpireSkill.addSkill(3, {
             source.dimension.spawnParticle("ph:entanglement_lead_particle", source.location, pConfig);
         }
         system.runTimeout(() => {
+            if (!source.isValid) return;
             source.runCommand("inputpermission set @s movement enabled");
         }, 20);
     }

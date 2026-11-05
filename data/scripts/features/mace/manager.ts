@@ -6,48 +6,35 @@ export const ExcludeEntities: string[] = [
     "minecraft:armor_stand", "minecraft:iron_golem"
 ];
 
-// [UNUSED] AllowedMaceEnchants - exported but never referenced anywhere. Enchantment
-// restriction was never wired up; isRestrictedMace below was its intended consumer.
 export const AllowedMaceEnchants: string[] = [
     "density", "wind_burst", "breach",
     "smite", "bane_of_arthropods", "fire_aspect",
     "unbreaking", "mending", "curse_of_vanishing"
 ];
-// [UNUSED] isRestrictedMace - exported but never called. Nothing enforces these enchants.
+
 export function isRestrictedMace(item: ItemStack | undefined): boolean {
     if (!item) return false;
-    // Only prevent certain enchantments if the item has the tag.
+
     return item.hasTag("ph:is_mace");
 }
 
 export function isValidTarget(entity: Entity | undefined): boolean {
-    try {
-        if (!entity || entity.isValid === false) return false;
-        if (ExcludeEntities.includes(entity.typeId)) return false;
+    if (!entity?.isValid) return false;
+    if (ExcludeEntities.includes(entity.typeId)) return false;
 
-        const tags = entity.getTags();
-        for (const family of ExcludeFamilyTypes) {
-            if (tags.includes(`minecraft:family_${family}`)) return false;
-        }
-        return true;
-    } catch (e) { return false; }
+    const tags = entity.getTags();
+    for (const family of ExcludeFamilyTypes) {
+        if (tags.includes(`minecraft:family_${family}`)) return false;
+    }
+    return true;
 }
 
-// Reduce impulse to victim wearing netherite armor.
 export function getKnockbackMultiplier(entity: Entity): number {
-    try {
-        const equipment = entity.getComponent(EntityEquippableComponent.componentId) as EntityEquippableComponent | undefined;
-        if (!equipment) return 1.0;
+    if (!entity.isValid) return 1.0;
+    const equipment = entity.getComponent(EntityEquippableComponent.componentId) as EntityEquippableComponent | undefined;
+    if (!equipment?.isValid) return 1.0;
 
-        const slots = [EquipmentSlot.Head, EquipmentSlot.Chest, EquipmentSlot.Legs, EquipmentSlot.Feet];
-        let resistance = 0;
-
-        for (const slot of slots) {
-            const item = equipment.getEquipment(slot);
-            if (item && item.hasTag("minecraft:netherite_tier")) {
-                resistance += 0.10;
-            }
-        }
-        return 1.0 - resistance;
-    } catch (e) { return 1.0; }
+    const slots = [EquipmentSlot.Head, EquipmentSlot.Chest, EquipmentSlot.Legs, EquipmentSlot.Feet];
+    const netheritePieces = slots.filter((slot) => equipment.getEquipment(slot)?.hasTag("minecraft:netherite_tier")).length;
+    return 1.0 - netheritePieces * 0.10;
 }

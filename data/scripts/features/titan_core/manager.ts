@@ -1,9 +1,5 @@
 import { world, system, Dimension, Entity, EntityHurtAfterEvent } from "@minecraft/server";
-
-// ======================================== Titan Core (Titan Ridge) ========================================
-// A 600 HP reactor core. Each time it crosses a 200 HP threshold it shields up and
-// summons a defender wave (difficulty scaled). Defeat the whole wave to drop the
-// shield; destroying the core triggers a 30-strong final defense swarm.
+import { isLoadedLocation } from "../../core/location";
 
 const CORE_ID = "ph:titan_core";
 const MINION_TAG = "core_minion";
@@ -11,19 +7,17 @@ const MINION_TYPES = ["ph:plasmoid_drone", "ph:rupture_drone"];
 const FINAL_DEFENSE_COUNT = 30;
 const FALLBACK_DIFFICULTY = "normal";
 
-// Wave size per world difficulty.
 const WAVE_COUNTS: Record<string, number> = {
     easy: 10,
     normal: 17,
     hard: 22
 };
 
-const POLL_INTERVAL = 40;   // ticks between wave-clear checks
-const WAVE_POLLS_MAX = 120; // 120 * 40 ticks = 4 minutes shielded max, then the shield drops anyway
-const MINION_RANGE = 48;    // only minions near the core count for the wave
+const POLL_INTERVAL = 40;
+const WAVE_POLLS_MAX = 120;
+const MINION_RANGE = 48;
 
 interface CoreFight {
-    /** Highest phase already triggered (0 = none, 1 = shield at <=400, 2 = shield at <=200). */
     phase: number;
     shielded: boolean;
     watcher?: number;
@@ -33,33 +27,27 @@ interface CoreFight {
 const fights = new Map<string, CoreFight>();
 
 function getFight(core: Entity): CoreFight {
-    let fight = fights.get(core.id);
-    if (fight) return fight;
+    const existing = fights.get(core.id);
+    if (existing) return existing;
 
-    fight = { phase: 0, shielded: false, watcherPolls: 0 };
+    const fight: CoreFight = { phase: 0, shielded: false, watcherPolls: 0 };
     fights.set(core.id, fight);
     return fight;
 }
 
 function waveCount(): number {
-    try {
-        return WAVE_COUNTS[world.getDifficulty()] ?? WAVE_COUNTS[FALLBACK_DIFFICULTY];
-    } catch {
-        return WAVE_COUNTS[FALLBACK_DIFFICULTY];
-    }
+    return WAVE_COUNTS[world.getDifficulty()] ?? WAVE_COUNTS[FALLBACK_DIFFICULTY];
 }
 
 function announce(dimension: Dimension, location: { x: number; y: number; z: number }, message: string): void {
-    try {
-        for (const player of dimension.getPlayers({ location, maxDistance: 56 })) {
-            player.onScreenDisplay.setActionBar(message);
-        }
-    } catch {
-        // Player iteration can throw right before a dimension swap; the fight continues without it.
+    for (const player of dimension.getPlayers({ location, maxDistance: 56 })) {
+        if (!player.isValid) continue;
+        player.onScreenDisplay.setActionBar(message);
     }
 }
 
 function summonWave(core: Entity, count: number): void {
+    if (!core.isValid) return;
     const origin = core.location;
     const dimension = core.dimension;
 
@@ -74,14 +62,10 @@ function summonWave(core: Entity, count: number): void {
             z: origin.z + Math.sin(angle) * radius
         };
 
-        try {
-            const minion = dimension.spawnEntity(typeId, position);
-            minion.addTag(MINION_TAG);
-            // Leash the minion to the core (minecraft:home, 16 blocks, all movement).
-            minion.triggerEvent("ph:core_minion");
-        } catch (err) {
-            console.warn(`[ph] titan core minion spawn failed: ${err}`);
-        }
+        if (!isLoadedLocation(dimension, position)) continue;
+        const minion = dimension.spawnEntity(typeId, position);
+        minion.addTag(MINION_TAG);
+        minion.triggerEvent("ph:core_minion");
     }
 
     announce(
@@ -94,20 +78,13 @@ function summonWave(core: Entity, count: number): void {
 }
 
 function countMinions(core: Entity): number {
-    let alive = 0;
-    for (const typeId of MINION_TYPES) {
-        try {
-            alive += core.dimension.getEntities({
-                type: typeId,
-                tags: [MINION_TAG],
-                location: core.location,
-                maxDistance: MINION_RANGE
-            }).length;
-        } catch {
-            // Dimension query failed (dimension torn down); assume no minions are left.
-        }
-    }
-    return alive;
+    if (!core.isValid) return 0;
+    return MINION_TYPES.reduce((alive, typeId) => alive + core.dimension.getEntities({
+        type: typeId,
+        tags: [MINION_TAG],
+        location: core.location,
+        maxDistance: MINION_RANGE
+    }).length, 0);
 }
 
 function endWave(core: Entity, fight: CoreFight): void {
@@ -116,13 +93,10 @@ function endWave(core: Entity, fight: CoreFight): void {
         fight.watcher = undefined;
     }
     fight.shielded = false;
+    if (!core.isValid) return;
 
-    try {
-        core.setProperty("ph:shielded", false);
-        core.triggerEvent("ph:unshield");
-    } catch (err) {
-        console.warn(`[ph] titan core unshield failed: ${err}`);
-    }
+    core.setProperty("ph:shielded", false);
+    core.triggerEvent("ph:unshield");
 
     announce(core.dimension, core.location, "§aThe Titan Core shield has collapsed!");
 }
@@ -140,7 +114,6 @@ function watchWave(core: Entity, fight: CoreFight): void {
         fight.watcherPolls++;
         const remaining = countMinions(core);
 
-        // Wave finished, or safety release after too long (players leaving, minions despawning...).
         if (remaining === 0 || fight.watcherPolls >= WAVE_POLLS_MAX) {
             endWave(core, fight);
         }
@@ -151,13 +124,10 @@ function watchWave(core: Entity, fight: CoreFight): void {
 function beginShieldPhase(core: Entity, fight: CoreFight, phase: number): void {
     fight.phase = phase;
     fight.shielded = true;
+    if (!core.isValid) return;
 
-    try {
-        core.setProperty("ph:shielded", true);
-        core.triggerEvent("ph:shield");
-    } catch (err) {
-        console.warn(`[ph] titan core shield failed: ${err}`);
-    }
+    core.setProperty("ph:shielded", true);
+    core.triggerEvent("ph:shield");
 
     summonWave(core, waveCount());
     watchWave(core, fight);
@@ -169,14 +139,13 @@ export function onTitanCoreHurt(event: EntityHurtAfterEvent): void {
     if (!core.isValid) return;
 
     const fight = getFight(core);
-    if (fight.shielded) return; // shielded: thresholds cannot advance
+    if (fight.shielded) return;
 
     const healthComp = core.getComponent("minecraft:health");
     if (!healthComp) return;
 
     const health = healthComp.currentValue;
 
-    // Thresholds: 400 HP opens phase 1, 200 HP opens phase 2.
     if (health <= 200 && fight.phase < 2) {
         beginShieldPhase(core, fight, 2);
     } else if (health <= 400 && fight.phase < 1) {
@@ -194,12 +163,10 @@ export function onTitanCoreDie(core: Entity): void {
         fights.delete(core.id);
     }
 
-    try {
-        core.dimension.spawnParticle("minecraft:huge_explosion_emitter", core.location);
-        core.dimension.playSound("beacon.deactivate", core.location, { pitch: 0.6, volume: 1 });
-    } catch {
-        // Death bookkeeping must never block the final wave.
-    }
+    if (!core.isValid) return;
+    if (!isLoadedLocation(core.dimension, core.location)) return;
+    core.dimension.spawnParticle("minecraft:huge_explosion_emitter", core.location);
+    core.dimension.playSound("beacon.deactivate", core.location, { pitch: 0.6, volume: 1 });
 
     summonWave(core, FINAL_DEFENSE_COUNT);
 }

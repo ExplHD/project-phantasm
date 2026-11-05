@@ -1,17 +1,17 @@
-import { system, CommandPermissionLevel, CustomCommandStatus, CustomCommandParamType, Player } from '@minecraft/server'
+import { system, CommandPermissionLevel, CustomCommandStatus, CustomCommandParamType, Player, type CustomCommandOrigin, type CustomCommandResult, type StartupEvent } from '@minecraft/server'
 import { unstuckPlayer } from '../core/player'
-import { skillUnlock, propertiesCheck } from './forms/skillUnlock'
+import { skillUnlock } from './forms/skillUnlock'
 import { openSettings } from './forms/settingsForm'
 import { mainGuideScreen } from './guide/main_guide'
 import openDynamicPropertyMenu, { resetPlayerProperties } from './forms/dynamicProperties'
 
-// ======================================== Slash commands and the Guidebook ========================================
-// Everything registered at startup that opens a form lives here, so features/ never has to
-// import ui/. Subscribed to system.beforeEvents.startup in events/loader.ts.
+function originPlayer(origin: CustomCommandOrigin): Player | undefined {
+    return origin.sourceEntity instanceof Player ? origin.sourceEntity : undefined;
+}
 
-export function registerUiCommands(initEvent: any): void {
+export function registerUiCommands(initEvent: StartupEvent): void {
     initEvent.itemComponentRegistry.registerCustomComponent("ph:guidebook", {
-        onUse({ source }: any) {
+        onUse({ source }): void {
             mainGuideScreen(source);
         }
     });
@@ -36,10 +36,13 @@ export function registerUiCommands(initEvent: any): void {
 		description: "Check all of your dynamic properties",
 		cheatsRequired: true,
 		permissionLevel: CommandPermissionLevel.GameDirectors
-	}, (origin: any) => {
+	}, (origin: CustomCommandOrigin): CustomCommandResult => {
+		const player = originPlayer(origin);
+		if (!player) return { status: CustomCommandStatus.Failure };
 		system.run(() => {
-			openDynamicPropertyMenu(origin.sourceEntity);
+			openDynamicPropertyMenu(player);
 		})
+		return { status: CustomCommandStatus.Success };
 	});
 
 	initEvent.customCommandRegistry.registerCommand({
@@ -47,10 +50,13 @@ export function registerUiCommands(initEvent: any): void {
 		description: "Opens Guide Screen",
 		cheatsRequired: false,
 		permissionLevel: CommandPermissionLevel.Any
-	}, (origin: any) => {
+	}, (origin: CustomCommandOrigin): CustomCommandResult => {
+		const player = originPlayer(origin);
+		if (!player) return { status: CustomCommandStatus.Failure };
 		system.run(() => {
-			mainGuideScreen(origin.sourceEntity);
+			mainGuideScreen(player);
 		})
+		return { status: CustomCommandStatus.Success };
 	});
 
 	initEvent.customCommandRegistry.registerCommand({
@@ -58,9 +64,9 @@ export function registerUiCommands(initEvent: any): void {
 		description: "Opens the settings ui to configure your controls",
 		cheatsRequired: false,
 		permissionLevel: CommandPermissionLevel.Any
-	}, (origin: any) => {
-		const player = origin.sourceEntity;
-		if (player?.typeId !== "minecraft:player") return { status: CustomCommandStatus.Failure };
+	}, (origin: CustomCommandOrigin): CustomCommandResult => {
+		const player = originPlayer(origin);
+		if (!player) return { status: CustomCommandStatus.Failure };
 		system.run(() => {
 			openSettings(player);
 		})
@@ -72,32 +78,27 @@ export function registerUiCommands(initEvent: any): void {
 		description: "Unstuck yourself when you cannot move.",
 		cheatsRequired: true,
 		permissionLevel: CommandPermissionLevel.Any
-	}, (origin: any) => { 
-		unstuckPlayer(origin.sourceEntity);
-		origin.sourceEntity.sendMessage("Successfully unstuck");
+	}, (origin: CustomCommandOrigin): CustomCommandResult => {
+		const player = originPlayer(origin);
+		if (!player) return { status: CustomCommandStatus.Failure };
+		unstuckPlayer(player);
+		player.sendMessage("Successfully unstuck");
+		return { status: CustomCommandStatus.Success };
 	});
 }
 
-function openForm({ sourceEntity: player }: any) {
+function openForm(origin: CustomCommandOrigin): CustomCommandResult {
+    const player = originPlayer(origin);
+    if (!player) return { status: CustomCommandStatus.Failure };
     system.run(() => {
         skillUnlock(player);
     })
     return { status: CustomCommandStatus.Success };
 }
 
-// [UNUSED] openProperties - never passed to a registerCommand call, so this handler is
-// unreachable. /dynamicproperties uses openDynamicPropertyMenu instead. This is the only
-// caller of propertiesCheck in forms/skillUnlock.ts.
-function openProperties({ sourceEntity: player }: any) {
-    system.run(() => {
-        propertiesCheck(player);
-    })
-    return { status: CustomCommandStatus.Success };
-}
-
-// Defaults to the player running it; the optional target also makes it usable from the console.
-function clearDynamicProperty({ sourceEntity }: any, targets?: Player[]) {
-    const players = targets ?? (sourceEntity?.typeId === "minecraft:player" ? [sourceEntity as Player] : []);
+function clearDynamicProperty(origin: CustomCommandOrigin, targets?: Player[]): CustomCommandResult {
+    const source = originPlayer(origin);
+    const players = targets ?? (source ? [source] : []);
     if (players.length === 0) {
         return { status: CustomCommandStatus.Failure, message: "No player to reset. Run it as a player or pass a target." };
     }

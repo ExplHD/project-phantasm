@@ -1,67 +1,75 @@
-import { /* [UNUSED] world */ system, MolangVariableMap, ItemStack } from '@minecraft/server'
+import { system, MolangVariableMap, ItemStack, Player, EquipmentSlot, type Block, type Dimension, type RGBA, type StartupEvent, type Vector3 } from '@minecraft/server'
 import { setScore, getScore, addScore, removeScore } from '../../core/scoreboard'
 import { applyDurabilityDamage } from '../../core/items'
 import { summonOwned } from '../../core/summons'
-
-// ======================================== Boss Spawn Placement ========================================
-// The Copper Mechanical Array is 1x3.6 and the Ancient Copper Core is a 5x5 ritual ring with
-// batteries two blocks out on every side. Spawning the boss over the core wedged it inside the
-// ring geometry, so the summon drops it on open ground a few blocks away instead.
+import { isLoadedLocation } from '../../core/location'
+import { crystallSupport, getCustomState, setCustomState } from '../../core/blocks'
+import { readParams, numParam, strParam } from '../../core/params'
 
 const BOSS_SPAWN_MIN_DISTANCE = 4;
 const BOSS_SPAWN_MAX_DISTANCE = 12;
-// Head clearance needed for a 3.6 block tall boss, so it never spawns into a low ceiling.
+
 const BOSS_SPAWN_HEAD_ROOM = 4;
-// How far below the player to look for a floor before giving up on an angle.
+
 const BOSS_SPAWN_SEARCH_DEPTH = 12;
 
-function isGroundBlock(block: any): boolean {
+const ACTIVATION_STATE = "ph:activation_state";
+
+const REPAIR_SLOTS = [EquipmentSlot.Head, EquipmentSlot.Chest, EquipmentSlot.Legs, EquipmentSlot.Feet, EquipmentSlot.Offhand];
+
+const DIRT_PATHABLE: string[] = [
+    "minecraft:dirt",
+    "minecraft:dirt_with_roots",
+    "minecraft:podzol",
+    "minecraft:mycellium",
+    "minecraft:coarse_dirt"
+];
+
+function hasOrbitalTargets(dimension: Dimension, location: Vector3, maxDistance: number, sourceTag: string): boolean {
+    return dimension.getEntities({
+        location,
+        maxDistance,
+        excludeTags: [sourceTag],
+        excludeTypes: ["minecraft:item"],
+        excludeFamilies: ["inanimate"]
+    }).length > 0;
+}
+
+function isGroundBlock(block: Block | undefined): boolean {
     return !!block && !block.isAir && !block.isLiquid;
 }
 
-/**
- * Finds open ground BOSS_SPAWN_MIN_DISTANCE..BOSS_SPAWN_MAX_DISTANCE blocks from the core,
- * at roughly the player's height, with enough head clearance for the boss to stand up.
- * Tries a spread of angles so the boss never lands in the same spot twice.
- */
-function findBossSpawnPoint(dimension: any, origin: any, player: any): any {
+function findBossSpawnPoint(dimension: Dimension, origin: Vector3, player: Player): Vector3 {
     const angles = 12;
 
     for (let i = 0; i < angles; i++) {
-        // Offset by attempt index so repeated summons spread out instead of stacking.
         const angle = ((i / angles) * Math.PI * 2) + Math.random() * 0.5;
         const distance = BOSS_SPAWN_MIN_DISTANCE + Math.random() * (BOSS_SPAWN_MAX_DISTANCE - BOSS_SPAWN_MIN_DISTANCE);
         const x = Math.floor(origin.x + Math.cos(angle) * distance);
         const z = Math.floor(origin.z + Math.sin(angle) * distance);
         const startY = Math.floor(player.location.y);
 
-        // Walk down from the player's level to find the first solid floor.
         for (let drop = 0; drop <= BOSS_SPAWN_SEARCH_DEPTH; drop++) {
             const y = startY - drop;
-            const floor = dimension.getBlock({ x, y: y - 1, z });
+            const floorLocation = { x, y: y - 1, z };
+            if (!isLoadedLocation(dimension, floorLocation)) continue;
+            const floor = dimension.getBlock(floorLocation);
             if (!isGroundBlock(floor)) continue;
 
-            let headRoom = true;
-            for (let up = 0; up < BOSS_SPAWN_HEAD_ROOM; up++) {
-                const space = dimension.getBlock({ x, y: y + up, z });
-                if (!space || !space.isAir) {
-                    headRoom = false;
-                    break;
-                }
-            }
+            const headRoom = Array.from({ length: BOSS_SPAWN_HEAD_ROOM }, (_, up) => ({ x, y: y + up, z }))
+                .every((location) => isLoadedLocation(dimension, location) && dimension.getBlock(location)?.isAir === true);
             if (!headRoom) break;
 
             return { x: x + 0.5, y, z: z + 0.5 };
         }
     }
 
-    // Nothing valid nearby; fall back to the old center spawn rather than dropping nothing.
     return { x: origin.x, y: origin.y + 1.1, z: origin.z };
 }
 
-const COPPER_RING_COLOR = { red: 1, green: 0.63137, blue: 0, alpha: 1 };
+const COPPER_RING_COLOR: RGBA = { red: 1, green: 0.63137, blue: 0, alpha: 1 };
 
-function coreRing(size: number, color: { red: number; green: number; blue: number; alpha: number }): MolangVariableMap {
+function coreRing(size: number, color: RGBA): MolangVariableMap {
     const map = new MolangVariableMap();
     map.setFloat("variable.size", size);
     map.setColorRGBA("variable.rgba", color);
@@ -70,31 +78,42 @@ function coreRing(size: number, color: { red: number; green: number; blue: numbe
 
 const copperRing = (): MolangVariableMap => coreRing(1, COPPER_RING_COLOR);
 
-// Subscribed to system.beforeEvents.startup in events/loader.ts
-export function registerCustomComponents(initEvent: any): void {
-    initEvent.itemComponentRegistry.registerCustomComponent("ph:charge_passive", {
-        onHitEntity(e: any) {
-            const hitEntity = e.hitEntity
-            const source = e.attackingEntity
-            const itemStack = e.itemStack
+function isActive(block: Block | undefined): boolean {
+    return !!block && getCustomState(block, ACTIVATION_STATE) == 1;
+}
 
-            if (itemStack.typeId === "ph:charged_copper_axe") {
-                system.runTimeout(() => {
-                    if (getScore(source, "charged_copper_axe") == 100) {
-                        summonOwned(source, 'summon lightning_bolt', hitEntity)
-                    } let calculatedDamage = 10 + (getScore(source, "charged_copper_axe") / 10)
-                    hitEntity.applyDamage(calculatedDamage)
-                    setScore(source, "charged_copper_axe", 0)
-                }, 3)
-            }
+function sendNeedItem(player: Player, item: ItemStack, suffix: string): void {
+    player.sendMessage({
+        rawtext: [
+            { text: `You need §a${item.amount}x ` },
+            { translate: `${item.localizationKey}` },
+            { text: suffix }
+        ]
+    });
+}
+
+export function registerCustomComponents(initEvent: StartupEvent): void {
+    initEvent.itemComponentRegistry.registerCustomComponent("ph:charge_passive", {
+        onHitEntity({ hitEntity, attackingEntity: source, itemStack }): void {
+            if (itemStack?.typeId !== "ph:charged_copper_axe") return;
+            system.runTimeout(() => {
+                if (!source.isValid || !hitEntity.isValid) return;
+                if (getScore(source, "charged_copper_axe") == 100) {
+                    summonOwned(source, 'summon lightning_bolt', hitEntity);
+                }
+                const calculatedDamage = 10 + (getScore(source, "charged_copper_axe") / 10);
+                hitEntity.applyDamage(calculatedDamage);
+                setScore(source, "charged_copper_axe", 0);
+            }, 3);
         },
-        onUse(e: any) {
-            const player = e.source;
+        onUse({ source: player }): void {
             player.startItemCooldown("charged_copper_axe", 120);
             applyDurabilityDamage(player, { damage: 36 });
             system.run(() => {
-                player.playAnimation("animation.charged_copper_axe.attack_3", player.location);
+                if (!player.isValid) return;
+                player.playAnimation("animation.charged_copper_axe.attack_3");
                 system.runTimeout(() => {
+                    if (!player.isValid) return;
                     player.dimension.playSound("weapon_slash.slash_heavy", player.location);
                     player.dimension.spawnParticle("ph:lightning_flash", player.location);
                     player.dimension.spawnParticle("ph:lightning_sparks", player.location);
@@ -103,14 +122,13 @@ export function registerCustomComponents(initEvent: any): void {
                     summonOwned(player, 'summon lightning_bolt ^^^10 ~ 0');
                     player.runCommand('particle ph:lightning_sparks ^^^5');
                     player.runCommand('particle ph:lightning_sparks ^^^10');
-                }, 8)
-            })
+                }, 8);
+            });
         }
-    })
+    });
 
     initEvent.itemComponentRegistry.registerCustomComponent("ph:time_polarizer", {
-        onUse(e: any) {
-            const source = e.source;
+        onUse({ source }): void {
             if (source.isSneaking) {
                 source.runCommand(`effect @e[r=8,rm=0.1] slowness 22 1 true`);
                 source.runCommand(`effect @e[r=8,rm=0.1] slow_falling 22 1 true`);
@@ -119,46 +137,39 @@ export function registerCustomComponents(initEvent: any): void {
             }
             source.addEffect("speed", 500, {
                 amplifier: 2
-            })
-            source.dimension.spawnParticle("ph:time_polarizer_speed", { x: source.location.x, y: source.location.y + 0.4, z: source.location.z })
-            source.startItemCooldown("time_polarizer", 600)
+            });
+            source.dimension.spawnParticle("ph:time_polarizer_speed", { x: source.location.x, y: source.location.y + 0.4, z: source.location.z });
+            source.startItemCooldown("time_polarizer", 600);
         }
-    })
+    });
 
     initEvent.itemComponentRegistry.registerCustomComponent("ph:dash", {
-        onUse({ source, itemStack }: any, { params }: any) {
+        onUse({ source, itemStack }, parameters): void {
+            const params = readParams(parameters);
             const cooldownCategory = itemStack?.getComponent("cooldown")?.cooldownCategory;
 
-            const horizontalDashStrength = params.horizontal_dash_strength ?? 0;
-            const verticalDashStrength = params.vertical_dash_strength ?? 0;
-            const dashDirection = params.dashDirection ?? "view_direction";
-            const soundEffect = params.sound_effect ?? "random.explode";
-            const durabilityDamage = params.durability_damage ?? 0;
-            const cooldownValue = params.cooldown_value ?? 20;
-            const particleEffect = params.particle_effect ?? "minecraft:critical_hit_emitter";
+            const horizontalDashStrength = numParam(params, "horizontal_dash_strength") ?? 0;
+            const verticalDashStrength = numParam(params, "vertical_dash_strength") ?? 0;
+            const dashDirection = strParam(params, "dashDirection") ?? "view_direction";
+            const soundEffect = strParam(params, "sound_effect") ?? "random.explode";
+            const durabilityDamage = numParam(params, "durability_damage") ?? 0;
+            const cooldownValue = numParam(params, "cooldown_value") ?? 20;
+            const particleEffect = strParam(params, "particle_effect") ?? "minecraft:critical_hit_emitter";
 
             applyDurabilityDamage(source, { damage: durabilityDamage });
 
-            switch (dashDirection) {
-                case 'impulse':
-                    source.applyImpulse({ x: source.getViewDirection().x * horizontalDashStrength, y: verticalDashStrength, z: source.getViewDirection().z * horizontalDashStrength });
-                    source.dimension.playSound(soundEffect, source.location);
-                    source.dimension.spawnParticle(particleEffect, source.location);
-                    if (cooldownCategory) source.startItemCooldown(cooldownCategory, cooldownValue);
-                    break;
-                case 'view_direction':
-                    source.applyKnockback({ x: source.getViewDirection().x * horizontalDashStrength, z: source.getViewDirection().z * horizontalDashStrength }, verticalDashStrength);
-                    source.dimension.playSound(soundEffect, source.location);
-                    source.dimension.spawnParticle(particleEffect, source.location);
-                    if (cooldownCategory) source.startItemCooldown(cooldownCategory, cooldownValue);
-                    break;
-                case 'velocity':
-                    source.applyKnockback({ x: source.getVelocity().x * horizontalDashStrength, z: source.getVelocity().z * horizontalDashStrength }, verticalDashStrength);
-                    source.dimension.playSound(soundEffect, source.location);
-                    source.dimension.spawnParticle(particleEffect, source.location);
-                    if (cooldownCategory) source.startItemCooldown(cooldownCategory, cooldownValue);
-                    break;
-                default: break;
+            const dashed = dashDirection === 'impulse' || dashDirection === 'view_direction' || dashDirection === 'velocity';
+            if (dashDirection === 'impulse') {
+                source.applyImpulse({ x: source.getViewDirection().x * horizontalDashStrength, y: verticalDashStrength, z: source.getViewDirection().z * horizontalDashStrength });
+            } else if (dashDirection === 'view_direction') {
+                source.applyKnockback({ x: source.getViewDirection().x * horizontalDashStrength, z: source.getViewDirection().z * horizontalDashStrength }, verticalDashStrength);
+            } else if (dashDirection === 'velocity') {
+                source.applyKnockback({ x: source.getVelocity().x * horizontalDashStrength, z: source.getVelocity().z * horizontalDashStrength }, verticalDashStrength);
+            }
+            if (dashed) {
+                source.dimension.playSound(soundEffect, source.location);
+                source.dimension.spawnParticle(particleEffect, source.location);
+                if (cooldownCategory) source.startItemCooldown(cooldownCategory, cooldownValue);
             }
             if (!source.isGliding) {
                 source.playAnimation("animation.player_extend.dash", {
@@ -166,106 +177,105 @@ export function registerCustomComponents(initEvent: any): void {
                 });
             }
         }
-    })
+    });
 
     initEvent.itemComponentRegistry.registerCustomComponent("ph:treasure_bag", {
-        onUse({ source }: any, { params }: any) {
-            const inventory = source.getComponent("inventory").container;
-            const loot = params.loot ?? "loot_tables/empty";
-            inventory.setItem(source.selectedSlotIndex, undefined)
-            source.runCommand(`loot spawn ~~~ loot "${loot}"`)
+        onUse({ source }, parameters): void {
+            const inventory = source.getComponent("inventory")?.container;
+            if (!inventory) return;
+            const loot = strParam(readParams(parameters), "loot") ?? "loot_tables/empty";
+            inventory.setItem(source.selectedSlotIndex, undefined);
+            source.runCommand(`loot spawn ~~~ loot "${loot}"`);
         }
-    })
+    });
 
     initEvent.itemComponentRegistry.registerCustomComponent("ph:food_effects", {
-        onConsume({ source, itemStack }: any, { params }: any) {
-            const playerHealthLevel = source?.getDynamicProperty("ph:health_level");
-            const healthBoostLevel = params.health_boost_levels;
-            const healthBoostDuration = params.health_boost_duration;
+        onConsume({ source, itemStack }, parameters): void {
+            if (!source.isValid) return;
+            const params = readParams(parameters);
+            const playerHealthLevel = Number(source.getDynamicProperty("ph:health_level") ?? 0);
+            const healthBoostLevel = numParam(params, "health_boost_levels") ?? 0;
+            const healthBoostDuration = numParam(params, "health_boost_duration") ?? 0;
 
-            const tags = itemStack.getTags()
-            for (const tag of tags) {
-                if (tag.startsWith("ph:food_effects-")) {
-                    const val = tag.split("-");
-                    source.addEffect(val[1], parseFloat(val[2]), {
-                        amplifier: parseFloat(val[3])
-                    })
-                }
+            for (const tag of itemStack.getTags()) {
+                if (!tag.startsWith("ph:food_effects-")) continue;
+                const [, effect, duration, amplifier] = tag.split("-");
+                if (!effect) continue;
+                source.addEffect(effect, parseFloat(duration ?? "0"), {
+                    amplifier: parseFloat(amplifier ?? "0")
+                });
             }
 
             source.runCommand(`effect @s health_boost ${healthBoostDuration} ${3 * (playerHealthLevel + healthBoostLevel)} true`);
         }
-    })
+    });
 
     initEvent.itemComponentRegistry.registerCustomComponent("ph:ability_upgrade", {
-        onUse({ source }: any, { params }: any) {
-            const min_level = params.min_level ?? 0;
-            const passive_ability = params.passive_ability;
-            const upgrade_to = params.upgrade_to ?? undefined;
-            const upgrade_step = params.upgrade_step ?? 0;
-            const upgrade_sound = params.upgrade_sound ?? "random.levelup";
-            const upgrade_particle = params.upgrade_particle ?? "ph:auric_photonizer_explode";
+        onUse({ source }, parameters): void {
+            const params = readParams(parameters);
+            const minLevel = numParam(params, "min_level") ?? 0;
+            const passiveAbility = strParam(params, "passive_ability");
+            const upgradeTo = numParam(params, "upgrade_to");
+            const upgradeStep = numParam(params, "upgrade_step") ?? 0;
+            const upgradeSound = strParam(params, "upgrade_sound") ?? "random.levelup";
+            const upgradeParticle = strParam(params, "upgrade_particle") ?? "ph:auric_photonizer_explode";
 
-            const inventory = source.getComponent("inventory").container;
-            const property = source.getDynamicProperty(passive_ability);
-
-            if (property < min_level) {
-                source.sendMessage(`§cTo upgrade to this level, you need minimum ability level of ${min_level}`);
+            if (!passiveAbility) {
+                console.error(`Please give the specified value for "passive_ability"`);
                 return;
             }
 
-            if (upgrade_to == undefined && upgrade_step < 1) {
+            const inventory = source.getComponent("inventory")?.container;
+            const property = Number(source.getDynamicProperty(passiveAbility) ?? 0);
+
+            if (property < minLevel) {
+                source.sendMessage(`§cTo upgrade to this level, you need minimum ability level of ${minLevel}`);
+                return;
+            }
+
+            if (upgradeTo === undefined && upgradeStep < 1) {
                 console.error(`Please give the specified value for the "upgrade_to" or "upgrade_step"`);
                 return;
             }
-            if (upgrade_to != undefined) source.setDynamicProperty(passive_ability, upgrade_to);
-            if (upgrade_step > 0) source.setDynamicProperty(passive_ability, property + upgrade_step);
+            if (upgradeTo !== undefined) source.setDynamicProperty(passiveAbility, upgradeTo);
+            if (upgradeStep > 0) source.setDynamicProperty(passiveAbility, property + upgradeStep);
             source.sendMessage(`§aUpgrade successful, feel the difference`);
-            source.dimension.playSound(upgrade_sound, source.location);
-            source.dimension.spawnParticle(upgrade_particle, source.location);
-            source.runCommand(`clear @s ${inventory.getItem(source.selectedSlotIndex).typeId} -1 1`);
+            source.dimension.playSound(upgradeSound, source.location);
+            source.dimension.spawnParticle(upgradeParticle, source.location);
+            const heldId = inventory?.getItem(source.selectedSlotIndex)?.typeId;
+            if (heldId) source.runCommand(`clear @s ${heldId} -1 1`);
         }
-    })
+    });
 
     initEvent.itemComponentRegistry.registerCustomComponent("ph:vanilla_tool_fix", {
-        onUseOn({ source, block }: any) {
-            const dirtPathable: string[] = [
-                "minecraft:dirt",
-                "minecraft:dirt_with_roots",
-                "minecraft:podzol",
-                "minecraft:mycellium",
-                "minecraft:coarse_dirt"
-            ]
+        onUseOn({ source, block }): void {
+            if (!(source instanceof Player)) return;
+            const item = source.getComponent("inventory")?.container?.getItem(source.selectedSlotIndex);
 
-            const inventory = source?.getComponent("inventory")?.container;
-            const item = inventory?.getItem(source.selectedSlotIndex);
-
-            if (item?.hasTag("minecraft:is_shovel") && block.typeId.includes(dirtPathable)) {
+            if (item?.hasTag("minecraft:is_shovel") && DIRT_PATHABLE.includes(block.typeId)) {
                 block.dimension.setBlockType(block.location, "minecraft:dirt_path");
                 source.playSound("use.grass");
                 applyDurabilityDamage(source);
             }
         },
-        onMineBlock({ source, itemStack }: any) {
-            applyDurabilityDamage(source);
+        onMineBlock({ source }): void {
+            if (source instanceof Player) applyDurabilityDamage(source);
         }
-    })
+    });
 
     initEvent.itemComponentRegistry.registerCustomComponent("ph:custom_shooter", {
-        onUse(e: any, { params }: any) {
-            const projectileEntity = params.projectile_entity;
-            const soundEffect = params.sound_effect ?? "random.explode";
-            const costType = params.cost_type ?? "durability";
-            const costAmount = params.cost_amount ?? 1;
-            const altProjectileEvent = params.alt_projectile_event;
-            const altCostType = params.alt_cost_type ?? "durability";
-            const altCostAmount = params.alt_cost_amount ?? 1;
-            const animation = params.animation;
+        onUse({ source: player, itemStack }, parameters): void {
+            const params = readParams(parameters);
+            const projectileEntity = strParam(params, "projectile_entity");
+            const soundEffect = strParam(params, "sound_effect") ?? "random.explode";
+            const costType = strParam(params, "cost_type") ?? "durability";
+            const costAmount = numParam(params, "cost_amount") ?? 1;
+            const altProjectileEvent = strParam(params, "alt_projectile_event");
+            const altCostType = strParam(params, "alt_cost_type") ?? "durability";
+            const altCostAmount = numParam(params, "alt_cost_amount") ?? 1;
+            const animation = strParam(params, "animation");
 
-            const player = e.source;
-            const itemStack = e.itemStack;
-            const cooldownCategory = itemStack?.getComponent("cooldown")?.cooldownCategory;
-            const cooldownValue = itemStack?.getComponent("cooldown")?.cooldownTicks;
+            const cooldown = itemStack?.getComponent("cooldown");
 
             const altEvents: Record<string, () => void> = {
                 oceanic_attack: () => {
@@ -283,7 +293,7 @@ export function registerCustomComponents(initEvent: any): void {
             };
 
             if (player.isSneaking) {
-                const eventFunc = altEvents[altProjectileEvent];
+                const eventFunc = altProjectileEvent === undefined ? undefined : altEvents[altProjectileEvent];
 
                 if (!eventFunc) {
                     player.sendMessage(`Unknown alt event: ${altProjectileEvent}`);
@@ -310,58 +320,58 @@ export function registerCustomComponents(initEvent: any): void {
                 applyDurabilityDamage(player, { damage: costAmount });
             }
 
-            if (cooldownCategory) player.startItemCooldown(cooldownCategory, cooldownValue);
-            if (animation != undefined) player.playAnimation(animation);
+            if (cooldown?.cooldownCategory) player.startItemCooldown(cooldown.cooldownCategory, cooldown.cooldownTicks);
+            if (animation !== undefined) player.playAnimation(animation);
+            if (!projectileEntity) return;
 
             const head = player.getHeadLocation();
             const view = player.getViewDirection();
-            const dir = {
-                x: view.x,
-                y: view.y,
-                z: view.z
-            };
 
             const offset = 0.6;
-            const bullet = player.dimension.spawnEntity(`${projectileEntity}`, {
+            const spawnAt = {
                 x: head.x + view.x * offset,
                 y: head.y + view.y * offset,
                 z: head.z + view.z * offset
-            });
+            };
+            if (!isLoadedLocation(player.dimension, spawnAt)) return;
+            const bullet = player.dimension.spawnEntity(projectileEntity, spawnAt);
 
             const proj = bullet.getComponent("minecraft:projectile");
             if (!proj) return;
 
             proj.owner = player;
             proj.shoot({
-                x: dir.x * 2,
-                y: dir.y * 2,
-                z: dir.z * 2
+                x: view.x * 2,
+                y: view.y * 2,
+                z: view.z * 2
             });
 
             player.runCommand(`playsound ${soundEffect} @a[r=24] ~~~ 1 1 0.3`);
         }
-    })
+    });
 
     initEvent.itemComponentRegistry.registerCustomComponent("ph:cruxshaper", {
-        onUse(e: any) {
-            const player = e.source;
+        onUse({ source: player }): void {
             player.startItemCooldown("cruxshaper", 600);
 
-            function impact() {
+            function impact(): void {
+                if (!player.isValid) return;
                 player.removeEffect("slow_falling");
                 player.dimension.spawnParticle("ph:cruxshaper_smash_explosion", player.location);
                 player.dimension.playSound("random.explode", player.location);
                 player.runCommand('damage @e[r=10,rm=0.1,family=!inanimate,type=!item] 50 entity_explosion entity @s');
-                player.runCommand('execute as @s at @e[r=10,rm=0.1,family=!inanimate,type=!item] run setblock ~~~ fire')
+                player.runCommand('execute as @s at @e[r=10,rm=0.1,family=!inanimate,type=!item] run setblock ~~~ fire');
             }
 
             system.run(() => {
+                if (!player.isValid) return;
                 player.dimension.spawnParticle("ph:cruxshaper_flung", player.location);
                 player.addEffect("levitation", 20, {
                     amplifier: 24
-                })
+                });
                 player.dimension.playSound("random.explode", player.location);
                 system.runTimeout(() => {
+                    if (!player.isValid) return;
                     player.dimension.spawnParticle("ph:cruxshaper_flung", player.location);
                     player.applyKnockback({ x: 0, z: 0 }, -2.1);
                     player.addEffect("slow_falling", 20);
@@ -370,69 +380,70 @@ export function registerCustomComponents(initEvent: any): void {
                     });
                     player.dimension.playSound("random.explode", player.location);
                     const intervalRun = system.runInterval(() => {
+                        if (!player.isValid) {
+                            system.clearRun(intervalRun);
+                            return;
+                        }
                         if (!player.isOnGround) return;
                         system.run(impact);
                         system.clearRun(intervalRun);
-                    }, 2)
-                }, 30)
-            })
+                    }, 2);
+                }, 30);
+            });
 
             applyDurabilityDamage(player, { damage: 50 });
         },
-        onUseOn(e: any) {
-            const player = e.source;
+        onUseOn({ source }): void {
+            if (!(source instanceof Player)) return;
             system.run(() => {
-                player.sendMessage("Look up while using the skill!")
-            })
+                if (source.isValid) source.sendMessage("Look up while using the skill!");
+            });
         }
-    })
+    });
 
     initEvent.itemComponentRegistry.registerCustomComponent("ph:repair_full_inventory", {
-        onUse({ source }: any, { params }: any) {
-            const inventory = source?.getComponent("minecraft:inventory")?.container;
-            const slots = ["Head", "Chest", "Legs", "Feet", "Offhand"];
+        onUse({ source }, parameters): void {
+            const inventory = source.getComponent("minecraft:inventory")?.container;
+            const equippable = source.getComponent("minecraft:equippable");
+            if (!inventory || !equippable) return;
 
-            const repairRatio = params.repair_ratio ?? 100;
-            const experienceCost = params.experience_cost;
-            const cooldown = params.cooldown;
+            const params = readParams(parameters);
+            const repairRatio = numParam(params, "repair_ratio") ?? 100;
+            const experienceCost = numParam(params, "experience_cost");
 
-            const experienceLevel = source.level;
-            if (experienceLevel < experienceCost) return;
+            if (experienceCost !== undefined && source.level < experienceCost) return;
             for (let i = 0; i < inventory.size; i++) {
                 const item = inventory.getItem(i);
                 if (!item) continue;
 
                 const durability = item.getComponent("minecraft:durability");
                 if (!durability) continue;
-                const newDamage = durability.damage - (durability.damage * (repairRatio / 100));
-                durability.damage = newDamage;
+                durability.damage = durability.damage - (durability.damage * (repairRatio / 100));
                 inventory.setItem(i, item);
             }
 
-            for (const slot of slots) {
-                const equipmentSlot = source?.getComponent("minecraft:equippable")?.getEquipmentSlot(slot);
+            for (const slot of REPAIR_SLOTS) {
+                const equipmentSlot = equippable.getEquipmentSlot(slot);
                 const item = equipmentSlot.getItem();
                 if (!item) continue;
 
                 const durability = item.getComponent("minecraft:durability");
                 if (!durability) continue;
-                const newDamage = durability.damage - (durability.damage * (repairRatio / 100));
-                durability.damage = newDamage;
+                durability.damage = durability.damage - (durability.damage * (repairRatio / 100));
                 equipmentSlot.setItem(item);
             }
-            const cost = Number(experienceCost);
 
-            if (!isNaN(cost)) {
-                source.addLevels(-cost);
+            if (experienceCost !== undefined) {
+                source.addLevels(-experienceCost);
             } else {
                 console.log("experienceCost invalid:", experienceCost);
             }
             source.playSound("random.anvil_use");
         }
-    })
+    });
 
     initEvent.itemComponentRegistry.registerCustomComponent("ph:auric_communicator", {
-        onUse({ source, itemStack }: any) {
+        onUse({ source }): void {
             const auricMode = getScore(source, "auric_communicator_mode");
             const block = source.getBlockFromViewDirection({
                 includeLiquidBlocks: true,
@@ -443,421 +454,331 @@ export function registerCustomComponents(initEvent: any): void {
                 source.playSound("random.click");
                 return;
             }
+            const dimension = block.dimension;
             const blockLoc = block.location;
-            block.dimension.playSound("random.toast", blockLoc);
+            dimension.playSound("random.toast", blockLoc);
             source.playSound("random.toast");
-            block.dimension.spawnParticle("ph:auric_communicator_loading", { x: blockLoc.x, y: blockLoc.y + 1, z: blockLoc.z });
+            dimension.spawnParticle("ph:auric_communicator_loading", { x: blockLoc.x, y: blockLoc.y + 1, z: blockLoc.z });
             if (auricMode == 1) {
                 source.addTag("AURIC_ORBITAL_NUKE");
                 system.runTimeout(() => {
-                    block.dimension.playSound("random.explode", blockLoc);
-                    try {
-                        block.dimension.runCommand(`damage @e[r=48,tag=!AURIC_ORBITAL_NUKE,type=!item,family=!inanimate,x=${blockLoc.x},y=${blockLoc.y},z=${blockLoc.z}] 50 entity_explosion entity @e[tag=AURIC_ORBITAL_NUKE]`);
-                    } catch (e) {
-                        // No valid targets in range, strike visuals/sound still play
+                    if (!source.isValid || !isLoadedLocation(dimension, blockLoc)) return;
+                    dimension.playSound("random.explode", blockLoc);
+                    if (hasOrbitalTargets(dimension, blockLoc, 48, "AURIC_ORBITAL_NUKE")) {
+                        dimension.runCommand(`damage @e[r=48,tag=!AURIC_ORBITAL_NUKE,type=!item,family=!inanimate,x=${blockLoc.x},y=${blockLoc.y},z=${blockLoc.z}] 50 entity_explosion entity @e[tag=AURIC_ORBITAL_NUKE]`);
                     }
-                    block.dimension.spawnParticle("ph:auric_stab_shot", { x: blockLoc.x, y: 0, z: blockLoc.z });
-                    block.dimension.spawnParticle("ph:auric_nuke_shot", { x: blockLoc.x, y: blockLoc.y + 1, z: blockLoc.z });
+                    dimension.spawnParticle("ph:auric_stab_shot", { x: blockLoc.x, y: 0, z: blockLoc.z });
+                    dimension.spawnParticle("ph:auric_nuke_shot", { x: blockLoc.x, y: blockLoc.y + 1, z: blockLoc.z });
                     removeScore(source, "auric_charge", 100);
                     source.startItemCooldown("auric_communicator", 600);
                     source.removeTag("AURIC_ORBITAL_NUKE");
                 }, 30);
                 return;
             }
-            // Stab Shot
+
             source.addTag("AURIC_ORBITAL_LASER");
             system.runTimeout(() => {
+                if (!source.isValid || !isLoadedLocation(dimension, blockLoc)) return;
                 for (let i = 0; i < 381; i += 10) {
-                    try {
-                        block.dimension.runCommand(`damage @e[r=10,tag=!AURIC_ORBITAL_LASER,type=!item,family=!inanimate,x=${blockLoc.x},y=${i},z=${blockLoc.z}] 80 entity_explosion entity @e[tag=AURIC_ORBITAL_LASER]`);
-                    } catch (e) {
-                        // No valid targets at this height, keep striking other heights
+                    if (hasOrbitalTargets(dimension, { x: blockLoc.x, y: i, z: blockLoc.z }, 10, "AURIC_ORBITAL_LASER")) {
+                        dimension.runCommand(`damage @e[r=10,tag=!AURIC_ORBITAL_LASER,type=!item,family=!inanimate,x=${blockLoc.x},y=${i},z=${blockLoc.z}] 80 entity_explosion entity @e[tag=AURIC_ORBITAL_LASER]`);
                     }
-                    block.dimension.playSound("random.explode", { x: blockLoc.x, y: i, z: blockLoc.z });
+                    dimension.playSound("random.explode", { x: blockLoc.x, y: i, z: blockLoc.z });
                 }
-                block.dimension.spawnParticle("ph:auric_stab_shot_refined", { x: blockLoc.x, y: 0, z: blockLoc.z });
-                block.dimension.spawnParticle("ph:auric_stab_shot_line", { x: blockLoc.x, y: 0, z: blockLoc.z });
+                dimension.spawnParticle("ph:auric_stab_shot_refined", { x: blockLoc.x, y: 0, z: blockLoc.z });
+                dimension.spawnParticle("ph:auric_stab_shot_line", { x: blockLoc.x, y: 0, z: blockLoc.z });
                 removeScore(source, "auric_charge", 50);
                 source.startItemCooldown("auric_communicator", 600);
                 source.removeTag("AURIC_ORBITAL_LASER");
-            }, 30)
+            }, 30);
         }
-    })
+    });
 
     initEvent.itemComponentRegistry.registerCustomComponent("ph:battery_container", {
-        onUse({ source, itemStack }: any, { params }: any) {
-            const whereToFill = params.where_to_fill || "auric_charge";
+        onUse({ source, itemStack }, parameters): void {
+            const params = readParams(parameters);
+            const whereToFill = strParam(params, "where_to_fill") || "auric_charge";
+            const transferPerUse = numParam(params, "charges") || 100;
+            const maxCharge = numParam(params, "max_charge") || 700;
 
-            const transferPerUse = params.charges || 100;
-            const maxCharge = params.max_charge || 700;
-
-            const durability = itemStack.getComponent("minecraft:durability");
-
+            const durability = itemStack?.getComponent("minecraft:durability");
             if (!durability) return;
 
-            const maxDurability = durability.maxDurability;
-
-            // container remaining charges
-            const batteryCharge =
-                maxDurability - durability.damage;
+            const batteryCharge = durability.maxDurability - durability.damage;
 
             if (batteryCharge <= 1) {
-                source.sendMessage(
-                    "§cYour Battery Container is empty."
-                );
+                source.sendMessage("§cYour Battery Container is empty.");
                 return;
             }
 
-            const currentCharge =
-                getScore(source, whereToFill);
-
-            // player remaining charges
-            const missingCharge =
-                maxCharge - currentCharge;
+            const currentCharge = getScore(source, whereToFill);
+            const missingCharge = maxCharge - currentCharge;
 
             if (missingCharge <= 0) {
-                source.sendMessage(
-                    "§eAuric Charge already full."
-                );
+                source.sendMessage("§eAuric Charge already full.");
                 return;
             }
 
-            const transferAmount = Math.min(
-                transferPerUse,
-                batteryCharge,
-                missingCharge
-            );
+            const transferAmount = Math.min(transferPerUse, batteryCharge, missingCharge);
 
-            setScore(
-                source,
-                whereToFill,
-                currentCharge + transferAmount
-            );
-
-            applyDurabilityDamage(source, { damage: transferAmount })
-
-            // ========================================
-
-            source.sendMessage(
-                `§b+${transferAmount} Auric Charge`
-            );
+            setScore(source, whereToFill, currentCharge + transferAmount);
+            applyDurabilityDamage(source, { damage: transferAmount });
+            source.sendMessage(`§b+${transferAmount} Auric Charge`);
         }
-    })
+    });
 
     initEvent.itemComponentRegistry.registerCustomComponent("ph:custom_parry_window", {
-        onUse({ source, itemStack }: any, { params }: any) {
-            const window_time = params.window_time;
-            const animation = params.animation;
+        onUse({ source }, parameters): void {
+            const params = readParams(parameters);
+            const windowTime = numParam(params, "window_time") ?? 1;
+            const animation = strParam(params, "animation");
 
-            source.playAnimation(animation);
+            if (animation) source.playAnimation(animation);
             source.dimension.spawnParticle("ph:parry_prepare", source.location);
             source.dimension.playSound("item.spear.use", source.location);
             source.addTag("parried");
             source.inputPermissions.setPermissionCategory(2, false);
             applyDurabilityDamage(source, { damage: 1 });
             system.runTimeout(() => {
-                if (source?.hasTag("parried")) source.removeTag("parried");
+                if (!source.isValid) return;
+                if (source.hasTag("parried")) source.removeTag("parried");
                 source.inputPermissions.setPermissionCategory(2, true);
-            }, window_time)
+            }, windowTime);
         }
-	})
+    });
 
     initEvent.blockComponentRegistry.registerCustomComponent("ph:boss_summon", {
-        onPlayerInteract({ player, block, faceLocation }: any) {
-            // Blocks Custom Components Value
-            const boss = block.getComponent("ph:boss_summon").customComponentParameters.params.boss;
-            const bargaining_item = block.getComponent("ph:boss_summon").customComponentParameters.params.bargaining_item;
-            let bargaining_item_amount = block.getComponent("ph:boss_summon").customComponentParameters.params.bargaining_item_amount;
-            const message = block.getComponent("ph:boss_summon").customComponentParameters.params.message;
-            let transform_into_entity = block.getComponent("ph:boss_summon").customComponentParameters.params.transform_into_entity;
+        onPlayerInteract({ player, block }, parameters): void {
+            if (!player) return;
+            const params = readParams(parameters);
+            const boss = strParam(params, "boss");
+            const bargainingItem = strParam(params, "bargaining_item");
+            const bargainingItemAmount = numParam(params, "bargaining_item_amount") || 1;
+            const message = strParam(params, "message");
+            const transformIntoEntity = strParam(params, "transform_into_entity");
+            if (!bargainingItem) return;
 
-            const mergedDataItem = new ItemStack(bargaining_item, bargaining_item_amount);
+            const mergedDataItem = new ItemStack(bargainingItem, bargainingItemAmount);
+            const mainhand = player.getComponent("equippable")?.getEquipment(EquipmentSlot.Mainhand);
 
-            // Player's component?
-            const mainhand = player.getComponent("equippable").getEquipment("Mainhand");
-
-            if (!bargaining_item_amount) bargaining_item_amount = 1;
-            // Runtime Events
-            if (mainhand?.typeId === bargaining_item && mainhand?.amount >= bargaining_item_amount) {
-                if (transform_into_entity && !boss) {
-                    block.dimension.setBlockType(block.location, "minecraft:air");
-                    block.dimension.spawnEntity(`${transform_into_entity}`, block.center())
-                    block.dimension.playSound("custom_sfx.boss_summoned", block.location);
-                    player.runCommand(`clear @s ${bargaining_item} -1 ${bargaining_item_amount}`);
-                    player.sendMessage(message);
-                    return;
-                }
-                block.dimension.spawnEntity(boss, { x: block.center().x, y: block.center().y, z: block.center().z });
-                block.dimension.playSound("custom_sfx.boss_summoned", block.location);
-                player.runCommand(`clear @s ${bargaining_item} -1 ${bargaining_item_amount}`);
-                player.sendMessage(message);
-            } else {
-                player.sendMessage({
-                    rawtext: [
-                        {
-                            text: `You need §a${mergedDataItem?.amount}x `,
-                        },
-                        {
-                            translate: `${mergedDataItem?.localizationKey}`
-                        },
-                        {
-                            text: ` §rto activate this summoning block!`
-                        }
-                    ]
-                });
+            if (mainhand?.typeId !== bargainingItem || mainhand.amount < bargainingItemAmount) {
+                sendNeedItem(player, mergedDataItem, ` §rto activate this summoning block!`);
                 return;
             }
+
+            if (transformIntoEntity && !boss) {
+                block.dimension.setBlockType(block.location, "minecraft:air");
+                block.dimension.spawnEntity(transformIntoEntity, block.center());
+                block.dimension.playSound("custom_sfx.boss_summoned", block.location);
+                player.runCommand(`clear @s ${bargainingItem} -1 ${bargainingItemAmount}`);
+                if (message) player.sendMessage(message);
+                return;
+            }
+            if (!boss) return;
+            block.dimension.spawnEntity(boss, block.center());
+            block.dimension.playSound("custom_sfx.boss_summoned", block.location);
+            player.runCommand(`clear @s ${bargainingItem} -1 ${bargainingItemAmount}`);
+            if (message) player.sendMessage(message);
         }
-    })
+    });
 
     initEvent.blockComponentRegistry.registerCustomComponent("ph:ancient_copper_core", {
-        onPlayerInteract({ player, block, dimension }: any) {
-            const northBlockState = block.north(2).permutation.getState("ph:activation_state");
-            const eastBlockState = block.east(2).permutation.getState("ph:activation_state");
-            const southBlockState = block.south(2).permutation.getState("ph:activation_state");
-            const westBlockState = block.west(2).permutation.getState("ph:activation_state");
-
-            if (northBlockState == 1 && eastBlockState == 1 && southBlockState == 1 && westBlockState == 1) {
-                // Triggers the event here.
-                player.sendMessage("Core activated. Waiting for his approach");
-                block.dimension.setBlockType(block.north(2), "ph:core_battery");
-                block.dimension.setBlockType(block.south(2), "ph:prismarine_battery");
-                block.dimension.spawnParticle("ph:auric_beam", block.center());
-                block.dimension.spawnParticle("ph:auric_light_flash", block.center());
-                block.dimension.spawnParticle("ph:auric_beam_small", block.north(2).center());
-                block.dimension.spawnParticle("ph:auric_beam_small", block.east(2).center());
-                block.dimension.spawnParticle("ph:auric_beam_small", block.south(2).center());
-                block.dimension.spawnParticle("ph:auric_beam_small", block.west(2).center());
-                block.dimension.playSound("custom_sfx.boss_summoned", block.center());
-                const bossSpawnPoint = findBossSpawnPoint(block.dimension, block.center(), player);
-                system.runTimeout(() => {
-                    block.dimension.spawnEntity("ph:copper_mechanical_array", bossSpawnPoint);
-                    block.dimension.playSound("mob.zombie.woodbreak", bossSpawnPoint);
-                    block.dimension.spawnParticle("ph:auric_beam_small", bossSpawnPoint);
-                    block.dimension.spawnParticle("ph:auric_light_flash", bossSpawnPoint);
-                }, 100)
-            }
-
-            // Event if there's no Copper Battery nearby
-            if (block.north(2).typeId != "minecraft:air" || block.east(2).typeId != "minecraft:air" || block.south(2).typeId != "minecraft:air" || block.west(2).typeId != "minecraft:air") return;
-            block.dimension.playSound("tile.piston.in", block.center());
-            if (block.north(2).typeId === "minecraft:air") block.dimension.setBlockType(block.north(2), "ph:core_battery");
-            if (block.east(2).typeId === "minecraft:air") block.dimension.setBlockType(block.east(2), "ph:auric_battery");
-            if (block.south(2).typeId === "minecraft:air") block.dimension.setBlockType(block.south(2), "ph:prismarine_battery");
-            if (block.west(2).typeId === "minecraft:air") block.dimension.setBlockType(block.west(2), "ph:auric_battery");
-        },
-        onTick({ block, dimension }: any) {
-            // Runs every tick for every core in the world. Each block.north(2) style call
-            // builds a new Block, and each MolangVariableMap is pure overhead when the
-            // branch it belongs to is skipped, so resolve the four neighbours once and only
-            // build a map when a particle is actually spawned.
+        onPlayerInteract({ player, block }): void {
+            if (!player) return;
             const north = block.north(2);
             const east = block.east(2);
             const south = block.south(2);
             const west = block.west(2);
+            if (!north || !east || !south || !west) return;
 
-            const northActive = north.permutation.getState("ph:activation_state") == 1;
-            const eastActive = east.permutation.getState("ph:activation_state") == 1;
-            const southActive = south.permutation.getState("ph:activation_state") == 1;
-            const westActive = west.permutation.getState("ph:activation_state") == 1;
+            if (isActive(north) && isActive(east) && isActive(south) && isActive(west)) {
+                player.sendMessage("Core activated. Waiting for his approach");
+                block.dimension.setBlockType(north.location, "ph:core_battery");
+                block.dimension.setBlockType(south.location, "ph:prismarine_battery");
+                block.dimension.spawnParticle("ph:auric_beam", block.center());
+                block.dimension.spawnParticle("ph:auric_light_flash", block.center());
+                block.dimension.spawnParticle("ph:auric_beam_small", north.center());
+                block.dimension.spawnParticle("ph:auric_beam_small", east.center());
+                block.dimension.spawnParticle("ph:auric_beam_small", south.center());
+                block.dimension.spawnParticle("ph:auric_beam_small", west.center());
+                block.dimension.playSound("custom_sfx.boss_summoned", block.center());
+                const dimension = block.dimension;
+                const bossSpawnPoint = findBossSpawnPoint(dimension, block.center(), player);
+                system.runTimeout(() => {
+                    if (!isLoadedLocation(dimension, bossSpawnPoint)) return;
+                    dimension.spawnEntity("ph:copper_mechanical_array", bossSpawnPoint);
+                    dimension.playSound("mob.zombie.woodbreak", bossSpawnPoint);
+                    dimension.spawnParticle("ph:auric_beam_small", bossSpawnPoint);
+                    dimension.spawnParticle("ph:auric_light_flash", bossSpawnPoint);
+                }, 100);
+            }
 
-            if (northActive) {
+            if (north.typeId != "minecraft:air" || east.typeId != "minecraft:air" || south.typeId != "minecraft:air" || west.typeId != "minecraft:air") return;
+            block.dimension.playSound("tile.piston.in", block.center());
+            block.dimension.setBlockType(north.location, "ph:core_battery");
+            block.dimension.setBlockType(east.location, "ph:auric_battery");
+            block.dimension.setBlockType(south.location, "ph:prismarine_battery");
+            block.dimension.setBlockType(west.location, "ph:auric_battery");
+        },
+        onTick({ block, dimension }): void {
+            const north = block.north(2);
+            const east = block.east(2);
+            const south = block.south(2);
+            const west = block.west(2);
+            if (!north || !east || !south || !west) return;
+
+            if (isActive(north)) {
                 dimension.spawnParticle("ph:bounding_circle", north.center(), coreRing(1, { red: 1, green: 1, blue: 1, alpha: 1 }));
             }
-            if (eastActive) {
+            if (isActive(east)) {
                 dimension.spawnParticle("ph:bounding_circle", east.center(), copperRing());
             }
-            if (southActive) {
+            if (isActive(south)) {
                 dimension.spawnParticle("ph:bounding_circle", south.center(), coreRing(1, { red: 0.352, green: 1, blue: 0.705, alpha: 1 }));
             }
-            if (westActive) {
+            if (isActive(west)) {
                 dimension.spawnParticle("ph:bounding_circle", west.center(), copperRing());
             }
 
             if (north.typeId != "minecraft:air" || east.typeId != "minecraft:air" || south.typeId != "minecraft:air" || west.typeId != "minecraft:air") return;
-            dimension.spawnParticle("ph:bounding_circle", block.center(), coreRing(3, { red: 1, green: 0.63137, blue: 0, alpha: 1 }));
+            dimension.spawnParticle("ph:bounding_circle", block.center(), coreRing(3, COPPER_RING_COLOR));
             dimension.spawnParticle("ph:bounding_circle", north.center(), copperRing());
             dimension.spawnParticle("ph:bounding_circle", east.center(), copperRing());
             dimension.spawnParticle("ph:bounding_circle", south.center(), copperRing());
             dimension.spawnParticle("ph:bounding_circle", west.center(), copperRing());
         },
-        onBreak({ block, dimension, brokenBlockPermutation }: any) {
-            dimension.setBlockType(block.north(2), "minecraft:air");
-            dimension.setBlockType(block.east(2), "minecraft:air");
-            dimension.setBlockType(block.south(2), "minecraft:air");
-            dimension.setBlockType(block.west(2), "minecraft:air");
+        onBreak({ block, dimension }): void {
+            for (const neighbor of [block.north(2), block.east(2), block.south(2), block.west(2)]) {
+                if (neighbor) dimension.setBlockType(neighbor.location, "minecraft:air");
+            }
         }
-    })
+    });
 
     initEvent.blockComponentRegistry.registerCustomComponent("ph:copper_battery", {
-        onPlayerInteract({ player, block, dimension }: any, { params }: any) {
-            const chargeType = params.charge_type; // "item" or "player_charge"
-            const item = params.item ?? "minecraft:netherite_ingot";
-            const itemCount = params.item_count ?? 1;
-            const playerChargeObjective = params.player_charge_objective ?? "superchargd_copper_axe"; // Scoreboard for charge value
-            const chargeMin = params.charge_min ?? 0;
-
-            const mergedDataItem = new ItemStack(item, itemCount);
+        onPlayerInteract({ player, block }, parameters): void {
+            if (!player) return;
+            const params = readParams(parameters);
+            const chargeType = strParam(params, "charge_type");
+            const item = strParam(params, "item") ?? "minecraft:netherite_ingot";
+            const itemCount = numParam(params, "item_count") ?? 1;
+            const playerChargeObjective = strParam(params, "player_charge_objective") ?? "superchargd_copper_axe";
+            const chargeMin = numParam(params, "charge_min") ?? 0;
 
             if (chargeType == "item") {
-                if (player.getComponent("equippable")?.getEquipment("Mainhand")?.typeId != item) {
-                    player.sendMessage({
-                        rawtext: [
-                            {
-                                text: `You need §a${mergedDataItem?.amount}x `,
-                            },
-                            {
-                                translate: `${mergedDataItem?.localizationKey}`
-                            },
-                            {
-                                text: ` §rto activate this copper battery slot!`
-                            }
-                        ]
-                    });
+                if (player.getComponent("equippable")?.getEquipment(EquipmentSlot.Mainhand)?.typeId != item) {
+                    sendNeedItem(player, new ItemStack(item, itemCount), ` §rto activate this copper battery slot!`);
                     return;
                 }
-                block.setPermutation(block.permutation.withState("ph:activation_state", 1));
+                setCustomState(block, ACTIVATION_STATE, 1);
                 block.dimension.spawnEntity("minecraft:lightning_bolt", block.center());
-                player.runCommand(`clear @s ${item} -1 ${itemCount}`)
-
+                player.runCommand(`clear @s ${item} -1 ${itemCount}`);
             }
             if (chargeType == "player_charge") {
-                if (getScore(player, playerChargeObjective) < chargeMin) { player.sendMessage(`You need §a${chargeMin} §rCharges to activate this battery slot`); return; }
-                block.setPermutation(block.permutation.withState("ph:activation_state", 1));
+                if (getScore(player, playerChargeObjective) < chargeMin) {
+                    player.sendMessage(`You need §a${chargeMin} §rCharges to activate this battery slot`);
+                    return;
+                }
+                setCustomState(block, ACTIVATION_STATE, 1);
                 block.dimension.spawnEntity("minecraft:lightning_bolt", block.center());
                 removeScore(player, "auric_charge", chargeMin);
             }
         }
-    })
+    });
 
     initEvent.blockComponentRegistry.registerCustomComponent("ph:crystall_support", {
-        onTick({ block, dimension }: any) {
-            if (!block?.isValid) return;
-            let face: string;
-            try {
-                face = block.permutation.getState("minecraft:block_face");
-            } catch {
-                return;
-            }
-            let support: any;
-            switch (face) {
-                case "up": support = block.below(); break;
-                case "down": support = block.above(); break;
-                // block_face = face of support that was clicked, so support is opposite
-                case "north": support = block.south(); break;
-                case "south": support = block.north(); break;
-                case "east": support = block.west(); break;
-                case "west": support = block.east(); break;
-                default: return;
-            }
+        onTick({ block, dimension }, parameters): void {
+            if (!block.isValid) return;
+            const support = crystallSupport(block);
             if (!support) return;
             if (!support.isAir && !support.isLiquid) return;
-            // Support gone -> pop + drop item
-            let dropId: string | undefined;
-            try {
-                dropId = block.getComponent("ph:crystall_support")?.customComponentParameters?.params?.drop_item;
-            } catch {
-                dropId = undefined;
-            }
+
+            const dropId = strParam(readParams(parameters), "drop_item");
             const loc = block.location;
             const center = { x: loc.x + 0.5, y: loc.y + 0.5, z: loc.z + 0.5 };
             dimension.setBlockType(loc, "minecraft:air");
-            if (dropId) {
-                try {
-                    dimension.spawnItem(new ItemStack(dropId, 1), center);
-                } catch { }
-            }
-            try {
-                dimension.playSound("dig.amethyst", center);
-            } catch { }
+            if (dropId) dimension.spawnItem(new ItemStack(dropId, 1), center);
+            dimension.playSound("dig.amethyst", center);
         }
-    })
+    });
 
     initEvent.blockComponentRegistry.registerCustomComponent("ph:item_charger", {
-        onPlayerInteract({ player, block, dimension }: any, { params }: any) {
-            const item = params.item;
-            const maxBatteryStack = params.max_battery_stack || 4;
-            const soundInput = params.sound_input;
-            const soundPickup = params.sound_pickup;
+        onPlayerInteract({ player, block, dimension }, parameters): void {
+            if (!player) return;
+            const params = readParams(parameters);
+            const item = strParam(params, "item");
+            if (!item) return;
+            const maxBatteryStack = numParam(params, "max_battery_stack") || 4;
+            const soundInput = strParam(params, "sound_input");
+            const soundPickup = strParam(params, "sound_pickup");
             const itemData = new ItemStack(item);
 
-            const batteryCount = block.permutation.getState("ph:battery_count");
-            const batteryState = block.permutation.getState("ph:battery_state");
+            const batteryCount = Number(getCustomState(block, "ph:battery_count") ?? 0);
+            const batteryState = getCustomState(block, "ph:battery_state");
 
-            const mainhand = player.getComponent("equippable").getEquipmentSlot("Mainhand");
+            const mainhand = player.getComponent("equippable")?.getEquipmentSlot(EquipmentSlot.Mainhand);
+            if (!mainhand) return;
             const itemStack = mainhand.getItem();
             const durability = itemStack?.getComponent("minecraft:durability");
             if (batteryState == "result") {
                 for (let i = 0; i < batteryCount; i++) {
                     dimension.spawnItem(itemData, block.center());
                 }
-                dimension.playSound(soundPickup, block.center());
-                block.setPermutation(block.permutation.withState("ph:battery_count", 0));
-                block.setPermutation(block.permutation.withState("ph:battery_state", "open"));
+                if (soundPickup) dimension.playSound(soundPickup, block.center());
+                setCustomState(block, "ph:battery_count", 0);
+                setCustomState(block, "ph:battery_state", "open");
                 return;
             }
             if (batteryState == "processing") return;
-            if (itemStack?.typeId === item && durability.damage < durability.maxDurability) {
-                if (batteryCount > 3) return player.sendMessage("§cThe Battery slot is full.");
+            if (itemStack?.typeId === item && durability && durability.damage < durability.maxDurability) {
+                if (batteryCount >= maxBatteryStack) return player.sendMessage("§cThe Battery slot is full.");
                 mainhand.setItem(undefined);
-                block.setPermutation(block.permutation.withState("ph:battery_count", batteryCount + 1));
-                dimension.playSound(soundInput, block.center());
+                setCustomState(block, "ph:battery_count", batteryCount + 1);
+                if (soundInput) dimension.playSound(soundInput, block.center());
                 return;
-            } else if (batteryCount == 0) {
+            }
+            if (batteryCount == 0) {
                 player.sendMessage({
                     rawtext: [
-                        {
-                            text: "You need to put drained §a"
-                        },
-                        {
-                            translate: `${itemData.localizationKey}`
-                        }
+                        { text: "You need to put drained §a" },
+                        { translate: `${itemData.localizationKey}` }
                     ]
-                })
+                });
                 player.playSound("note.bass");
                 return;
-            } else {
-                block.setPermutation(block.permutation.withState("ph:battery_state", "processing"));
             }
+            setCustomState(block, "ph:battery_state", "processing");
         },
-        onTick({ block, dimension }: any) {
-            const batteryState = block.permutation.getState("ph:battery_state");
-
-            if (batteryState != "processing") return;
-            block.setPermutation(block.permutation.withState("ph:battery_state", "result"));
+        onTick({ block, dimension }): void {
+            if (getCustomState(block, "ph:battery_state") != "processing") return;
+            setCustomState(block, "ph:battery_state", "result");
             dimension.playSound("random.orb", block.center());
         }
-    })
+    });
 
-    // The block only ticks while ph:active is true (see its permutation), every 10 ticks.
-    // Beam particles live 0.65s so each respawn overlaps the previous one.
     initEvent.blockComponentRegistry.registerCustomComponent("ph:sky_gateway", {
-        onPlayerInteract({ block, dimension }: any) {
-            const active = !block.permutation.getState("ph:active");
-            block.setPermutation(block.permutation.withState("ph:active", active));
+        onPlayerInteract({ block, dimension }): void {
+            const active = !getCustomState(block, "ph:active");
+            setCustomState(block, "ph:active", active);
             dimension.playSound(active ? "beacon.activate" : "beacon.deactivate", block.center());
         },
-        onTick({ block, dimension }: any) {
-            if (!block.permutation.getState("ph:active")) return;
+        onTick({ block, dimension }): void {
+            if (!getCustomState(block, "ph:active")) return;
             const center = block.center();
             dimension.spawnParticle("ph:sky_gateway_beam_up", center);
             dimension.spawnParticle("ph:sky_gateway_beam_down", center);
             dimension.spawnParticle("ph:sky_gateway_beam_sparkle", center);
-            // One ring travels up the beam and one down; v.dir picks the direction.
+
             for (const dir of [1, -1]) {
                 const pulse = new MolangVariableMap();
                 pulse.setFloat("variable.dir", dir);
                 dimension.spawnParticle("ph:sky_gateway_beam_pulse", center, pulse);
             }
         }
-    })
+    });
 
-    // Weapon/shield blocks only exist so the item renders its 3D model as an icon
-    // (block_placer + replace_block_item). placement_filter alone let them be placed,
-    // eating the item, so placement is cancelled here before the item is consumed.
     initEvent.blockComponentRegistry.registerCustomComponent("ph:icon_only", {
-        beforeOnPlayerPlace(event: any) {
+        beforeOnPlayerPlace(event): void {
             event.cancel = true;
         }
-    })
+    });
 }

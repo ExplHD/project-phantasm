@@ -1,22 +1,13 @@
-import { world, system, /* [UNUSED] ItemStack, BlockVolume, Entity, Direction */ Player, Block, EquipmentSlot } from '@minecraft/server'
+import { world, system, Player, Block, EquipmentSlot, ItemStack, type EntityHealthComponent } from '@minecraft/server'
 import { setScore } from '../core/scoreboard'
 import { runUntilMoved } from '../core/player'
 import { applyDurabilityDamage } from '../core/items'
 
-// =========================================================================================================
-// FUNCTION HELPER
-// =========================================================================================================
-
-// Passive Dash (triggered by playerButtonInput)
-// `requireFalling` is only relaxed by the Jump + Sneak control scheme, where the combo starts
-// with an upward jump, so the player is airborne but not falling yet when Sneak lands.
-export function dashRuntime(player: Player, requireFalling: boolean = true): void {
+export function dashRuntime(player: Player): void {
     const scoreboard_dash = world.scoreboard.getObjective("dash_cd");
     if (!scoreboard_dash || (scoreboard_dash.getScore(player) ?? 0) > 0) return;
     if (player.getDynamicProperty("ph:dash_unlock") == 0) return;
 
-    // Read the level and the view direction once: this used to re-read both up to four
-    // times per dash, and it runs on every bound Jump/Sneak press.
     const dashLevel = player.getDynamicProperty("ph:dash_level");
     if (dashLevel == undefined || (dashLevel != 1 && dashLevel != 2)) return;
 
@@ -53,26 +44,19 @@ export function dashRuntime(player: Player, requireFalling: boolean = true): voi
     }
 }
 
-// Wind Plunge Runtime (triggered by playerButtonInput)
 export function windPlungeRuntime(player: Player): void {
     if (!player.isFalling || player.getDynamicProperty("ph:plunge_unlock") == false || player.getDynamicProperty("ph:plunge_unlock") == undefined) return;
 
-    let isHighEnough = true;
     const { x, y, z } = player.location;
-    const checkHeights = [1, 2, 3, 4, 6, 8, 10]
+    const checkHeights = [1, 2, 3, 4, 6, 8, 10];
+    const minHeight = player.dimension.heightRange.min;
 
-    for (const i of checkHeights) {
-        const block = player.dimension.getBlock({
-            x: Math.floor(x),
-            y: Math.floor(y) - i,
-            z: Math.floor(z)
-        });
-
-        if (block && block.typeId !== "minecraft:air") {
-            isHighEnough = false;
-            break;
-        }
-    }
+    const isHighEnough = checkHeights.every((i) => {
+        const location = { x: Math.floor(x), y: Math.floor(y) - i, z: Math.floor(z) };
+        if (location.y < minHeight) return true;
+        const block = player.dimension.getBlock(location);
+        return !block || block.typeId === "minecraft:air";
+    });
 
     if (!isHighEnough) return;
     if (player.hasTag('windPlunge')) return;
@@ -90,6 +74,10 @@ export function windPlungeRuntime(player: Player): void {
     }
 
     const runInterval = system.runInterval(() => {
+        if (!player.isValid) {
+            system.clearRun(runInterval);
+            return;
+        }
         if (!player.isOnGround) return;
         system.run(impact);
         system.clearRun(runInterval);
@@ -108,8 +96,15 @@ export function windPlungeRuntime(player: Player): void {
     })
 }
 
-// USED FOR FIXING VANILLA TOOLS BLOCK INTERACTION
-export function vanillaBlockInteractFix(player: Player, item: any, block: Block): void {
+function strippingSound(typeId: string): string | undefined {
+    if (typeId === 'minecraft:cherry_log') return 'step.cherry_wood';
+    if (typeId.includes('log')) return 'use.wood';
+    if (typeId.includes('stem')) return 'use.stem';
+    if (typeId.includes('bamboo')) return 'step.bamboo_wood';
+    return undefined;
+}
+
+export function vanillaBlockInteractFix(player: Player, item: ItemStack | undefined, block: Block): void {
     if (!item || !item.hasComponent(`ph:vanilla_tool_fix`)) return;
 
     const tags = block.getTags();
@@ -117,14 +112,10 @@ export function vanillaBlockInteractFix(player: Player, item: any, block: Block)
 
     if (item.hasTag('minecraft:is_axe')) {
         system.runTimeout(() => {
+            if (!player.isValid || !block.isValid) return;
             if (typeId.includes('stripped') || !block.typeId.includes('stripped')) return;
 
-            let materialSound = '';
-            if (typeId === 'minecraft:cherry_log') materialSound = 'step.cherry_wood';
-            else if (typeId.includes('log')) materialSound = 'use.wood';
-            else if (typeId.includes('stem')) materialSound = 'use.stem';
-            else if (typeId.includes('bamboo')) materialSound = 'step.bamboo_wood';
-
+            const materialSound = strippingSound(typeId);
             if (!materialSound) return;
 
             player.dimension.playSound(materialSound, block.center(), { volume: 1, pitch: 0.8 });
@@ -134,6 +125,7 @@ export function vanillaBlockInteractFix(player: Player, item: any, block: Block)
     }
     else if (item.hasTag('minecraft:is_hoe')) {
         system.runTimeout(() => {
+            if (!player.isValid || !block.isValid) return;
             const isTillable = tags.includes('grass') || typeId === 'minecraft:dirt_with_roots';
             const hasBlockAbove = block.above()?.typeId !== 'minecraft:air';
             if (!isTillable || hasBlockAbove) return;
@@ -157,6 +149,7 @@ export function vanillaBlockInteractFix(player: Player, item: any, block: Block)
         if (!isCoarsable || hasBlockAbove) return;
 
         system.run(() => {
+            if (!player.isValid) return;
             player.dimension.playSound('use.grass', block.center(), { volume: 1, pitch: 0.8 });
 
             applyDurabilityDamage(player);
@@ -164,9 +157,6 @@ export function vanillaBlockInteractFix(player: Player, item: any, block: Block)
     }
 }
 
-// Parry Function Runtime!
-// Fires on every item use, so the sword list is a set lookup instead of a fresh array
-// walked on each swing.
 const PARRY_ITEMS = new Set([
     "minecraft:wooden_sword",
     "minecraft:stone_sword",
@@ -179,7 +169,7 @@ const PARRY_ITEMS = new Set([
     "ph:xeon_plasm_sword"
 ]);
 
-export function parryRuntime(source: Player, itemStack: any): void {
+export function parryRuntime(source: Player, itemStack: ItemStack | undefined): void {
     if (!itemStack?.typeId || !PARRY_ITEMS.has(itemStack.typeId)) return;
     if (source.hasTag("parried")) return;
 
@@ -190,55 +180,51 @@ export function parryRuntime(source: Player, itemStack: any): void {
     source.inputPermissions.setPermissionCategory(2, false);
     applyDurabilityDamage(source, { damage: 1 });
     system.runTimeout(() => {
-        if (source?.hasTag("parried")) source.removeTag("parried");
+        if (!source.isValid) return;
+        if (source.hasTag("parried")) source.removeTag("parried");
         source.inputPermissions.setPermissionCategory(2, true);
-    }, 6) // 200ms
+    }, 6)
 }
 
-// Better Mending Aplication
-let runBetterMending: number = Number();
-
-export function startBetterMending(source: Player, itemStack: any): void {
-	if (!source.isSneaking) return;
+export function startBetterMending(source: Player, itemStack: ItemStack | undefined): void {
+	if (!source.isSneaking || !itemStack) return;
     const enchantment = itemStack?.getComponent("minecraft:enchantable")?.getEnchantment("mending");
     if (itemStack.hasTag("minecraft:is_tools") || itemStack.hasTag("minecraft:is_armor")) return;
     if (!enchantment) return;
     source.playSound("random.anvil_use");
 
     const runBetterMending = system.runInterval(() => {
-        try {
-            const equippable = source.getComponent("minecraft:equippable");
-            const currentItem = equippable?.getEquipment(EquipmentSlot.Mainhand);
-            const durability = currentItem?.getComponent("minecraft:durability");
-            const experience = source.getTotalXp();
-
-            if (!currentItem || !durability || durability.damage <= 0 || experience <= 0) {
-                system.clearRun(runBetterMending);
-                return;
-            }
-
-            // Real repair, 
-            const repairAmount = Math.min(durability.damage, 1);
-            durability.damage -= repairAmount;
-            equippable?.setEquipment(EquipmentSlot.Mainhand, currentItem);
-
-            source.addExperience(-2);
-            if (source.xpEarnedAtCurrentLevel <= 2) {
-                source.addExperience(source.totalXpNeededForNextLevel - 1);
-                source.addLevels(-1);
-            }
-            source.playSound("random.orb", {
-                pitch: Math.min(0.8, Math.random() + 0.5),
-                volume: 0.5
-            })
-        } catch (error) {
-            console.warn(`betterMending error untuk ${source.name}: ${error}`);
+        if (!source.isValid) {
             system.clearRun(runBetterMending);
+            return;
         }
+
+        const equippable = source.getComponent("minecraft:equippable");
+        const currentItem = equippable?.getEquipment(EquipmentSlot.Mainhand);
+        const durability = currentItem?.getComponent("minecraft:durability");
+        const experience = source.getTotalXp();
+
+        if (!equippable || !currentItem || !durability || durability.damage <= 0 || experience <= 0) {
+            system.clearRun(runBetterMending);
+            return;
+        }
+
+        const repairAmount = Math.min(durability.damage, 1);
+        durability.damage -= repairAmount;
+        equippable.setEquipment(EquipmentSlot.Mainhand, currentItem);
+
+        source.addExperience(-2);
+        if (source.xpEarnedAtCurrentLevel <= 2) {
+            source.addExperience(source.totalXpNeededForNextLevel - 1);
+            source.addLevels(-1);
+        }
+        source.playSound("random.orb", {
+            pitch: Math.min(0.8, Math.random() + 0.5),
+            volume: 0.5
+        });
     }, 1);
 }
 
-// Java Saturation Regeneration
 export function javaSaturationRegen(player: Player): void {
     const health = player.getComponent("minecraft:health");
     if (!health) return;
@@ -249,9 +235,6 @@ export function javaSaturationRegen(player: Player): void {
         const maxAllowedHealth = 24 + (playerHealthLevel * 12);
         const maxHealth = health.effectiveMax;
         if (maxHealth < maxAllowedHealth) {
-            // This runs every 6 ticks per player and runCommand is the most expensive call
-            // in the pack, so only re-apply when the boost is missing or at another level.
-            // Re-applying an identical "health_boost infinite N" is a no-op anyway.
             const wantedAmplifier = 3 * playerHealthLevel;
             const active = player.getEffect("health_boost");
             if (!active || active.amplifier !== wantedAmplifier) {
@@ -264,7 +247,6 @@ export function javaSaturationRegen(player: Player): void {
     const saturation = player.getComponent("minecraft:player.saturation");
     if (!hunger || !saturation) return;
 
-    // kondisi regen (kayak Java)
     if (
         hunger.currentValue === 20 &&
         saturation.currentValue > 0 &&
@@ -273,32 +255,25 @@ export function javaSaturationRegen(player: Player): void {
         const healAmount = 1;
         const satCost = 1;
 
-        // heal player
         health.setCurrentValue(
             Math.min(health.effectiveMax, health.currentValue + healAmount)
         );
 
-        // kurangi saturation (anti out of bound)
         saturation.setCurrentValue(
             Math.max(0, saturation.currentValue - satCost)
         );
     }
 }
 
-// Absorption
-// The Script API has no way to read how much absorption a player has left, so it's tracked
-// here: Absorption I gives 8 HP, every extra level adds 2, and every hit drains it before
-// health. A missing entry means untracked, amount 0 means the pool ran dry while the effect is still on.
 const ABSORPTION_BASE = 8;
 const ABSORPTION_PER_LEVEL = 2;
-// amount is what's left, max is the full pool for the effect's level
+
 const absorptionPool = new Map<string, { amount: number; max: number }>();
 
 function absorptionFor(amplifier: number): number {
     return ABSORPTION_BASE + ABSORPTION_PER_LEVEL * amplifier;
 }
 
-// Eating another golden apple re-adds the effect, which refills the pool
 export function onAbsorptionAdded(player: Player, amplifier: number): void {
     const max = absorptionFor(amplifier);
     absorptionPool.set(player.id, { amount: max, max });
@@ -309,12 +284,10 @@ export function onAbsorptionHurt(player: Player, damage: number): void {
     const pool = absorptionPool.get(player.id);
     if (!pool || pool.amount <= 0) return;
     pool.amount = Math.max(0, pool.amount - damage);
-    // A fully absorbed hit doesn't change health, so entityHealthChanged never refreshes the bar
+
     healthBarRuntime(player, "absorptionChanged");
 }
 
-// Polled: catches the effect running out (no effect-remove event exists) and picks the
-// effect back up after a rejoin or /reload, when the pool map starts empty.
 export function syncAbsorption(player: Player): void {
     const effect = player.getEffect("absorption");
     const tracked = absorptionPool.has(player.id);
@@ -330,10 +303,7 @@ export function clearAbsorption(player: Player): void {
     absorptionPool.delete(player.id);
 }
 
-export function healthBarDisplay(player: Player, health: any, totalArmor: any, maxHealth: number): void {
-    // While absorption is left, both sides grow by it (current by what's left, max by the
-    // full pool) so the bar never reads past 100%, and the whole text turns yellow.
-    // health_indicator.json strips the §e before reading the percentage for the bar fill.
+export function healthBarDisplay(player: Player, health: EntityHealthComponent, totalArmor: number | undefined, maxHealth: number): void {
     const pool = absorptionPool.get(player.id);
     const absorbing = pool !== undefined && pool.amount > 0;
     const current = health.currentValue + (absorbing ? pool.amount : 0);
@@ -346,8 +316,7 @@ export function healthBarDisplay(player: Player, health: any, totalArmor: any, m
     );
 }
 
-// Health Bar Runtime
-export function healthBarRuntime(player: Player, eventType: string, beforeItemStack?: any, afterItemStack?: any): void {
+export function healthBarRuntime(player: Player, eventType: string, beforeItemStack?: ItemStack, afterItemStack?: ItemStack): void {
     if (player.typeId !== "minecraft:player") return;
     const health = player?.getComponent("minecraft:health");
     const totalArmor = player?.getComponent("minecraft:equippable")?.totalArmor;
@@ -366,6 +335,7 @@ export function healthBarRuntime(player: Player, eventType: string, beforeItemSt
 
     if (eventType == "dimensionChanged") {
         runUntilMoved(player, 10, () => {
+            if (!player.isValid) return;
             healthBarDisplay(player, health, totalArmor, maxHealth)
         })
     }
@@ -376,10 +346,6 @@ export function healthBarRuntime(player: Player, eventType: string, beforeItemSt
 		healthBarDisplay(player, health, totalArmor, maxHealth);
     }
 }
-
-// =========================================================================================================
-// CONFIGURATIONS
-// =========================================================================================================
 
 export const specifiedFamilityAndSpeed = [
     {

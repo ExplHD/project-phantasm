@@ -1,27 +1,26 @@
-import { world, system, Player } from "@minecraft/server";
-import { addScore, setScore, getScore } from "../../core/scoreboard";
+import { system, Player } from "@minecraft/server";
+import { addScore, removeScore, setScore, getScore } from "../../core/scoreboard";
 import { applyCustomDamage } from "./damage";
 import { type ProjectileConfig, fireProjectile } from "./projectile";
 
 interface AttackPattern {
-	delay: number;
-	damage: number;
-	radius: number;
-	animation: string;
-	sound: string;
-	action?: CommandHandler;
-	/** Ranged pattern: fires this after `delay` instead of the melee sweep (`radius` is then ignored). */
-	projectile?: ProjectileConfig;
+	readonly delay: number;
+	readonly damage: number;
+	readonly radius: number;
+	readonly animation: string;
+	readonly sound: string;
+	readonly action?: CommandHandler;
+	readonly projectile?: ProjectileConfig;
 }
 
 interface SkillConfig {
-	name: string;
-	type: "Skill" | "Ultimate" | "Ability";
-	cooldown_objective: string;
-	cooldown: number;
-	charge: boolean;
-	charge_min?: number;
-	action: (source: Player) => void;
+	readonly name: string;
+	readonly type: "Skill" | "Ultimate" | "Ability";
+	readonly cooldown_objective: string;
+	readonly cooldown: number;
+	readonly charge: boolean;
+	readonly charge_min?: number;
+	readonly action: (source: Player) => void;
 }
 
 interface SkillData {
@@ -29,63 +28,39 @@ interface SkillData {
 }
 
 interface CommandEntry {
-	delay: number;
-	action: (source: Player) => void;
+	readonly delay: number;
+	readonly action: (source: Player) => void;
 }
 
 class WeaponHandler {
-	itemId: string;
-	objective: string;
-	delayPerAttackPattern: number[];
-	attackPatterns: AttackPattern[];
+	readonly itemId: string;
+	readonly objective: string;
+	readonly delayPerAttackPattern: number[];
+	readonly attackPatterns: AttackPattern[];
 
-	/**
-	 * @param { string } itemId - Item identifier, ex: ph:solaris_verdant
-	 * @param { string } objective - Scoreboard's Objective to use
-	 * @param { Array<number> } delayPerAttackPattern - Delay to each attack pattern
-	 * @param { Array<string> } attackPatterns - List of attack patterns
-	 */
 	constructor(itemId: string, objective: string, delayPerAttackPattern: number[], attackPatterns: AttackPattern[]) {
-		this.itemId = itemId; // ex: "ph:solaris_verdant"
-		this.objective = objective; // ex: "solaris_verdant_atk"
-		this.delayPerAttackPattern = delayPerAttackPattern //; Arrays of attack pattern delay
-		this.attackPatterns = attackPatterns; // array pattern
+		this.itemId = itemId;
+		this.objective = objective;
+		this.delayPerAttackPattern = delayPerAttackPattern
+		this.attackPatterns = attackPatterns;
 	}
 
-	// -------- Scoreboard utils ----------
 	static addScore(target: Player, objective: string, score: number): void {
-		try {
-			world.scoreboard.getObjective(objective)!.addScore(target, score);
-		} catch (e) {
-			target.runCommand(`scoreboard players add "${target.name}" ${objective} ${score}`);
-		}
+		addScore(target, objective, score);
 	}
 
 	static removeScore(target: Player, objective: string, score: number): void {
-		try {
-			world.scoreboard.getObjective(objective)!.addScore(target, -score);
-		} catch (e) {
-			target.runCommand(`scoreboard players remove "${target.name}" ${objective} ${score}`);
-		}
+		removeScore(target, objective, score);
 	}
 
 	static setScore(target: Player, objective: string, score: number): void {
-		try {
-			world.scoreboard.getObjective(objective)!.setScore(target, score);
-		} catch (e) {
-			target.runCommand(`scoreboard players set "${target.name}" ${objective} ${score}`);
-		}
+		setScore(target, objective, score);
 	}
 
 	static getScore(target: Player, objective: string): number {
-		try {
-			return world.scoreboard.getObjective(objective)!.getScore(target) || 0;
-		} catch (error) {
-			return 0;
-		}
+		return getScore(target, objective);
 	}
 
-	// -------- Core attack handler ----------
 	handleAttack(source: Player): void {
 		const currentStep = getScore(source, this.objective);
 
@@ -111,32 +86,26 @@ class WeaponHandler {
 }
 
 class SkillSwitcher {
-	itemId: string;
-	objective: string;
-	skills: { skillSMessage: string }[];
+	readonly itemId: string;
+	readonly objective: string;
+	readonly skills: { readonly skillSMessage: string }[];
 
 	constructor(itemId: string, objective: string, skills: { skillSMessage: string }[]) {
-		this.itemId = itemId; // ex: "ph:solaris_verdant"
-		this.objective = objective; // ex: "solaris_verdant"
-		this.skills = skills; // array of skills [{ message: "Skill 1" }, { message: "Skill 2" }, ...]
+		this.itemId = itemId;
+		this.objective = objective;
+		this.skills = skills;
 	}
 
 	switchSkill(source: Player): void {
-		let currentSkill = WeaponHandler.getScore(source, this.objective);
-
-		// reset if larger than skill
-		if (currentSkill >= this.skills.length) {
-			WeaponHandler.setScore(source, this.objective, 0);
-			currentSkill = 0;
-		}
+		const storedSkill = WeaponHandler.getScore(source, this.objective);
+		if (storedSkill >= this.skills.length) WeaponHandler.setScore(source, this.objective, 0);
+		const currentSkill = storedSkill >= this.skills.length ? 0 : storedSkill;
 
 		const skillData = this.skills[currentSkill];
 		if (!skillData) return;
 
-		// show skill message
 		source.sendMessage(skillData.skillSMessage);
 
-		// update score to next skill
 		if (currentSkill < this.skills.length) {
 			WeaponHandler.addScore(source, this.objective, 1);
 		} else {
@@ -146,51 +115,16 @@ class SkillSwitcher {
 }
 
 class SkillHandler {
-	itemId: string;
-	skills: SkillData;
-	objective: string;
+	readonly itemId: string;
+	readonly skills: SkillData;
+	readonly objective: string;
 
-	/**
-	 * @param { string } itemId - Item identifier, ex: ph:solaris_verdant
-	 * @param { string } objective - The Skills Wheel, ex: solaris_verdant = 1 > Animitta Splitter
-	 */
 	constructor(itemId: string, objective: string) {
 		this.itemId = itemId;
 		this.skills = {};
 		this.objective = objective;
 	}
 
-	/**
-	 * Register new skills.
-	 *
-	 * @param {number} id - Unique Identifier for skill (number).
-	 * @param {SkillConfig} config - Configuration about the skill.
-	 *
-	 */
-
-	/**
-	 * @property {string} config.name - Skill name.
-	 *
-	 * @property {"Skill" | "Ultimate"} config.type
-	 * Skill type, choose between "Skill", and "Ultimate".
-	 *
-	 * @property {string} config.cooldown_objective
-	 * The name of scoreboard objective for cooldown system.
-	 *
-	 * @property {number} config.cooldown
-	 * Cooldown length on seconds / charge
-	 * Use **negative value** If the skill using charge system.
-	 *
-	 * @property {boolean} config.charge
-	 * Is the skill using charge system.
-	 *
-	 * @property {number} config.charge_min?
-	 * Minimum charge for using the skill.
-	 *
-	 * @property {(source: import("@minecraft/server").Player) => void} config.action
-	 * Function that calls when the skill is used.
-	 * `source` is entity/player who uses the skill.
-	 */
 	addSkill(id: number, config: SkillConfig): void {
 		this.skills[id] = config;
 	}
@@ -198,17 +132,15 @@ class SkillHandler {
 	runSkill(source: Player, id: number): void {
 		const skill = this.skills[id];
 		if (!skill) return console.error(`Skill ${id} not found!`);
+		if (!source.isValid) return;
 
-		// cek cooldown
 		const currentCd = getScore(source, skill.cooldown_objective);
-		if (currentCd > 0 && currentCd != undefined && skill.charge == false) return; // stiil on cooldown
-		if (skill.charge == true && currentCd < skill.charge_min!) return; // Not enough charge
+		if (currentCd > 0 && currentCd != undefined && skill.charge == false) return;
+		if (skill.charge == true && currentCd < skill.charge_min!) return;
 
-		// jalankan skill
 		source.runCommand(`tellraw @a[r=64] {"rawtext":[{"text":"${source.name} Used their ${skill.type} ${skill.name}"}]}`);
 		skill.action(source);
 
-		// set cooldown
 		addScore(source, skill.cooldown_objective, skill.cooldown);
 	}
 
@@ -220,11 +152,10 @@ class SkillHandler {
 }
 
 class CommandHandler {
-	commands: CommandEntry[];
+	readonly commands: CommandEntry[];
 
 	constructor(commands: CommandEntry[] = []) {
 		this.commands = commands;
-		// array object: { delay: number, action: (source) => {} }
 	}
 
 	addCommand(delay: number, action: (source: Player) => void): void {
@@ -238,13 +169,9 @@ class CommandHandler {
 			totalDelay += cmd.delay;
 
 			system.runTimeout(() => {
-				// The wielder can leave or change dimension mid-combo.
 				if (!source.isValid) return;
-				try {
-					cmd.action(source);
-				} catch (e) {
-					console.warn(`Weapon command failed: ${e}`);
-				}
+				if (!source.dimension.isChunkLoaded(source.location)) return;
+				cmd.action(source);
 			}, totalDelay);
 		}
 	}
@@ -259,6 +186,7 @@ export function triggerAttack(source: Player, delay: number, damage: number, rad
 	if (!delay && !damage) return console.error("Specify Damage and Delay before Damage Value");
 	if (!radius && !projectile) return console.error("Specify Radius Value");
 	if (!animation) return;
+	if (!source.isValid) return;
 
 	source.playAnimation(animation);
 	system.runTimeout(() => {

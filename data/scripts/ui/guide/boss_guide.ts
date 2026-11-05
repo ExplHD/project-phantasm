@@ -3,8 +3,8 @@ import type { Player } from "@minecraft/server";
 import { mainGuideScreen } from "./main_guide";
 import { guideTitle } from "./guidebookTitle";
 
-export default function guideBosses(player: Player) {
-	const form = new ActionFormData()
+export default function guideBosses(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Bosses"))
 		.label("Every boss in the add-on, in progression order.")
 		.button("Soul of Nature")
@@ -19,8 +19,8 @@ export default function guideBosses(player: Player) {
 		})
 }
 
-function soulOfNature(player: Player) {
-	const form = new ActionFormData()
+function soulOfNature(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Sealed Soul of Nature"))
 		.label("Sealed Soul of Nature wields nature and prism power. Its attacks can drain your oxygen mid-fight.")
 		.label("It has 500 HP and 3 attack patterns. At 70% HP it spawns extra Nature and Prism Crystals, making the fight harder.")
@@ -32,8 +32,8 @@ function soulOfNature(player: Player) {
 		})
 }
 
-function puniceaCrimsonEye(player: Player) {
-	const form = new ActionFormData()
+function puniceaCrimsonEye(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Punicea - A Crimson Eye"))
 		.label("Punicea wields crimson corruption. It has 6 attacks and very high health.")
 		.label("It has 3000 HP and 6 attack patterns. Each is well telegraphed but hits hard, so keep moving.")
@@ -45,8 +45,8 @@ function puniceaCrimsonEye(player: Player) {
 		})
 }
 
-function copperMechanicalArray(player: Player) {
-	const form = new ActionFormData()
+function copperMechanicalArray(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Auric Automaton - Copper Mechanical Array"))
 		.label("The Auric Mechanical Array wields ultimate Auric power. Complicated patterns, massive damage, and high mobility. Bring your best gear.")
 		.label("It has 1750 HP and 7 attack patterns that adapt to how you fight. Do not try to tank them. Stay mobile to survive and kill it.")

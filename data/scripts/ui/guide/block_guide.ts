@@ -3,8 +3,8 @@ import type { Player } from "@minecraft/server";
 import { mainGuideScreen } from "./main_guide";
 import { guideTitle } from "./guidebookTitle";
 
-export default function guideBlocks(player: Player) {
-	const form = new ActionFormData()
+export default function guideBlocks(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Blocks"))
 		.label("Every functional block in the add-on.")
 		.button("Ancient Copper Core")
@@ -21,8 +21,8 @@ export default function guideBlocks(player: Player) {
 		})
 }
 
-function ancientCopperCore(player: Player) {
-	const form = new ActionFormData()
+function ancientCopperCore(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Ancient Copper Core"))
 		.label("The Ancient Copper Core holds a large charge of Auric power, and needs specific items to fully activate.")
 		.label("Interact with it to create another battery. Fill the scattered batteries with the required item, interact with the core again, and the boss appears: Auric Automaton, the Copper Mechanical Array.")
@@ -33,8 +33,8 @@ function ancientCopperCore(player: Player) {
 		})
 }
 
-function auricRechargeStation(player: Player) {
-	const form = new ActionFormData()
+function auricRechargeStation(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Auric Battery Recharge Station"))
 		.label("The Auric Battery Recharge Station recharges Auric Batteries placed inside it. Interact while a battery is inside to charge it slowly. A full charge takes 100 seconds no matter how many batteries are inside, so load it up.")
 		.label("It cannot be broken while batteries are inside.")
@@ -45,8 +45,8 @@ function auricRechargeStation(player: Player) {
 		})
 }
 
-function natureSoulAltar(player: Player) {
-	const form = new ActionFormData()
+function natureSoulAltar(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Nature Soul Altar"))
 		.label("The Nature Soul Altar generates with the underwater Prismarine Arena.")
 		.label("Give it a Prismarine Shard to start the fight.")
@@ -57,8 +57,8 @@ function natureSoulAltar(player: Player) {
 		})
 }
 
-function suspiciousCrimsonEye(player: Player) {
-	const form = new ActionFormData()
+function suspiciousCrimsonEye(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Suspicious Crimson Eye"))
 		.label("The Suspicious Crimson Eye generates with the Crimson Overgrowth in the Crimson Forest.")
 		.label("Give it 5 Essence of Crimson to start the fight.")

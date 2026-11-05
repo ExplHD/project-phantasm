@@ -8,7 +8,8 @@ Minecraft Bedrock addon (Regolith project). Behavior pack `packs/BP`, resource p
 - Dev build + export to Minecraft dev folder: `rgl run`; live rebuild: `rgl watch`.
 - Before commit/release: `rgl apply default` so confirmed work lands in `packs/`.
 - Release artifact (obfuscated `.mcaddon`): `package-file` profile in `config.json` (`esbuild` → `js_obfuscator` → `mcaddon`).
-- No `package.json` scripts, no tests, no lint, no CI. Typecheck ad hoc: `npx tsc --noEmit -p data/scripts`.
+- No `package.json` scripts, no tests, no lint, no CI.
+- Typecheck after every change to `data/scripts/`: `npx tsc --noEmit -p data/scripts`. The tsconfig has `noUnusedLocals` and `noUnusedParameters` on, so unused code fails the check.
 
 ## Code layout
 
@@ -33,6 +34,103 @@ Minecraft Bedrock addon (Regolith project). Behavior pack `packs/BP`, resource p
 - ALL `system.` that uses globally must be placed on `data/scripts/events/index.ts` or `data/scripts/events/loader.ts` if for load event
 - `packs/BP/` and `packs/RP` is a filepath to their respected behavior packs and resources packs, be careful to rerad all of the conventions and make changes there.
 
+## Code rules
+
+### TypeScript API
+
+Only use methods and types that exist in `@minecraft/server` and `@minecraft/server-ui`. Don't invent or assume APIs. If unsure, read `node_modules/@minecraft/server/index.d.ts` or find a usage in this codebase. The type checker catches APIs that don't exist.
+
+### Critical guidelines
+
+1. **Research first.** Check the current docs and typings before implementing, so Script API usage matches the installed version.
+2. **No try-catch.** Don't use `try`/`catch` blocks (overhead). Use guard clauses to stop the error before it happens.
+3. **Verify with TypeScript.** Run `npx tsc --noEmit -p data/scripts` after implementing. It must finish with zero errors, zero warnings and no unused variables, parameters or imports. Fix errors in files you touched; flag errors elsewhere instead of ignoring them.
+
+### TypeScript practices
+
+- Strict TypeScript (`strict: true` in tsconfig).
+- `const` over `let`, never `var`.
+- Explicit return types on every function, including exported arrow functions.
+- `readonly` for properties that never change.
+- Interfaces for object shapes. Type aliases only for unions and similar.
+- `undefined` checks instead of try-catch.
+- DO NOT USE the `any` type, not even as `as any` or `any[]`. Use the real API types (`Player`, `Entity`, `Block`, `ItemStack`, the event types) or `unknown` and narrow it with guards.
+
+### Script API patterns
+
+Guard clauses instead of try-catch:
+
+```typescript
+// ✅ CORRECT
+function processBlock(block: Block | undefined): void {
+	if (!block?.isValid) return;
+	const permutation = block.permutation;
+}
+
+// ❌ WRONG
+function processBlockBad(block: Block): void {
+	try {
+		const permutation = block.permutation;
+	} catch (e) {}
+}
+```
+
+Validate entities before touching them. `triggerEvent`, `applyDamage`, `applyImpulse`, `playAnimation`, `setProperty`, `setDynamicProperty` and `runCommand` throw on an invalid entity:
+
+```typescript
+function damageEntity(entity: Entity | undefined): void {
+	if (!entity?.isValid) return;
+	const health = entity.getComponent("health");
+	if (!health) return;
+	health.setCurrentValue(health.currentValue - 10);
+}
+```
+
+Check the chunk before location work (`getBlock`, `spawnParticle`, `spawnEntity`, `playSound`, `getEntities`):
+
+```typescript
+const dimension = world.getDimension("overworld");
+if (!dimension.isChunkLoaded(location)) return;
+const block = dimension.getBlock(location);
+if (!block) return;
+```
+
+Scoreboard objectives can be missing:
+
+```typescript
+const objective = world.scoreboard.getObjective("ph:example");
+if (!objective) return;
+const score = objective.getScore(player) ?? 0;
+```
+
+Scheduling. Global `system.run*` calls still belong in `events/index.ts` or `events/loader.ts`:
+
+```typescript
+system.run(() => {});
+const intervalId = system.runInterval(() => {}, 20);
+system.clearRun(intervalId);
+```
+
+Event subscriptions go only in `events/index.ts` (or `events/loader.ts` for load events):
+
+```typescript
+world.afterEvents.playerBreakBlock.subscribe((event) => {
+	const { player } = event;
+	if (!player?.isValid) return;
+});
+```
+
+### Comments
+
+DO NOT WRITE ANY COMMENTS OR JSDOCS in TypeScript sources. The `// ✅`/`// ❌` markers above exist only in this file. `##` lines in `en_US.lang` are part of that file format and stay allowed.
+
+### Violation checks
+
+- ❌ Coded without checking the task? You broke task-driven development.
+- ❌ Changed code without running the typecheck? You broke the quality workflow.
+- ❌ Added a `try`/`catch`, a comment, an `any` or an unused symbol? Remove it before finishing.
+
 ## Verify
 
-- No automated verification; test in-game via `rgl run`/`rgl watch` and the Content Log.
+- `npx tsc --noEmit -p data/scripts` must pass with no output.
+- Then test in-game via `rgl run`/`rgl watch` and watch the Content Log.

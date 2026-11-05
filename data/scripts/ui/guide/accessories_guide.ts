@@ -3,8 +3,8 @@ import type { Player } from "@minecraft/server";
 import { mainGuideScreen } from "./main_guide";
 import { guideTitle } from "./guidebookTitle";
 
-export default function guideAccessories(player: Player) {
-	const form = new ActionFormData()
+export default function guideAccessories(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Accessories"))
 		.label("Every accessory explains its own effect in its item description, so hover over the item to read what it does!")
 		.divider()

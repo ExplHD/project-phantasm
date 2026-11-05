@@ -10,28 +10,18 @@ import {
 	StartupEvent,
 	type Vector3
 } from "@minecraft/server";
-
-// ======================================== A Part of Polaris Power ========================================
-// One-use beam item (stacks to 16, dropped by Gold Forge Troopers). Holding use charges
-// it for 1.5s (use_modifiers in the item file); the player is pinned in place, even
-// mid-air, until the charge ends. A finished charge fires one beam (a single 100-damage
-// hit, not a sustained laser) wrapped in a gold double spiral, eats one item and starts
-// the 10s cooldown.
-//
-// It is also the only damage the Titan Core accepts: its BP damage_sensor lets a hit
-// through only while the attacker carries STRIKE_TAG, which fireBeam() sets for the
-// duration of its applyDamage calls.
+import { isLoadedLocation } from "../../core/location";
 
 const ITEM_ID = "ph:a_part_of_polaris_power";
 const COOLDOWN_CATEGORY = "polaris_power";
-const COOLDOWN_TICKS = 200; // matches the item's cooldown duration (10s)
+const COOLDOWN_TICKS = 200;
 const STRIKE_TAG = "ph:polaris_strike";
-// Set while movement is locked, so a player who quits mid-charge gets it back on rejoin.
+
 const CHARGING_PROPERTY = "ph:polaris_charging";
 
-const CHARGE_TICKS = 30; // must match use_modifiers.use_duration (1.5s)
+const CHARGE_TICKS = 30;
 const CHARGE_FX_INTERVAL = 5;
-// Safety net if no stop/complete event arrives (unload, dimension swap).
+
 const LOCK_MAX_TICKS = CHARGE_TICKS + 20;
 
 const BEAM_RANGE = 32;
@@ -40,17 +30,17 @@ const BEAM_HIT_RADIUS = 1.2;
 const CORE_STEP = 0.25;
 const SPIRAL_STEP = 0.25;
 const SPIRAL_RADIUS = 0.55;
-const SPIRAL_TURN_LENGTH = 1.6; // blocks of beam per full turn of each strand
+const SPIRAL_TURN_LENGTH = 1.6;
 const SKIP_FAMILIES = ["inanimate"];
 const SKIP_TYPES = ["minecraft:item", "minecraft:xp_orb", "minecraft:player"];
 
 interface ChargeLock {
-	anchor: Vector3;
-	interval: number;
+	readonly anchor: Vector3;
+	readonly interval: number;
 }
 
 const locks = new Map<string, ChargeLock>();
-// Tick each player may charge again.
+
 const readyAt = new Map<string, number>();
 
 function add(a: Vector3, b: Vector3, scale = 1): Vector3 {
@@ -74,18 +64,14 @@ function distanceToSegment(point: Vector3, start: Vector3, dir: Vector3, length:
 }
 
 function spawn(dimension: Dimension, id: string, location: Vector3): void {
-	try {
-		dimension.spawnParticle(id, location);
-	} catch {
-		// Unloaded chunk along the beam; the rest still draws.
-	}
+	if (!isLoadedLocation(dimension, location)) return;
+	dimension.spawnParticle(id, location);
 }
-
-// ======================================== Movement lock ========================================
 
 function lock(player: Player): void {
 	release(player);
 
+	if (!player.isValid) return;
 	const anchor = { ...player.location };
 	player.inputPermissions.setPermissionCategory(InputPermissionCategory.Movement, false);
 	player.setDynamicProperty(CHARGING_PROPERTY, true);
@@ -97,8 +83,6 @@ function lock(player: Player): void {
 			return;
 		}
 
-		// Movement input is already off; this only cancels gravity and leftover momentum,
-		// so a grounded player is never teleported.
 		const loc = player.location;
 		if (Math.abs(loc.x - anchor.x) + Math.abs(loc.y - anchor.y) + Math.abs(loc.z - anchor.z) > 0.01) {
 			player.teleport(anchor);
@@ -121,31 +105,27 @@ function release(player: Player): void {
 	}
 	if (!player.isValid) return;
 
-	try {
-		player.inputPermissions.setPermissionCategory(InputPermissionCategory.Movement, true);
-		player.setDynamicProperty(CHARGING_PROPERTY, undefined);
-	} catch {
-		// Player left this tick; the rejoin handler restores movement.
-	}
+	player.inputPermissions.setPermissionCategory(InputPermissionCategory.Movement, true);
+	player.setDynamicProperty(CHARGING_PROPERTY, undefined);
 }
 
-// ======================================== Beam ========================================
+function beamLength(dimension: Dimension, start: Vector3, dir: Vector3): number {
+	if (!isLoadedLocation(dimension, start)) return BEAM_RANGE;
+	const blockHit = dimension.getBlockFromRay(start, dir, { maxDistance: BEAM_RANGE, includeLiquidBlocks: false, includePassableBlocks: false });
+	if (!blockHit) return BEAM_RANGE;
+	const face = add(blockHit.block.location, blockHit.faceLocation);
+	return Math.hypot(face.x - start.x, face.y - start.y, face.z - start.z);
+}
 
 function fireBeam(player: Player): void {
+	if (!player.isValid) return;
 	const dimension = player.dimension;
 	const start = player.getHeadLocation();
 	const dir = normalize(player.getViewDirection());
 
-	// Solid blocks stop the beam.
-	let length = BEAM_RANGE;
-	const blockHit = dimension.getBlockFromRay(start, dir, { maxDistance: BEAM_RANGE, includeLiquidBlocks: false, includePassableBlocks: false });
-	if (blockHit) {
-		const face = add(blockHit.block.location, blockHit.faceLocation);
-		length = Math.hypot(face.x - start.x, face.y - start.y, face.z - start.z);
-	}
+	const length = beamLength(dimension, start, dir);
 	const end = add(start, dir, length);
 
-	// Two perpendicular axes around the beam for the spiral.
 	const up = Math.abs(dir.y) > 0.95 ? { x: 1, y: 0, z: 0 } : { x: 0, y: 1, z: 0 };
 	const u = normalize(cross(dir, up));
 	const v = cross(dir, u);
@@ -176,21 +156,14 @@ function fireBeam(player: Player): void {
 	});
 
 	player.addTag(STRIKE_TAG);
-	try {
-		for (const target of targets) {
-			if (!isInBeam(target, start, dir, length)) continue;
-			try {
-				target.applyDamage(BEAM_DAMAGE, { cause: EntityDamageCause.magic, damagingEntity: player });
-			} catch {
-				// Target died or unloaded from an earlier hit in this loop.
-			}
-		}
-	} finally {
-		player.removeTag(STRIKE_TAG);
+	for (const target of targets) {
+		if (!isInBeam(target, start, dir, length)) continue;
+		if (!player.isValid) break;
+		target.applyDamage(BEAM_DAMAGE, { cause: EntityDamageCause.magic, damagingEntity: player });
 	}
+	if (player.isValid) player.removeTag(STRIKE_TAG);
 }
 
-// Checks the feet and the head so tall mobs (Titan Core is 2.4 high) are hit anywhere along their body.
 function isInBeam(target: Entity, start: Vector3, dir: Vector3, length: number): boolean {
 	if (!target.isValid) return false;
 	const feet = target.location;
@@ -217,36 +190,25 @@ function consumeOne(player: Player): void {
 	}
 }
 
-// ======================================== Event handlers ========================================
-// Subscribed in events/index.ts (world events) and events/loader.ts (startup).
-
-// The cooldown component only draws the overlay: it starts on every use and never blocks
-// a new charge, so the real 10s gate is this per-player tick stamp.
 export function onPolarisItemUse(event: ItemUseBeforeEvent): void {
 	if (event.itemStack.typeId !== ITEM_ID) return;
 	if (system.currentTick < (readyAt.get(event.source.id) ?? 0)) event.cancel = true;
 }
 
-// Letting go before the charge finishes clears the overlay the engine started on use.
 export function cancelPolarisCharge(itemStack: { typeId: string } | undefined, source: Player): void {
 	if (itemStack?.typeId !== ITEM_ID) return;
 	if (!locks.has(source.id)) return;
 	release(source);
-	try {
-		source.startItemCooldown(COOLDOWN_CATEGORY, 0);
-	} catch {
-		// Player left this tick.
-	}
+	if (!source.isValid) return;
+	source.startItemCooldown(COOLDOWN_CATEGORY, 0);
 }
 
-// The item JSON binds this component. It owns charge start and the shot; the world event
-// handlers above cover what item components have no hook for (cancelling a use, letting go early).
 export function registerPolarisComponent({ itemComponentRegistry }: StartupEvent): void {
 	itemComponentRegistry.registerCustomComponent("ph:polaris_power", {
-		onUse({ source }) {
+		onUse({ source }): void {
 			lock(source);
 		},
-		onCompleteUse({ source }) {
+		onCompleteUse({ source }): void {
 			release(source);
 			readyAt.set(source.id, system.currentTick + COOLDOWN_TICKS);
 			source.startItemCooldown(COOLDOWN_CATEGORY, COOLDOWN_TICKS);

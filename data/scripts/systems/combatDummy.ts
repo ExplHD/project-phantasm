@@ -1,11 +1,11 @@
-import { /* [UNUSED] world */ system, Entity, EntityHurtAfterEvent } from "@minecraft/server";
+import { system, Entity, EntityHurtAfterEvent } from "@minecraft/server";
 
-const COMBAT_TIMEOUT = 5000;      // Reset setelah 5 detik tanpa damage
-const DPS_WINDOW = 1000;          // Damage 1 detik terakhir
-const SMOOTH_SPEED = 0.15;        // 0-1 (semakin besar semakin cepat)
+const COMBAT_TIMEOUT = 5000;
+const DPS_WINDOW = 1000;
+const SMOOTH_SPEED = 0.15;
 
 interface DummyStats {
-    history: Array<{ damage: number; time: number }>;
+    readonly history: Array<{ readonly damage: number; readonly time: number }>;
     recentDamage: number;
     totalDamage: number;
     highestHit: number;
@@ -15,17 +15,16 @@ interface DummyStats {
     realDps: number;
     displayDps: number;
     interval: number | undefined;
-    /** Last string pushed to nameTag, so idle ticks don't re-send an identical tag. */
     shownTag: string;
 }
 
 const DummyStatsMap = new Map<string, DummyStats>();
 
 function getStats(dummy: Entity): DummyStats {
-    let stats = DummyStatsMap.get(dummy.id);
-    if (stats) return stats;
+    const existing = DummyStatsMap.get(dummy.id);
+    if (existing) return existing;
 
-    stats = {
+    const stats: DummyStats = {
         history: [],
         recentDamage: 0,
 
@@ -52,8 +51,6 @@ function beginCombat(dummy: Entity, stats: DummyStats): void {
     if (stats.interval !== undefined)
         return;
     stats.interval = system.runInterval(() => {
-
-        // Dummy sudah hilang
         if (!dummy.isValid) {
             system.clearRun(stats.interval!);
             DummyStatsMap.delete(dummy.id);
@@ -62,7 +59,6 @@ function beginCombat(dummy: Entity, stats: DummyStats): void {
 
         const now = Date.now();
 
-        // Hapus damage yang sudah lewat 1 detik
         while (
             stats.history.length &&
             now - stats.history[0].time > DPS_WINDOW
@@ -73,7 +69,6 @@ function beginCombat(dummy: Entity, stats: DummyStats): void {
 
         stats.realDps = stats.recentDamage;
 
-        // Smooth DPS
         stats.displayDps +=
             (stats.realDps - stats.displayDps) * SMOOTH_SPEED;
         const combatTime =
@@ -81,8 +76,6 @@ function beginCombat(dummy: Entity, stats: DummyStats): void {
         const averageDps =
             stats.totalDamage / combatTime;
 
-        // The smoothed DPS keeps converging for a while after the last hit, so most ticks in the
-        // 5 second window produce the exact same numbers. Only push the tag when it changed.
         const nameTag =
 `§e-= Combat Dummy =-
 
@@ -98,7 +91,6 @@ function beginCombat(dummy: Entity, stats: DummyStats): void {
             stats.shownTag = nameTag;
         }
 
-        // Combat timer expires
         if (
             now - stats.lastHit >= COMBAT_TIMEOUT &&
             stats.displayDps < 1
@@ -107,7 +99,6 @@ function beginCombat(dummy: Entity, stats: DummyStats): void {
             system.clearRun(stats.interval!);
             DummyStatsMap.delete(dummy.id);
         }
-
     }, 1);
 }
 

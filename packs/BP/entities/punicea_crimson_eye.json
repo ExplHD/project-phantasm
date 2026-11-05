@@ -55,6 +55,18 @@
                 "minecraft:damage_sensor": {
                     "triggers": [
                         {
+                            "cause": "all",
+                            "deals_damage": "no",
+                            "on_damage": {
+                                "filters": {
+                                    "test": "is_family",
+                                    "subject": "other",
+                                    "operator": "==",
+                                    "value": "crimson_eye"
+                                }
+                            }
+                        },
+                        {
                             "cause": "suffocation",
                             "deals_damage": "no"
                         },
@@ -70,46 +82,6 @@
                             "cause": "all",
                             "deals_damage": "yes",
                             "damage_modifier": 1
-                        },
-                        {
-                            "cause": "all",
-                            "deals_damage": "no",
-                            "on_damage": {
-                                "filters": {
-                                    "test": "is_family",
-                                    "subject": "other",
-                                    "operator": "==",
-                                    "value": "crimson_eye"
-                                }
-                            }
-                        }
-                    ]
-                }
-            },
-            "ph:ultimate_laser_ray_charge": {
-                "minecraft:timer": {
-                    "time": 2,
-                    "time_down_event": {
-                        "event": "ph:ultimate_laser_ray_trigger"
-                    }
-                },
-                "minecraft:damage_sensor": {
-                    "triggers": [
-                        {
-                            "cause": "all",
-                            "deals_damage": "no",
-                            "on_damage": {
-                                "filters": {
-                                    "test": "is_family",
-                                    "subject": "other",
-                                    "operator": "==",
-                                    "value": "crimson_eye"
-                                }
-                            }
-                        },
-                        {
-                            "cause": "all",
-                            "deals_damage": "no"
                         }
                     ]
                 }
@@ -317,7 +289,9 @@
             "despawn": {
                 "queue_command": {
                     "command": [
-                        "music stop 3"
+                        "music stop 3",
+                        "inputpermission set @a[r=64] jump enabled",
+                        "camera @a[r=64] clear"
                     ]
                 },
                 "add": {
@@ -329,7 +303,9 @@
             "death": {
                 "queue_command": {
                     "command": [
-                        "music stop 3"
+                        "music stop 3",
+                        "inputpermission set @a[r=64] jump enabled",
+                        "camera @a[r=64] clear"
                     ]
                 }
             },
@@ -387,11 +363,7 @@
                         "queue_command": {
                             "command": [
                                 "playanimation @s animation.punicea_crimson_eye.crimson_drifts",
-                                "summon armor_stand ~~~ ~ ~ a CRIMSONDRIFTMARKER",
-                                "effect @e[type=armor_stand,name=CRIMSONDRIFTMARKER] invisibility",
-                                "spreadplayers ~ ~ 3 24 @e[type=armor_stand,name=CRIMSONDRIFTMARKER] ~3",
-                                "execute as @s at @e[type=armor_stand,name=CRIMSONDRIFTMARKER] run particle ph:crimson_drift_small ~~1~",
-                                "execute as @s at @e[type=armor_stand,name=CRIMSONDRIFTMARKER] run particle ph:crimson_drift_large ~~1~"
+                                "scriptevent ph:crimson_drift_mark"
                             ]
                         },
                         "weight": 1
@@ -451,7 +423,7 @@
                         "queue_command": {
                             "command": [
                                 "scriptevent ph:boss_summon_projectile 16, 1.5, ph:crimson_laser, random.orb",
-                                "damage @e[r=48,rm=30,family=!inanimate,type=!item] 30 magic entity @s"
+                                "damage @e[r=48,rm=30,family=!inanimate,family=!crimson_eye,type=!item] 30 magic entity @s"
                             ]
                         },
                         "set_property": {
@@ -498,13 +470,7 @@
                 },
                 "queue_command": {
                     "command": [
-                        "tp @s @e[type=armor_stand,name=CRIMSONDRIFTMARKER]",
-                        "playsound mob.zombie.remedy @a[r=32] ~~~ 1 1 0.3",
-                        "particle ph:crimson_roots_spread ~~1~",
-                        "damage @e[r=10,rm=0.1,family=!inanimate,type=!item] 10 magic entity @s",
-                        "kill @e[type=armor_stand,name=CRIMSONDRIFTMARKER]",
-                        "camera @a[r=10] fade time 0 5 1 color 180 0 0",
-                        "effect @e[r=10,rm=0.1,family=!inanimate] wither 5 3 true"
+                        "scriptevent ph:crimson_drift_strike"
                     ]
                 }
             },

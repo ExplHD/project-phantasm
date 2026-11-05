@@ -1,6 +1,6 @@
 import { ActionFormData } from "@minecraft/server-ui";
 import type { Player } from "@minecraft/server";
-// [UNUSED] import { world, system } from "@minecraft/server"; - nothing in this file uses them.
+
 import { unstuckPlayer } from "../../core/player";
 
 import guideWeapons from "./weapon_guide";
@@ -12,8 +12,8 @@ import guideAccessories from "./accessories_guide";
 import guideEnemies from "./enemies_guide";
 import { guideTitle } from "./guidebookTitle";
 
-export function mainGuideScreen(player: Player) {
-	const form = new ActionFormData()
+export function mainGuideScreen(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Guide"))
 		.header("Phantasm Guide")
 		.divider()
@@ -57,8 +57,8 @@ export function mainGuideScreen(player: Player) {
 		});
 }
 
-export function gettingStarted(player: Player) {
-	const form = new ActionFormData()
+export function gettingStarted(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Getting Started"))
 		.header("Where to begin?")
 		.divider()
@@ -82,8 +82,8 @@ export function gettingStarted(player: Player) {
 		});
 }
 
-export function Changelogs(player: Player) {
-	const form = new ActionFormData()
+export function Changelogs(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Changelogs"))
 		.header("v1.5.2")
 		.divider()
@@ -149,11 +149,11 @@ export function Changelogs(player: Player) {
 		});
 }
 
-export function developer(player: Player) {
-	const form = new ActionFormData()
+export function developer(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Developer Contact"))
 		.header("Contact Us!")
-		
+
 		.divider()
 		.label("ExplerHD\nGitHub : ExplHD\nDiscord : explerhd\nYoutube : ExplerHD (@ExplHD)\nMCPEDL : ExplerHD\nCurseforge : ExplerHD")
 		.label("ZeroMaster178\nInstagram : zeromaster_178\nMCPEDL : Zeromaster 178\nCurseforge : Zeromaster178\nTiktok : Zeromaster_178\nYoutube : zeromaster178\nDiscord : zeromaster178")

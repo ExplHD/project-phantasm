@@ -335,8 +335,9 @@
                 "queue_command": {
                     "command": [
                         "music stop 3",
-                        "fog @a remove copper_mechanical_array",
-                        "fog @a remove copper_mechanical_array_sword_attack"
+                        "fog @a[r=128] remove copper_mechanical_array",
+                        "fog @a[r=128] remove copper_mechanical_array_sword_attack",
+                        "camera @a[r=64] clear"
                     ]
                 },
                 "add": {
@@ -350,7 +351,8 @@
                     "command": [
                         "music stop 3",
                         "fog @a[r=128] remove copper_mechanical_array",
-                        "fog @a[r=128] remove copper_mechanical_array_sword_attack"
+                        "fog @a[r=128] remove copper_mechanical_array_sword_attack",
+                        "camera @a[r=64] clear"
                     ]
                 }
             },
@@ -453,10 +455,7 @@
                         },
                         "remove": {
                             "component_groups": [
-                                "ph:pattern_randomizer",
-                                "ph:dash_timer",
-                                "ph:slash_timer",
-                                "ph:lightning_pillar_timer"
+                                "ph:pattern_randomizer"
                             ]
                         },
                         "queue_command": {
@@ -477,10 +476,7 @@
                         },
                         "remove": {
                             "component_groups": [
-                                "ph:pattern_randomizer",
-                                "ph:dash_timer",
-                                "ph:slash_timer",
-                                "ph:lightning_pillar_timer"
+                                "ph:pattern_randomizer"
                             ]
                         },
                         "queue_command": {
@@ -502,10 +498,7 @@
                         },
                         "remove": {
                             "component_groups": [
-                                "ph:pattern_randomizer",
-                                "ph:dash_timer",
-                                "ph:slash_timer",
-                                "ph:lightning_pillar_timer"
+                                "ph:pattern_randomizer"
                             ]
                         },
                         "queue_command": {
@@ -526,10 +519,7 @@
                         },
                         "remove": {
                             "component_groups": [
-                                "ph:pattern_randomizer",
-                                "ph:dash_timer",
-                                "ph:slash_timer",
-                                "ph:lightning_pillar_timer"
+                                "ph:pattern_randomizer"
                             ]
                         },
                         "queue_command": {

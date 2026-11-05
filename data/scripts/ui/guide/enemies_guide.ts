@@ -3,8 +3,8 @@ import type { Player } from "@minecraft/server";
 import { mainGuideScreen } from "./main_guide";
 import { guideTitle } from "./guidebookTitle";
 
-export default function guideEnemies(player: Player) {
-	const form = new ActionFormData()
+export default function guideEnemies(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Enemies"))
 		.divider()
 		.label("Only one enemy type so far: Crimson Tentacles.")

@@ -12,16 +12,8 @@ import {
 	MolangVariableMap
 } from "@minecraft/server";
 import { getOwnerId } from "../core/summons";
+import { isLoadedLocation } from "../core/location";
 import { type CameraBasis, clearShotLocation, playerCameraBasis, shotLocation } from "../core/camera";
-
-// ======================================== Xeonnite Blessing ========================================
-// Earned once, kept forever: the player must have held a Xeonnite Cube at some point AND
-// set foot in Titan Ridge at some point, in either order. Both milestones are sticky
-// dynamic properties, so dropping the cube or leaving the biome afterwards changes nothing.
-// Without it, players cannot damage anything in the titan_ridge family (drones, Titan
-// Core, Forge Troopers): melee, projectiles, script damage that names the player, and
-// anything the player summoned (see core/summons.ts).
-// Earning it plays a short cutscene; a blocked hit shows a Xeonnite ward where it landed.
 
 export const BLESSING_PROPERTY = "ph:xeonnite_blessing";
 const CUBE_PROPERTY = "ph:ever_obtained_xeonnite_cube";
@@ -33,11 +25,8 @@ const TITAN_RIDGE_TAG = "ph:titan_ridge";
 const TITAN_RIDGE_FAMILY = "titan_ridge";
 
 export function isBlessed(player: Player): boolean {
-	try {
-		return player.getDynamicProperty(BLESSING_PROPERTY) === true;
-	} catch {
-		return false;
-	}
+	if (!player.isValid) return false;
+	return player.getDynamicProperty(BLESSING_PROPERTY) === true;
 }
 
 function holdsCube(player: Player): boolean {
@@ -50,54 +39,40 @@ function holdsCube(player: Player): boolean {
 }
 
 export function inTitanRidge(player: Player): boolean {
+	if (!isLoadedLocation(player.dimension, player.location)) return false;
 	return player.dimension.getBiome(player.location).hasTags([TITAN_RIDGE_TAG]);
 }
 
-// Run every 20 ticks from events/index.ts: both milestones are one-time checks,
-// nothing here needs tick precision.
 export function checkBlessingMilestones(): void {
 	for (const player of world.getAllPlayers()) {
+		if (!player.isValid) continue;
 		if (isBlessed(player)) continue;
-		try {
-			if (player.getDynamicProperty(CUBE_PROPERTY) !== true && holdsCube(player)) {
-				player.setDynamicProperty(CUBE_PROPERTY, true);
-			}
-			if (player.getDynamicProperty(RIDGE_PROPERTY) !== true && inTitanRidge(player)) {
-				player.setDynamicProperty(RIDGE_PROPERTY, true);
-			}
-			if (player.getDynamicProperty(CUBE_PROPERTY) !== true || player.getDynamicProperty(RIDGE_PROPERTY) !== true) continue;
-
-			player.setDynamicProperty(BLESSING_PROPERTY, true);
-			playBlessingCutscene(player);
-		} catch {
-			// Players mid-respawn or mid-dimension-change have no readable biome or inventory.
+		if (player.getDynamicProperty(CUBE_PROPERTY) !== true && holdsCube(player)) {
+			player.setDynamicProperty(CUBE_PROPERTY, true);
 		}
+		if (player.getDynamicProperty(RIDGE_PROPERTY) !== true && inTitanRidge(player)) {
+			player.setDynamicProperty(RIDGE_PROPERTY, true);
+		}
+		if (player.getDynamicProperty(CUBE_PROPERTY) !== true || player.getDynamicProperty(RIDGE_PROPERTY) !== true) continue;
+
+		player.setDynamicProperty(BLESSING_PROPERTY, true);
+		playBlessingCutscene(player);
 	}
 }
-
-// ======================================== Blessing cutscene ========================================
-// 4.6s: power gathers into the player's chest while the camera circles the right side,
-// it bursts at 2.4s (flash, ground shockwave, ember pillar, shards) as the camera whips
-// out wide, then the view fades back to the player. Matches
-// animation.player_extend.xeonnite_blessing beat for beat.
 
 const BURST_TICK = 48;
 const FADE_OUT_TICK = 84;
 const RELEASE_TICK = 90;
 
 interface Shot {
-	/** Tick the camera starts easing towards this shot. */
-	tick: number;
-	/** Seconds the ease takes. */
-	ease: number;
-	easeType: EasingType;
-	distance: number;
-	side: number;
-	height: number;
+	readonly tick: number;
+	readonly ease: number;
+	readonly easeType: EasingType;
+	readonly distance: number;
+	readonly side: number;
+	readonly height: number;
 }
 
-// Offsets from the body-centre anchor along the player's facing; every shot stays on the
-// player's right so the path never cuts through the body.
 const SHOTS: Shot[] = [
 	{ tick: 1, ease: 1.15, easeType: EasingType.InOutSine, distance: 0.6, side: 2.6, height: 0.1 },
 	{ tick: 24, ease: 1.0, easeType: EasingType.InOutSine, distance: -1.3, side: 2.1, height: 0.5 },
@@ -120,23 +95,15 @@ function setLocked(player: Player, locked: boolean): void {
 	player.inputPermissions.setPermissionCategory(InputPermissionCategory.Camera, !locked);
 }
 
-// Pending timeouts of each running cutscene, so a reset can stop the rest of the shots.
 const cutsceneRuns = new Map<string, number[]>();
 
-/**
- * Stops a running blessing cutscene (if any) and hands the camera and controls back.
- * Safe to call at any time; used by the cutscene itself, rejoin recovery and player resets.
- */
 export function releaseBlessingCutscene(player: Player): void {
 	for (const run of cutsceneRuns.get(player.id) ?? []) system.clearRun(run);
 	cutsceneRuns.delete(player.id);
-	try {
-		setLocked(player, false);
-		player.camera.clear();
-		player.setDynamicProperty(CUTSCENE_PROPERTY, undefined);
-	} catch {
-		// Player left; the join handler below restores them next time.
-	}
+	if (!player.isValid) return;
+	setLocked(player, false);
+	player.camera.clear();
+	player.setDynamicProperty(CUTSCENE_PROPERTY, undefined);
 }
 
 function playBlessingCutscene(player: Player): void {
@@ -147,7 +114,7 @@ function playBlessingCutscene(player: Player): void {
 
 	player.setDynamicProperty(CUTSCENE_PROPERTY, true);
 	setLocked(player, true);
-	// Nothing should interrupt the moment, even mid-fight in Titan Ridge.
+
 	player.addEffect("resistance", RELEASE_TICK + 10, { amplifier: 4, showParticles: false });
 	player.addEffect("slow_falling", RELEASE_TICK + 10, { showParticles: false });
 
@@ -162,15 +129,13 @@ function playBlessingCutscene(player: Player): void {
 
 	const runs: number[] = [];
 	cutsceneRuns.set(player.id, runs);
-	const at = (tick: number, action: () => void) =>
+	const at = (tick: number, action: () => void): void => {
 		runs.push(system.runTimeout(() => {
 			if (!player.isValid) return;
-			try {
-				action();
-			} catch {
-				// Dimension change or death mid-cutscene: the release step still restores input.
-			}
+			if (!dimension.isChunkLoaded(feet)) return;
+			action();
 		}, tick));
+	};
 
 	for (const shot of SHOTS) {
 		at(shot.tick, () => cameraTo(player, basis, shot, { time: shot.ease, type: shot.easeType }));
@@ -197,7 +162,6 @@ function playBlessingCutscene(player: Player): void {
 		player.camera.fade({ fadeColor: { red: 0, green: 0, blue: 0 }, fadeTime: { fadeInTime: 0.25, holdTime: 0.2, fadeOutTime: 0.5 } })
 	);
 
-	// Clear while the screen is still black so the jump back to first person is hidden.
 	runs.push(system.runTimeout(() => {
 		if (!player.isValid) return;
 		releaseBlessingCutscene(player);
@@ -205,16 +169,11 @@ function playBlessingCutscene(player: Player): void {
 	}, RELEASE_TICK));
 }
 
-// Someone who quit mid-cutscene would otherwise rejoin frozen with a detached camera.
 export function onBlessingSpawn(player: Player, initialSpawn: boolean): void {
 	if (!initialSpawn) return;
 	if (player.getDynamicProperty(CUTSCENE_PROPERTY) === true) releaseBlessingCutscene(player);
 }
 
-// ======================================== Ward on blocked hits ========================================
-
-// The entity that actually dealt the hit. Summoned projectiles have no shooter, and
-// summoned lightning hurts without naming anything, so fall back to the nearest bolt.
 function damageDealer(acc: EntityHurtBeforeEvent): Entity | undefined {
 	const { damagingEntity, damagingProjectile, cause } = acc.damageSource;
 	if (damagingEntity ?? damagingProjectile) return damagingEntity ?? damagingProjectile;
@@ -223,9 +182,6 @@ function damageDealer(acc: EntityHurtBeforeEvent): Entity | undefined {
 	return dimension.getEntities({ type: "minecraft:lightning_bolt", location, maxDistance: 6, closest: 1 })[0];
 }
 
-// Barrier ripple, a "denied" cross and sparks thrown back, on the side of the mob that
-// was hit and facing whatever hit it. One ward per mob every few ticks so a volley of
-// summons doesn't stack a wall of particles.
 const WARD_COOLDOWN_TICKS = 3;
 const lastWard = new Map<string, number>();
 
@@ -260,35 +216,26 @@ function showWard(hurtEntity: Entity, from: Vector3, player: Player | undefined)
 export function onBlessingHurt(acc: EntityHurtBeforeEvent): void {
 	const dealer = damageDealer(acc);
 	if (!dealer) return;
-	// Players directly, or a summon stamped with its summoner's id.
+
 	const ownerId = getOwnerId(dealer);
 	if (!ownerId) return;
 
 	const hurtEntity = acc.hurtEntity;
-	try {
-		if (!hurtEntity.getComponent("minecraft:type_family")?.hasTypeFamily(TITAN_RIDGE_FAMILY)) return;
-	} catch {
-		return;
-	}
-	// An offline summoner can't be checked, so their leftover summons stay harmless.
+	if (!hurtEntity.isValid) return;
+	if (!hurtEntity.getComponent("minecraft:type_family")?.hasTypeFamily(TITAN_RIDGE_FAMILY)) return;
+
 	const owner = world.getEntity(ownerId);
 	const player = owner instanceof Player ? owner : undefined;
 	if (player && isBlessed(player)) return;
 
 	acc.cancel = true;
-	// Capture now: a projectile or bolt can be gone by the next tick.
-	let from: Vector3;
-	try {
-		from = dealer.getHeadLocation();
-	} catch {
-		from = dealer.location;
-	}
+
+	if (!dealer.isValid) return;
+	const from = dealer.getHeadLocation();
 	system.run(() => {
-		try {
-			showWard(hurtEntity, from, player);
-		} catch {
-			// Either side can despawn between the cancel and this run.
-		}
+		if (!hurtEntity.isValid) return;
+		if (!hurtEntity.dimension.isChunkLoaded(hurtEntity.location)) return;
+		showWard(hurtEntity, from, player?.isValid ? player : undefined);
 	});
 }
 

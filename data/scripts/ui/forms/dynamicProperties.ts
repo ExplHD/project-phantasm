@@ -5,13 +5,6 @@ import type { PlayerPropertyValue } from "../../core/playerProperties";
 import { clearControlState } from "../../systems/controls";
 import { releaseBlessingCutscene } from "../../systems/xeonniteBlessing";
 
-// ======================================== Property sync ========================================
-
-/**
- * Applies what a property change means in game. Stored values alone aren't enough:
- * /setting reads a cached copy of the controls, Health level lives on as a Health Boost
- * effect, and the blessing cutscene holds the camera until it's released.
- */
 export function syncPlayerProperty(player: Player, id: string): void {
 	const value = player.getDynamicProperty(id);
 	switch (id) {
@@ -34,11 +27,6 @@ export function syncPlayerProperty(player: Player, id: string): void {
 	}
 }
 
-/**
- * Puts a player back to a fresh Phantasm state, as if joining for the first time:
- * every property wiped, everything derived from them undone, defaults written back
- * and the Guidebook handed out again.
- */
 export function resetPlayerProperties(player: Player): void {
 	releaseBlessingCutscene(player);
 	const wasNerfed = player.getDynamicProperty("ph:forge_parry_nerf_until") !== undefined;
@@ -52,32 +40,25 @@ export function resetPlayerProperties(player: Player): void {
 	player.dimension.spawnItem(new ItemStack("ph:guidebook"), player.location);
 }
 
-// ======================================== Manager form ========================================
-
 function formatValue(value: PlayerPropertyValue | undefined): string {
 	return value === undefined ? "§8(unset)" : `§f${value}`;
 }
 
-// Main function to call the ui
 export default function openDynamicPropertyMenu(player: Player): void {
-	// Observable for dropdown property (index to PLAYER_PROPERTIES)
+	if (!player.isValid) return;
 	const selectedIndex = new ObservableNumber(0, { clientWritable: true });
 
-	// Observable for value input, depends of the property
 	const toggleValue = new ObservableBoolean(false, { clientWritable: true });
 	const textValue = new ObservableString("", { clientWritable: true });
 
-	// Observable to show/hide controls based on property type
 	const showToggle = new ObservableBoolean(false);
 	const showText = new ObservableBoolean(false);
 
-	// Confirmation before reset all.
 	const confirmReset = new ObservableBoolean(false, { clientWritable: true });
 
 	const currentLabel = new ObservableString("");
 	const statusMessage = new ObservableString("");
 
-	// The editor follows the declared type, so an unset property still gets the right input.
 	function refreshForIndex(index: number): void {
 		const def = PLAYER_PROPERTIES[index];
 		const currentValue = player.getDynamicProperty(def.id) as PlayerPropertyValue | undefined;
@@ -90,10 +71,8 @@ export default function openDynamicPropertyMenu(player: Player): void {
 		else textValue.setData(currentValue !== undefined ? currentValue.toString() : "");
 	}
 
-	// Set default view before form is opened
 	refreshForIndex(selectedIndex.getData());
 
-	// every time the dropdown is changed, update the form
 	selectedIndex.subscribe((newIndex: number) => {
 		refreshForIndex(newIndex);
 		statusMessage.setData("");
@@ -114,26 +93,27 @@ export default function openDynamicPropertyMenu(player: Player): void {
 		.spacer()
 		.button("Save", () => {
 			const def = PLAYER_PROPERTIES[selectedIndex.getData()];
-
-			try {
-				if (def.type === "boolean") {
-					player.setDynamicProperty(def.id, toggleValue.getData());
-				} else {
-					const raw = textValue.getData().trim();
-					const parsed = Number(raw);
-					if (raw !== "" && Number.isNaN(parsed)) {
-						statusMessage.setData("§cIncorrect Type, Expected Type : Number!");
-						return;
-					}
-					player.setDynamicProperty(def.id, raw === "" ? undefined : parsed);
-				}
-				syncPlayerProperty(player, def.id);
-
-				refreshForIndex(selectedIndex.getData());
-				statusMessage.setData(`§aSuccessfully changed ${def.label}!`);
-			} catch (e) {
-				statusMessage.setData(`§cFailed to change property: ${e}`);
+			if (!def) {
+				statusMessage.setData("§cFailed to change property: unknown property.");
+				return;
 			}
+			if (!player.isValid) return;
+
+			if (def.type === "boolean") {
+				player.setDynamicProperty(def.id, toggleValue.getData());
+			} else {
+				const raw = textValue.getData().trim();
+				const parsed = Number(raw);
+				if (raw !== "" && !Number.isFinite(parsed)) {
+					statusMessage.setData("§cIncorrect Type, Expected Type : Number!");
+					return;
+				}
+				player.setDynamicProperty(def.id, raw === "" ? undefined : parsed);
+			}
+			syncPlayerProperty(player, def.id);
+
+			refreshForIndex(selectedIndex.getData());
+			statusMessage.setData(`§aSuccessfully changed ${def.label}!`);
 		})
 		.divider()
 		.label("Reset every Phantasm property to a fresh start (same as /cleardynamicproperties):")
@@ -153,8 +133,5 @@ export default function openDynamicPropertyMenu(player: Player): void {
 		.divider()
 		.label(statusMessage)
 		.closeButton()
-		.show()
-		.catch((e: unknown) => {
-			console.error(e);
-		});
+		.show();
 }

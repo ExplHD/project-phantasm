@@ -1,14 +1,9 @@
 import { EquipmentSlot, type Player } from '@minecraft/server'
 import { WeaponHandler, SkillSwitcher, CommandHandler, applyCustomDamage } from './weaponHandler'
-/* [UNUSED] import { weaponSkills } from './weaponSkills' - weapon skills are wired
-   directly in events/index.ts (itemUse), not here. */
+
 import { addScore, getScore, removeScore } from '../../core/scoreboard'
 import { summonOwned } from '../../core/summons'
 import { prismBolt, PRISM_FAN } from './prismWeaver'
-
-/* --------------------------------------------------------------------------------------------------------------------------------------------------------
-            Weapons Runtime
- -------------------------------------------------------------------------------------------------------------------------------------------------------- */
 
 const solarisVerdant = new WeaponHandler("ph:solaris_verdant", "solaris_verdant_atk", [10, 9, 10], [
     { delay: 5, damage: 21, radius: 3.9, animation: "animation.solaris_verdant.attack_1", sound: "weapon_slash.slash_medium" },
@@ -62,8 +57,8 @@ const superchargedCopperAxe = new WeaponHandler("ph:supercharged_copper_axe", "s
                     summonOwned(src, 'summon lightning_bolt ~-5~~ ~ 0');
                     src.runCommand('particle ph:lightning_sparks ~5~~');
                     src.runCommand('particle ph:lightning_sparks ~-5~~');
-                    WeaponHandler.addScore(src, "supercharged_copper_axe_s3", 1);
-                    WeaponHandler.addScore(src, "supercharged_copper_axe_s4", 1);
+                    addScore(src, "supercharged_copper_axe_s3", 1);
+                    addScore(src, "supercharged_copper_axe_s4", 1);
                 }
             }
         ])
@@ -77,8 +72,6 @@ const superchargedCopperAxeSS = new SkillSwitcher("ph:supercharged_copper_axe", 
     { skillSMessage: "Ultimate Discharge" }
 ])
 
-// Native ranged: every hit fires script-driven bolts (projectile.ts) instead of summoning
-// stationary ph:prism_weaver_laser damage orbs next to the player.
 const prismWeaver = new WeaponHandler("ph:prism_weaver", "prism_weaver_atk", [20, 15, 15], [
     { delay: 6, damage: 17, radius: 0, animation: "animation.prism_weaver.attack_1", sound: "weapon_slash.magic_staff", projectile: prismBolt(-0.35) },
     { delay: 10, damage: 17, radius: 0, animation: "animation.prism_weaver.attack_2", sound: "weapon_slash.magic_staff", projectile: prismBolt(0.35) },
@@ -175,14 +168,10 @@ const seiketsu = new WeaponHandler("ph:seiketsu", "seiketsu_atk", [9, 9, 9], [
 export const weapons = [solarisVerdant, superchargedCopperAxe, prismWeaver, auricPhotonizer, theBleedingSpire, seiketsu];
 export const switcherSkills = [solarisVerdantSS, superchargedCopperAxeSS, prismWeaverSS, auricPhotonizerSS, theBleedingSpireSS];
 
-// switcherSkills is fixed at module load, so index it once instead of scanning it
-// on every skill switch.
 const switcherByItemId = new Map<string, (typeof switcherSkills)[number]>(
     switcherSkills.map(switcher => [switcher.itemId, switcher])
 );
 
-// Switches the skill of the Legendary weapon in the main hand. Returns false when the
-// held item has no skill switcher.
 export function switchHeldWeaponSkill(player: Player): boolean {
     const switcher = switcherByItemId.get(
         player.getComponent("equippable")?.getEquipment(EquipmentSlot.Mainhand)?.typeId ?? ""

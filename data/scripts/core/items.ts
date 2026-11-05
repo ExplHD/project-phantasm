@@ -1,14 +1,14 @@
-/**
- * Durability helpers. Mirrors vanilla Unbreaking roll chance on top of a flat damage amount.
- */
+import { GameMode, type Player } from '@minecraft/server'
+
 interface DurabilityDamageOptions {
-    damage?: number;
-    slot?: number;
-    ignoreUnbreaking?: boolean;
-    breakSound?: boolean;
+    readonly damage?: number;
+    readonly slot?: number;
+    readonly ignoreUnbreaking?: boolean;
+    readonly breakSound?: boolean;
 }
 
-export function applyDurabilityDamage(source: any, options: DurabilityDamageOptions = {}) {
+export function applyDurabilityDamage(source: Player, options: DurabilityDamageOptions = {}): void {
+    if (!source.isValid) return;
     const {
         damage = 1,
         slot = source?.selectedSlotIndex,
@@ -16,7 +16,7 @@ export function applyDurabilityDamage(source: any, options: DurabilityDamageOpti
         breakSound = true
     } = options;
 
-    const inventory = source?.getComponent("inventory")?.container;
+    const inventory = source.getComponent("inventory")?.container;
     if (!inventory) return;
 
     const item = inventory.getItem(slot);
@@ -25,7 +25,7 @@ export function applyDurabilityDamage(source: any, options: DurabilityDamageOpti
     const durability = item.getComponent("durability");
     if (!durability) return;
 
-    if (source.getGameMode && source.getGameMode() === "Creative") return;
+    if (source.getGameMode() === GameMode.Creative) return;
 
     if (!ignoreUnbreaking) {
         const unbreaking = item
@@ -43,9 +43,7 @@ export function applyDurabilityDamage(source: any, options: DurabilityDamageOpti
     if (newDamage >= durability.maxDurability) {
         inventory.setItem(slot, undefined);
 
-        if (breakSound && source.playSound) {
-            source.playSound("random.break");
-        }
+        if (breakSound) source.playSound("random.break");
         return;
     }
 

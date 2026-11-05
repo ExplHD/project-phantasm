@@ -58,7 +58,7 @@
                     "time": 2,
                     "looping": false,
                     "time_down_event": {
-                        "event": "ocean_wave_spam"
+                        "event": "ocean_wave_start"
                     }
                 }
             },
@@ -68,15 +68,6 @@
                     "time": 0.25,
                     "time_down_event": {
                         "event": "ocean_wave_spam"
-                    }
-                }
-            },
-            "ph:vulkan_meteor_crystal_timer": {
-                "minecraft:timer": {
-                    "looping": false,
-                    "time": 2,
-                    "time_down_event": {
-                        "event": "meteor_spawn"
                     }
                 }
             },
@@ -107,6 +98,15 @@
                             "deals_damage": false
                         }
                     ]
+                }
+            },
+            "ph:meteor_crystal_timer": {
+                "minecraft:timer": {
+                    "looping": false,
+                    "time": 2,
+                    "time_down_event": {
+                        "event": "meteor_spawn"
+                    }
                 }
             }
         },
@@ -186,6 +186,8 @@
             "despawn": {
                 "queue_command": {
                     "command": [
+                        "event entity @e[type=ph:land_crystal,r=64] despawn",
+                        "event entity @e[type=ph:ocean_crystal,r=64] despawn",
                         "music stop 3"
                     ]
                 },
@@ -201,7 +203,7 @@
                         "weight": 1,
                         "add": {
                             "component_groups": [
-                                "ph:vulkan_meteor_crystal_timer"
+                                "ph:meteor_crystal_timer"
                             ]
                         },
                         "queue_command": {
@@ -300,9 +302,22 @@
                 },
                 "remove": {
                     "component_groups": [
-                        "ph:vulkan_meteor_crystal_timer"
+                        "ph:meteor_crystal_timer"
                     ]
                 }
+            },
+            "ocean_wave_start": {
+                "add": {
+                    "component_groups": [
+                        "ph:ocean_wave_spam_loop"
+                    ]
+                },
+                "remove": {
+                    "component_groups": [
+                        "ph:ocean_wave_spam_charge_timer"
+                    ]
+                },
+                "trigger": "ocean_wave_spam"
             },
             "ocean_wave_spam": {
                 "sequence": [
@@ -321,16 +336,6 @@
                         },
                         "set_property": {
                             "ph:wave_counter": "query.property('ph:wave_counter') + 1"
-                        },
-                        "add": {
-                            "component_groups": [
-                                "ph:ocean_wave_spam_loop"
-                            ]
-                        },
-                        "remove": {
-                            "component_groups": [
-                                "ph:ocean_wave_spam_charge_timer"
-                            ]
                         }
                     },
                     {
@@ -370,7 +375,7 @@
                 },
                 "queue_command": {
                     "command": [
-                        "tellraw @a {\"rawtext\":[{\"text\":\"The souls presence is getting stronger...\"}]}",
+                        "tellraw @a[r=64] {\"rawtext\":[{\"text\":\"The soul's presence grows stronger...\"}]}",
                         "summon ph:land_crystal ~9~~9",
                         "summon ph:land_crystal ~-9~~-9",
                         "summon ph:ocean_crystal ~9~~-9",

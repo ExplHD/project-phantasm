@@ -1,10 +1,11 @@
-import { world, system, ItemStack, MolangVariableMap, EquipmentSlot, EntityDamageCause, Player } from '@minecraft/server'
-import { setScore, getScore, addScore } from '../core/scoreboard'
+import { world, system, ItemStack, MolangVariableMap, EquipmentSlot, Player, type Block } from '@minecraft/server'
+import { getScore, addScore } from '../core/scoreboard'
 import { applyDurabilityDamage } from '../core/items'
 import { getAccessoryItems } from '../core/player'
-import { summonOwned } from '../core/summons'
+import { isLoadedLocation } from '../core/location'
+import { crystallSupport } from '../core/blocks'
 import { weaponSkills } from '../features/weapons/weaponSkills'
-import { handleAccessory } from '../systems/accessories'
+import { accessoryOnHurt, accessoryOnHitEntity, accessoryOnBreakBlock } from '../systems/accessories'
 import { onDamageIndicator } from '../systems/damageIndicator'
 import { onDummyHurt } from '../systems/combatDummy'
 import { onTitanCoreHurt, onTitanCoreDie } from '../features/titan_core/manager'
@@ -23,25 +24,23 @@ import { tickTitanRadiation } from '../features/titan_core/radiation'
 import { tickShields, onShieldHurt, onShieldEffectAdd, onShieldSneak, onShieldSwing, onShieldItemUse, clearShieldState } from '../features/shield/manager'
 import { tickTitanRidgeSites } from '../features/titan_core/sites'
 import { trackLootItem, tickLootBeams } from '../systems/lootBeam'
-
-// ======================================== World Before Events ========================================
+import { bossSummon, bossSummonProjectile, bossSummonProjectileFacing, ramDash, laserOnce, crimsonDriftMark, crimsonDriftStrike } from '../features/bosses/attacks'
 
 world.beforeEvents.entityHurt.subscribe((acc) => {
     const hurtEntity = acc.hurtEntity;
 
-    // Accessories only exist on players, so every mob hurt event bails out here instead
-    // of running the equipment scan twice for a result that is always empty.
     if (hurtEntity?.typeId !== "minecraft:player") return;
 
     const damagingEntity = acc.damageSource.damagingEntity;
-    // One scan, reused by both the accessory hooks and the crimson laser check below.
+
     const player = hurtEntity as Player;
     const accessories = getAccessoryItems(player);
 
-    handleAccessory(player, "onHurt", acc, undefined, accessories);
+    accessoryOnHurt(player, accessories);
     if (hurtEntity.hasTag("parried")) {
         acc.cancel = true;
         system.run(() => {
+            if (!hurtEntity.isValid) return;
             const mainItem = hurtEntity?.getComponent("equippable")?.getEquipment(EquipmentSlot.Mainhand);
             const head = hurtEntity.getHeadLocation();
             const view = hurtEntity.getViewDirection();
@@ -58,10 +57,10 @@ world.beforeEvents.entityHurt.subscribe((acc) => {
             hurtEntity.dimension.playSound("weapon_slash.slash_clash", hurtEntity.location);
             hurtEntity.removeTag("parried");
             if (mainItem?.typeId === "ph:seiketsu") {
-                applyDurabilityDamage(hurtEntity, { damage: 1 });
+                applyDurabilityDamage(player, { damage: 1 });
                 return;
             }
-            applyDurabilityDamage(hurtEntity, { damage: 30 });
+            applyDurabilityDamage(player, { damage: 30 });
         })
     }
     if (accessories.some(item => item.typeId === "ph:the_crimson_watcher") || hurtEntity?.getComponent("equippable")?.getEquipment(EquipmentSlot.Mainhand)?.typeId === "ph:the_bleeding_spire") {
@@ -70,10 +69,7 @@ world.beforeEvents.entityHurt.subscribe((acc) => {
 })
 
 world.beforeEvents.playerBreakBlock.subscribe((acc) => {
-    const block = acc.block;
-    const player = acc.player;
-
-    handleAccessory(player, "onBreakBlock", acc, block);
+    accessoryOnBreakBlock(acc.player, acc);
 })
 
 world.beforeEvents.entityHurt.subscribe(data => {
@@ -117,34 +113,30 @@ world.beforeEvents.entityHurt.subscribe(data => {
 
     const finalDamage = data.damage * (1 - reductionFraction);
 
-    // console.warn(`Toughness: ${totalToughness}, originalDamage: ${data.damage}, restoredDamage: ${finalDamage.toFixed(2)}`);
     data.damage -= finalDamage;
 });
 
 world.beforeEvents.entityHurt.subscribe(onMaceHurt)
-// Kept after the handlers above: they used to subscribe from their own modules, which
-// main.ts loads after this file, and both can cancel the hit.
+
 world.beforeEvents.entityHurt.subscribe(onBlessingHurt)
 world.beforeEvents.entityHurt.subscribe(onTrooperHurt)
 world.beforeEvents.entityHurt.subscribe(onShieldHurt)
-// A hit the shield blocked still tries to apply its effects (poison, wither...) right after
+
 world.beforeEvents.effectAdd.subscribe(onShieldEffectAdd)
 
 world.beforeEvents.itemUse.subscribe(onPolarisItemUse)
 
-// Ore blocks have a 1% chance to drop a rust coin, checked before the prismarine rule.
 world.beforeEvents.playerBreakBlock.subscribe((e) => {
     if (!e.block.typeId.includes("ore")) return;
     if (Math.floor(Math.random() * 100) !== 1) return;
     if (e.player.getGameMode() === "Creative") return;
+    const { dimension, block } = e;
     system.run(() => {
-        e.dimension.spawnItem(new ItemStack("ph:rust_coin", 1), e.block.location);
+        if (!isLoadedLocation(dimension, block.location)) return;
+        dimension.spawnItem(new ItemStack("ph:rust_coin", 1), block.location);
     })
 })
 
-// Prismarine drops a random shard stack when broken with a pickaxe and no Silk Touch.
-// The typeId is matched first so an ordinary block break never allocates the ItemStack
-// (the shard amount is rolled inside the branch, so it still varies per break).
 world.beforeEvents.playerBreakBlock.subscribe((e) => {
     if (e.block.typeId !== "minecraft:prismarine") return;
 
@@ -159,6 +151,7 @@ world.beforeEvents.playerBreakBlock.subscribe((e) => {
 
     e.cancel = true;
     system.run(() => {
+        if (!isLoadedLocation(dimension, block.location)) return;
         dimension.setBlockType(block.location, "minecraft:air");
         dimension.spawnItem(new ItemStack("minecraft:prismarine_shard", Math.floor(Math.random() * 3 + 4)), block.location);
     })
@@ -169,10 +162,6 @@ world.beforeEvents.playerInteractWithBlock.subscribe((event) => {
     vanillaBlockInteractFix(player, item, block);
 })
 
-// ======================================== Crystall support pop ========================================
-// onTick di block JSON tidak jalan untuk block hasil world-gen/structure karena
-// tidak pernah masuk antrian random tick, jadi pop dicek secara global di sini.
-
 const crystallDrops: Record<string, string> = {
     "ph:small_crystall_bud": "ph:small_crystall_bud_item",
     "ph:large_crystall_bud": "ph:large_crystall_bud_item",
@@ -181,83 +170,47 @@ const crystallDrops: Record<string, string> = {
 
 const crystallDropIds = new Set(Object.keys(crystallDrops));
 
-// The six face neighbours, hoisted out of the handlers so the safety-net sweep does not
-// rebuild the array for every player on every pass.
 const faceOffsets = [
     { x: 0, y: 1, z: 0 }, { x: 0, y: -1, z: 0 },
     { x: 0, y: 0, z: 1 }, { x: 0, y: 0, z: -1 },
     { x: 1, y: 0, z: 0 }, { x: -1, y: 0, z: 0 }
 ];
 
-function getCrystallSupport(block: any) {
-    let face: string;
-    try {
-        face = block.permutation.getState("minecraft:block_face");
-    } catch {
-        return undefined;
-    }
-    switch (face) {
-        case "up": return block.below();
-        case "down": return block.above();
-        // block_face = face support yang diklik, jadi support ada di arah lawan
-        case "north": return block.south();
-        case "south": return block.north();
-        case "east": return block.west();
-        case "west": return block.east();
-        default: return undefined;
-    }
-}
-
-function popCrystallIfFloating(block: any, drop = true): boolean {
-    if (!block?.isValid) return false;
-    const typeId: string = block.typeId;
+function popCrystallIfFloating(block: Block, drop = true): boolean {
+    if (!block.isValid) return false;
+    const typeId = block.typeId;
     if (!crystallDropIds.has(typeId)) return false;
     const dropId: string | undefined = crystallDrops[typeId];
-    const support = getCrystallSupport(block);
+    const support = crystallSupport(block);
     if (!support) return false;
     if (!support.isAir && !support.isLiquid) return false;
     const loc = block.location;
     const center = { x: loc.x + 0.5, y: loc.y + 0.5, z: loc.z + 0.5 };
     block.dimension.setBlockType(loc, "minecraft:air");
-    if (drop) {
-        try {
-            block.dimension.spawnItem(new ItemStack(dropId, 1), center);
-        } catch (err) {
-            console.warn(`[ph] crystall drop failed for ${typeId}: ${err}`);
-        }
-    }
-    try {
-        block.dimension.playSound("dig.amethyst", center);
-    } catch { }
+    if (drop && dropId) block.dimension.spawnItem(new ItemStack(dropId, 1), center);
+    block.dimension.playSound("dig.amethyst", center);
     return true;
 }
 
-// Pop instan saat player menghancurkan block penyangga (berlaku untuk semua
-// penempatan: manual, lama, maupun hasil structure/world-gen)
 world.afterEvents.playerBreakBlock.subscribe((e) => {
     const loc = e.block.location;
     const dimension = e.dimension;
-    let drop = true;
-    try {
-        drop = e.player?.getGameMode?.() !== "Creative";
-    } catch { }
+    const drop = !e.player.isValid || e.player.getGameMode() !== "Creative";
     system.run(() => {
         for (const off of faceOffsets) {
-            try {
-                const neighbor = dimension.getBlock({ x: loc.x + off.x, y: loc.y + off.y, z: loc.z + off.z });
-                if (neighbor) popCrystallIfFloating(neighbor, drop);
-            } catch { }
+            const location = { x: loc.x + off.x, y: loc.y + off.y, z: loc.z + off.z };
+            if (!isLoadedLocation(dimension, location)) continue;
+            const neighbor = dimension.getBlock(location);
+            if (neighbor) popCrystallIfFloating(neighbor, drop);
         }
     });
 });
-
-// ======================================== World After Events ========================================
 
 world.afterEvents.entityHitEntity.subscribe((acc) => {
     const damagingEntity = acc.damagingEntity;
     const hitEntity = acc.hitEntity;
 
-    handleAccessory(damagingEntity, "onHitEntity", acc, hitEntity);
+    accessoryOnHitEntity(damagingEntity, hitEntity);
     onSentinelHit(damagingEntity, hitEntity);
 })
 
@@ -276,19 +229,13 @@ world.afterEvents.effectAdd.subscribe(({ entity, effect }) => {
     onAbsorptionAdded(entity as Player, effect.amplifier);
 })
 
-// One subscription for the two things an inventory change triggers (dynamic lighting and
-// the health bar). The stack merge used to sit here too, alongside a lore pass that
-// re-applied addLore to every item on every pickup; descriptions now come from the native
-// tile.<id>.tooltip keys in packs/RP/texts/en_US.lang, so only the merge is left.
 world.afterEvents.playerInventoryItemChange.subscribe(({ player, itemStack, beforeItemStack }) => {
     onDynamicLighting(player);
     healthBarRuntime(player, "inventoryItemChanged", beforeItemStack, itemStack);
 })
 
-// systems/controls.ts only picks the action for an input, the mechanics live in other layers
 function runControlAction(player: Player, action: ControlAction): void {
-    if (action === "dash") dashRuntime(player);
-    else if (action === "airDash") dashRuntime(player, false);
+    if (action === "dash" || action === "airDash") dashRuntime(player);
     else if (action === "switchSkill") switchHeldWeaponSkill(player);
 }
 
@@ -312,7 +259,6 @@ world.afterEvents.playerButtonInput.subscribe(({ player: source, button, newButt
         windPlungeRuntime(source);
     }
 
-    // Jump and Sneak also drive the player-bound control schemes from /setting.
     runControlAction(source, onControlButtonInput(source, button));
 })
 
@@ -341,12 +287,8 @@ world.afterEvents.itemReleaseUse.subscribe(({ itemStack, source }) => {
 world.afterEvents.entityDie.subscribe(({ damageSource, deadEntity }) => {
     const killer = damageSource?.damagingEntity;
 	if (deadEntity?.typeId === "minecraft:player") {
-		try {
-			clearPlayerLighting(deadEntity as Player);
-			clearAbsorption(deadEntity as Player);
-		} catch (e) {
-			// Ignore cleanup errors for invalid entities
-		}
+		clearPlayerLighting(deadEntity as Player);
+		clearAbsorption(deadEntity as Player);
 	}
 	if (deadEntity?.typeId === "ph:titan_core") {
 		onTitanCoreDie(deadEntity);
@@ -359,33 +301,31 @@ world.afterEvents.entityDie.subscribe(({ damageSource, deadEntity }) => {
 
     if (killer?.typeId === "minecraft:player" && mainhand?.typeId === "ph:charged_copper_axe") {
         addScore(killer, "auric_charge", 4);
+        if (!deadEntity.isValid || !isLoadedLocation(deadEntity.dimension, deadEntity.location)) return;
         deadEntity.dimension.spawnEntity("minecraft:lightning_bolt", deadEntity.location);
     }
 })
 
 world.afterEvents.entityDie.subscribe(({ deadEntity, damageSource }) => onTrooperDie(deadEntity, damageSource))
 
-// Despawned or unloaded entities never fire entityDie, so per-entity state is dropped here
 world.afterEvents.entityRemove.subscribe(({ removedEntityId, typeId }) => {
     forgetWard(removedEntityId);
     onTrooperRemove(removedEntityId, typeId);
 })
 
 world.afterEvents.entityHealthChanged.subscribe(({ entity }) => {
-    if (!entity.isValid) return;
-    healthBarRuntime(entity as Player, "healthChanged");
+    if (!entity.isValid || !(entity instanceof Player)) return;
+    healthBarRuntime(entity, "healthChanged");
 })
 
 world.afterEvents.playerDimensionChange.subscribe(({ player }) => {
     healthBarRuntime(player, "dimensionChanged");
 })
 
-world.afterEvents.playerGameModeChange.subscribe(({ player, toGameMode }) => {
+world.afterEvents.playerGameModeChange.subscribe(({ player }) => {
     healthBarRuntime(player, "gamemodeChanged");
 })
 
-// Family -> speed for the "animated_tp" entity families, looked up instead of scanning the
-// config list (with an array allocation per family) on every single entity spawn.
 const animatedTpSpeeds = new Map<string, number>(
     specifiedFamilityAndSpeed.map(data => [data.type_family, data.speed])
 );
@@ -397,17 +337,10 @@ world.afterEvents.entitySpawn.subscribe(({ entity, cause }) => {
     const family = entity?.getComponent("minecraft:type_family")?.getTypeFamilies();
     if (!family) return;
 
-    let speed: number | undefined;
-    for (const typeFamily of family) {
-        const matched = animatedTpSpeeds.get(typeFamily);
-        if (matched !== undefined) {
-            speed = matched;
-            break;
-        }
-    }
+    const matchedFamily = family.find((typeFamily) => animatedTpSpeeds.has(typeFamily));
+    const speed = matchedFamily === undefined ? undefined : animatedTpSpeeds.get(matchedFamily);
     if (speed === undefined) return;
 
-    // Direction is sampled once, so the entity keeps drifting along it.
     const dir = entity.getViewDirection();
     const dx = dir.x;
     const dy = dir.y;
@@ -427,11 +360,8 @@ world.afterEvents.entitySpawn.subscribe(({ entity, cause }) => {
     }, 1);
 })
 
-// The Ancient Sentinel tracks its own spawn separately: every spawn route (egg, summon,
-// structure reload through the safety rescan) feeds its dormant -> berserk state machine.
 world.afterEvents.entitySpawn.subscribe(({ entity }) => onSentinelSpawn(entity))
 
-// Every dropped item gets a beam in its rarity color (systems/lootBeam.ts)
 world.afterEvents.entitySpawn.subscribe(({ entity }) => trackLootItem(entity))
 world.afterEvents.entityLoad.subscribe(({ entity }) => trackLootItem(entity))
 
@@ -449,164 +379,80 @@ system.runInterval(() => {
     }
 }, 6);
 
-// Tracks the highest point of each mace fall so onMaceHurt can size the slam
 system.runInterval(trackMaceFall, 1);
 
 system.runInterval(tickTroopers, 4);
 system.runInterval(tickShields, 1);
 system.runInterval(checkBlessingMilestones, 20);
 system.runInterval(tickTitanRadiation, 40);
-// Every tick so each item renews its beam exactly 1s after the last one
+
 system.runInterval(tickLootBeams, 1);
-// Places the one tr_core + tr_gateway pair of each Titan Ridge the first time a player walks in
+
 system.runInterval(tickTitanRidgeSites, 100);
 system.runInterval(tickAccessories, 100);
-// Safety net for sentinels the spawn hook never saw (world reload, restore, /clone...)
+
 system.runInterval(sweepSentinels, 200);
 
-// Safety net: pop bud/cluster world-gen yang sudah telanjur melayang
-// (support hilang sebelum script ini ada / hancur oleh ledakan / command).
-// Tiap 2 detik, box kecil di sekitar player biar murah.
-// TODO(zeromaster178): ini script call paling berat di profile (2026-10-26): 1089 getBlock per player
-// tiap 2 detik. Opsi: tangkap kasus ledakan lewat blockExplode lalu hapus sweep ini, atau kecilkan box /
-// jarangkan interval kalau masih perlu nangkep crystal world-gen yang sudah melayang.
 system.runInterval(() => {
     for (const player of world.getPlayers()) {
-        try {
-            const base = player.location;
-            const dimension = player.dimension;
-            const bx = Math.floor(base.x);
-            const by = Math.floor(base.y);
-            const bz = Math.floor(base.z);
-            const HR = 5;
-            const VR = 4;
-            for (let dx = -HR; dx <= HR; dx++) {
-                for (let dy = -VR; dy <= VR; dy++) {
-                    for (let dz = -HR; dz <= HR; dz++) {
-                        let block: any;
-                        try {
-                            block = dimension.getBlock({ x: bx + dx, y: by + dy, z: bz + dz });
-                        } catch {
-                            continue;
-                        }
-                        if (block && crystallDropIds.has(block.typeId)) {
-                            popCrystallIfFloating(block, true);
-                        }
+        if (!player.isValid) continue;
+        const base = player.location;
+        const dimension = player.dimension;
+        const bx = Math.floor(base.x);
+        const by = Math.floor(base.y);
+        const bz = Math.floor(base.z);
+        const HR = 5;
+        const VR = 4;
+        for (let dx = -HR; dx <= HR; dx++) {
+            for (let dy = -VR; dy <= VR; dy++) {
+                for (let dz = -HR; dz <= HR; dz++) {
+                    const location = { x: bx + dx, y: by + dy, z: bz + dz };
+                    if (!isLoadedLocation(dimension, location)) continue;
+                    const block = dimension.getBlock(location);
+                    if (block && crystallDropIds.has(block.typeId)) {
+                        popCrystallIfFloating(block, true);
                     }
                 }
             }
-        } catch { }
+        }
     }
 }, 40);
 
-// ======================================== System After Events ========================================
-
 system.afterEvents.scriptEventReceive.subscribe(({ id, message, sourceBlock, sourceEntity }) => {
-    const parseMessage = (message: string) => message.split(",").map(v => v.trim());
     switch (id) {
         case "ph:remove_target_lock":
             if (!sourceEntity) return;
             system.runTimeout(() => {
+                if (!sourceEntity.isValid) return;
                 sourceEntity.removeTag("locked")
             }, 5)
             break;
         case "ph:boss_summon_projectile":
-            if (!sourceEntity) return;
-            const [amount, yOffset, typeId, sound] =
-                parseMessage(message).map(v =>
-                    isNaN(Number(v)) ? v : Number(v)
-                ) as [number, number, string, string];
-            sourceEntity.runCommand(`playsound ${sound} @a[r=32] ~~~ 1 1 0.3`)
-            for (let i = 0; i < amount; i++) {
-                const { x, y, z } = sourceEntity.location;
-                const randXRot = Math.floor(Math.random() * 360)
-                summonOwned(sourceEntity, `summon ${typeId} ${x} ${y + yOffset} ${z} ${randXRot} 0`)
-            }
+            if (sourceEntity) bossSummonProjectile(sourceEntity, message);
             break;
         case "ph:boss_summon_projectile_with_y_facing":
-            if (!sourceEntity) return;
-            const [amountRT, yOffsetRT, typeIdRT, soundRT] =
-                parseMessage(message).map(v =>
-                    isNaN(Number(v)) ? v : Number(v)
-                ) as [number, number, string, string];
-            sourceEntity.runCommand(`playsound ${soundRT} @a[r=32] ~~~ 1 1 0.3`)
-            for (let i = 0; i < amountRT; i++) {
-                const { x, y, z } = sourceEntity.location;
-                const randXRot = Math.floor(Math.random() * 360);
-                const randYRot = Math.floor(-90 + Math.random() * 180);
-                summonOwned(sourceEntity, `summon ${typeIdRT} ${x} ${y + yOffsetRT} ${z} ${randXRot} ${randYRot}`)
-            }
+            if (sourceEntity) bossSummonProjectileFacing(sourceEntity, message);
             break;
         case "ph:boss_summon":
-            if (!sourceEntity) return;
-            const [number, yAxis, radius, id2, sound2, spawnEvent] =
-                parseMessage(message).map(v =>
-                    isNaN(Number(v)) ? v : Number(v)
-                ) as [number, number, number, string, string, string | undefined];
-
-            sourceEntity.runCommand(`playsound ${sound2} @a[r=32] ~~~ 1 1 0.3`);
-
-            for (let i = 0; i < number; i++) {
-                const { x, y, z } = sourceEntity.location;
-
-                const offsetX = (Math.random() * 2 - 1) * radius;
-                const offsetZ = (Math.random() * 2 - 1) * radius;
-
-                if (spawnEvent) {
-                    summonOwned(sourceEntity, `summon ${id2} ${x + offsetX} ${y + yAxis} ${z + offsetZ} ${Math.floor(Math.random() * 360)} 0 ${spawnEvent}`);
-                } else {
-                    summonOwned(sourceEntity, `summon ${id2} ${x + offsetX} ${y + yAxis} ${z + offsetZ} ${Math.floor(Math.random() * 360)} 0 `);
-                }
-            }
+            if (sourceEntity) bossSummon(sourceEntity, message);
             break;
         case "ph:ram_dash":
-            if (!sourceEntity) return;
-            const ramDirection = sourceEntity.getViewDirection();
-
-            const ramDash = message.split(",");
-            const force = Number(ramDash[0]);
-            const ramDamage = Number(ramDash[1]);
-            const collisionRadius = Number(ramDash[2]);
-            sourceEntity.applyImpulse({ x: ramDirection.x * force, y: 0, z: ramDirection.z * force });
-            beginCollisionCheck(sourceEntity, 14, ramDamage, collisionRadius);
-            // Empty sound arg: the caller plays its own (rate-limited) sound.
-            if (ramDash[3]?.trim()) sourceEntity.runCommand(`playsound ${ramDash[3]} @a[r=32] ~~~ 1 1 0.3`);
+            if (sourceEntity) ramDash(sourceEntity, message, false);
             break;
         case "ph:ram_dash_3d":
-            if (!sourceEntity) return;
-            const ramDirection3d = sourceEntity.getViewDirection();
-
-            const ramDash3d = message.split(",");
-            const force3d = Number(ramDash3d[0]);
-            const ramDamage3d = Number(ramDash3d[1]);
-            const collisionRadius3d = Number(ramDash3d[2]);
-            sourceEntity.applyImpulse({ x: ramDirection3d.x * force3d, y: ramDirection3d.y * force3d, z: ramDirection3d.z * force3d });
-            beginCollisionCheck(sourceEntity, 14, ramDamage3d, collisionRadius3d, ramDash3d[4]);
-            sourceEntity.runCommand(`playsound ${ramDash3d[3]} @a[r=32] ~~~ 1 1 0.3`);
+            if (sourceEntity) ramDash(sourceEntity, message, true);
             break;
         case "ph:laser_once":
-            if (!sourceEntity) return;
-            const laserBeamOnce = message.split(",");
-            const range = Number(laserBeamOnce[0]);
-            const damage2 = Number(laserBeamOnce[1]);
-            const width = Number(laserBeamOnce[2]);
-            fireLaserOnce(sourceEntity, range, damage2, width);
-            // Empty sound arg: the caller plays its own (rate-limited) sound.
-            if (laserBeamOnce[3]?.trim()) sourceEntity.runCommand(`playsound ${laserBeamOnce[3]} @a[r=32] ~~~ 1 1 0.3`);
+            if (sourceEntity) laserOnce(sourceEntity, message);
             break;
-        case "ph:boss_laser_beam":
-            if (!sourceEntity) return;
-            const laserBeamHold = message.split(",");
-            const charge = Number(laserBeamHold[0]);
-            const duration = Number(laserBeamHold[1]);
-            const range2 = Number(laserBeamHold[2]);
-            const damagePerTick = Number(laserBeamHold[3]);
-            const width2 = Number(laserBeamHold[4]);
-            bossLaserBeam(sourceEntity, charge, duration, range2, damagePerTick, width2);
-            sourceEntity.runCommand(`playsound ${laserBeamHold[5]} @a[r=32] ~~~ 1 0.8 0.3`);
+        case "ph:crimson_drift_mark":
+            if (sourceEntity) crimsonDriftMark(sourceEntity);
+            break;
+        case "ph:crimson_drift_strike":
+            if (sourceEntity) crimsonDriftStrike(sourceEntity);
             break;
         case "ph:cruxshaper_charge_particle":
-            if (!sourceEntity) return;
+            if (!sourceEntity?.isValid) return;
             const particleAmount = getScore(sourceEntity, "cruxshaper_damage");
             const molang = new MolangVariableMap();
 
@@ -618,7 +464,7 @@ system.afterEvents.scriptEventReceive.subscribe(({ id, message, sourceBlock, sou
                 const particleMolang = new MolangVariableMap();
 
                 particleMolang.setFloat("variable.spawn_rate", Number(message));
-                if (sourceBlock) {
+                if (sourceBlock?.isValid) {
                     sourceBlock.dimension.spawnParticle("ph:bounding_circle", sourceBlock.center(), particleMolang);
                 }
             })
@@ -626,231 +472,3 @@ system.afterEvents.scriptEventReceive.subscribe(({ id, message, sourceBlock, sou
         default: break;
     }
 })
-
-// ======================================== Helper Functions (moved from attack_sets) ========================================
-
-function distancePointToSegment(point: { x: number; y: number; z: number }, start: { x: number; y: number; z: number }, end: { x: number; y: number; z: number }): number {
-    const px = point.x;
-    const py = point.y;
-    const pz = point.z;
-
-    const sx = start.x;
-    const sy = start.y;
-    const sz = start.z;
-
-    const ex = end.x;
-    const ey = end.y;
-    const ez = end.z;
-
-    const dx = ex - sx;
-    const dy = ey - sy;
-    const dz = ez - sz;
-
-    const lengthSquared = dx * dx + dy * dy + dz * dz;
-
-    if (lengthSquared === 0) {
-        return Math.sqrt(
-            (px - sx) ** 2 +
-            (py - sy) ** 2 +
-            (pz - sz) ** 2
-        );
-    }
-
-    let t = (
-        (px - sx) * dx +
-        (py - sy) * dy +
-        (pz - sz) * dz
-    ) / lengthSquared;
-
-    t = Math.max(0, Math.min(1, t));
-
-    const closestX = sx + t * dx;
-    const closestY = sy + t * dy;
-    const closestZ = sz + t * dz;
-
-    return Math.sqrt(
-        (px - closestX) ** 2 +
-        (py - closestY) ** 2 +
-        (pz - closestZ) ** 2
-    );
-}
-
-function beginCollisionCheck(dasher: any, duration: number, damage: number, collisionRadius: number, spareFamily?: string) {
-    let tick = 0;
-    let prevPos = { ...dasher.location };
-
-    const hitEntities = new Set<string>();
-
-    const interval = system.runInterval(() => {
-        if (!dasher || !dasher.isValid) {
-            system.clearRun(interval);
-            return;
-        }
-
-        tick++;
-
-        const currentPos = dasher.location;
-        const dim = dasher.dimension;
-
-        const entities = dim.getEntities({
-            location: currentPos,
-            maxDistance: collisionRadius + 50
-        });
-
-        for (const target of entities) {
-            if (!target.isValid) continue;
-            if (target.hasTag("parried")) continue;
-            if (target.id === dasher.id) continue;
-            if (hitEntities.has(target.id)) continue;
-            if (spareFamily && target.getComponent("minecraft:type_family")?.getTypeFamilies()?.includes(spareFamily)) continue;
-
-            const dist = distancePointToSegment(
-                target.location,
-                prevPos,
-                currentPos
-            );
-
-            if (dist <= collisionRadius) {
-                hitEntities.add(target.id);
-
-                target.applyDamage(damage, {
-                    cause: EntityDamageCause.entityAttack,
-                    damagingEntity: dasher
-                });
-            }
-        }
-
-        prevPos = { ...currentPos };
-
-        if (tick >= duration) {
-            system.clearRun(interval);
-        }
-    });
-}
-
-function fireLaserOnce(shooter: any, range: number, damage: number, width: number) {
-    const start = shooter.location;
-    const dir = shooter.getViewDirection();
-
-    const end = {
-        x: start.x + dir.x * range,
-        y: start.y + dir.y * range,
-        z: start.z + dir.z * range
-    };
-
-    const dim = shooter.dimension;
-
-    const entities = dim.getEntities({
-        location: start,
-        maxDistance: range
-    });
-
-    for (const target of entities) {
-        if (!target.isValid) continue;
-        if (target.id === shooter.id) continue;
-
-        const dist = distancePointToSegment(
-            target.location,
-            start,
-            end
-        );
-
-        if (dist <= width) {
-            target.applyDamage(damage, {
-                cause: EntityDamageCause.magic,
-                damagingEntity: shooter
-            });
-        }
-    }
-}
-
-function bossLaserBeam(boss: any, charge: number, duration: number, range: number, damagePerTick: number, width: number) {
-    let tick = 0;
-    let chargeTime = charge;
-
-    const chargeInterval = system.runInterval(() => {
-        if (!boss || !boss.isValid) {
-            system.clearRun(chargeInterval);
-            return;
-        }
-
-        const start = boss.location;
-        const dir = boss.getViewDirection();
-        for (let i = 0; i < range; i += 1.5) {
-            const point = {
-                x: start.x + dir.x * i,
-                y: start.y + 1 + dir.y * i,
-                z: start.z + dir.z * i
-            };
-
-            boss.dimension.spawnParticle("minecraft:basic_smoke_particle", point);
-        }
-
-        chargeTime--;
-
-        if (chargeTime <= 0) {
-            system.clearRun(chargeInterval);
-            startLaser();
-        }
-    });
-
-    function startLaser() {
-        const interval = system.runInterval(() => {
-            if (!boss || !boss.isValid) {
-                system.clearRun(interval);
-                return;
-            }
-
-            tick++;
-
-            const start = boss.location;
-            const dir = boss.getViewDirection();
-
-            const end = {
-                x: start.x + dir.x * range,
-                y: start.y + dir.y * range,
-                z: start.z + dir.z * range
-            };
-
-            const dim = boss.dimension;
-
-            const entities = dim.getEntities({
-                location: start,
-                maxDistance: range
-            });
-
-            for (let i = 0; i < range; i += 0.8) {
-                const point = {
-                    x: start.x + dir.x * i,
-                    y: start.y + 1 + dir.y * i,
-                    z: start.z + dir.z * i
-                };
-
-                dim.spawnParticle("minecraft:vilager_happy", point);
-            }
-
-            for (const target of entities) {
-                if (!target.isValid) continue;
-                if (target.id === boss.id) continue;
-                if (target.hasTag("parried")) continue;
-
-                const dist = distancePointToSegment(
-                    target.location,
-                    start,
-                    end
-                );
-
-                if (dist <= width) {
-                    target.applyDamage(damagePerTick, {
-                        cause: "magic",
-                        damagingEntity: boss
-                    });
-                }
-            }
-
-            if (tick >= duration) {
-                system.clearRun(interval);
-            }
-        });
-    }
-}

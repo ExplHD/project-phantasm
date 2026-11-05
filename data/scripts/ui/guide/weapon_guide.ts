@@ -3,8 +3,8 @@ import type { Player } from "@minecraft/server";
 import { mainGuideScreen } from "./main_guide"
 import { guideTitle } from "./guidebookTitle";
 
-export default function guideWeapons(player: Player) {
-	const form = new ActionFormData()
+export default function guideWeapons(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Weapons"))
 		.body("Weapons come in many variants, from Common up to Legendary.")
 		.button("§3Prismatic Tools", "textures/items/prismatic_sword")
@@ -41,8 +41,8 @@ export default function guideWeapons(player: Player) {
 		})
 }
 
-function prismaticTools(player: Player) {
-	const form = new ActionFormData()
+function prismaticTools(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Prismatic Tools"))
 		.label("Prismatic is a tier beyond Netherite: slightly faster, with twice the durability.")
 		.label("The sword's special attack pierces through an area, but it cannot crit.")
@@ -54,8 +54,8 @@ function prismaticTools(player: Player) {
 		})
 }
 
-function xeonPlasmTools(player: Player) {
-	const form = new ActionFormData()
+function xeonPlasmTools(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Xeon Plasm Tools"))
 		.label("Xeon Plasm is a tier beyond Prismatic: twice the damage, durability, and mining speed.")
 		.label("The sword and spear work like their Prismatic versions.")
@@ -66,8 +66,8 @@ function xeonPlasmTools(player: Player) {
 		})
 }
 
-function chargedCopperAxe(player: Player) {
-	const form = new ActionFormData()
+function chargedCopperAxe(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Charged Copper Axe"))
 		.label("This Epic axe hits opponents with Lightning attacks. Collect charges before combat.")
 		.label("At full charge, hitting an enemy casts Lightning at them.")
@@ -78,8 +78,8 @@ function chargedCopperAxe(player: Player) {
 		})
 }
 
-function cruxshaper(player: Player) {
-	const form = new ActionFormData()
+function cruxshaper(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Cruxshaper"))
 		.label("This mace works like a vanilla mace, plus skills.")
 		.label("Look at the sky to use the skill. You jump high, then plunge down for up to 50 damage.")
@@ -90,8 +90,8 @@ function cruxshaper(player: Player) {
 		})
 }
 
-function natureStaff(player: Player) {
-	const form = new ActionFormData()
+function natureStaff(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Nature Staff"))
 		.label("This staff casts the same magic attacks as the Soul of Nature boss.")
 		.label("Interact to cast the first attack. Sneak-interact for the second attack, which has a slightly longer cooldown.")
@@ -102,8 +102,8 @@ function natureStaff(player: Player) {
 		})
 }
 
-function peacemakerOath(player: Player) {
-	const form = new ActionFormData()
+function peacemakerOath(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Peacemaker Oath"))
 		.label("A pistol that fires Auric Charges. High damage and high attack speed.")
 		.label("It has no unique skill or passive because it is already strong, especially with the Auric Proton accessory.")
@@ -114,8 +114,8 @@ function peacemakerOath(player: Player) {
 		})
 }
 
-function seiketsu(player: Player) {
-	const form = new ActionFormData()
+function seiketsu(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Seiketsu"))
 		.label("A katana with Legendary-style attack patterns. Easier to use than any Epic weapon.")
 		.label("Its parry window is longer than a regular sword's.")
@@ -126,8 +126,8 @@ function seiketsu(player: Player) {
 		})
 }
 
-function spectricBow(player: Player) {
-	const form = new ActionFormData()
+function spectricBow(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Spectric Bow"))
 		.label("A bow that beats every Epic weapon in damage and range. Arrow speed scales with charge stage, up to 70 damage.")
 		.label("Works with normal arrows, but best with Spectral Arrows, crafted from 4 Glowstone Dust and 1 Arrow.")
@@ -138,8 +138,8 @@ function spectricBow(player: Player) {
 		})
 }
 
-function thunderGale(player: Player) {
-	const form = new ActionFormData()
+function thunderGale(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Thunder Gale"))
 		.label("A classic but powerful spear, and the strongest of its kind: 14 base damage, a 1.6x charge attack multiplier, and a very fast cooldown.")
 		.label("It also grants bonus speed while equipped.")
@@ -150,8 +150,8 @@ function thunderGale(player: Player) {
 		})
 }
 
-function animitta(player: Player) {
-	const form = new ActionFormData()
+function animitta(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Animitta"))
 		.label("One of the first Legendary weapons you can get, alongside the Prism Weaver. It fights at close, medium, and long range, with slightly lower damage than other Legendary weapons. It has 3 skills:")
 		.label("Animirra :\nSummons 4 stars that attack nearby entities.")
@@ -164,8 +164,8 @@ function animitta(player: Player) {
 		})
 }
 
-function prismWeaver(player: Player) {
-	const form = new ActionFormData()
+function prismWeaver(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Prism Weaver"))
 		.label("One of the first Legendary weapons you can get, alongside the Animitta. It fights at long range with lower damage than other Legendary weapons. Attacks fire prism bolts at your crosshair that curve slightly onto the target you aim at; every third attack fans out three piercing bolts. It has 3 skills:")
 		.label("Bubble Barrage :\nFires a burst of bubble projectiles in one attack.")
@@ -178,8 +178,8 @@ function prismWeaver(player: Player) {
 		})
 }
 
-function theBleedingSpire(player: Player) {
-	const form = new ActionFormData()
+function theBleedingSpire(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("The Bleeding Spire"))
 		.label("This Legendary spear fights polearm-style at close range. It is a support weapon, so it holds back on damage. It has 3 skills:")
 		.label("Carnage :\nDash forward. Mobs you collide with take damage.")
@@ -192,8 +192,8 @@ function theBleedingSpire(player: Player) {
 		})
 }
 
-function superchargedCopperAxe(player: Player) {
-	const form = new ActionFormData()
+function superchargedCopperAxe(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Supercharged Copper Axe"))
 		.label("This Legendary axe, forged from high-grade Copper and Auric material, hits very hard but swings very slowly, with lightning bolts on a completed attack pattern. It has 4 skills:")
 		.label("Charge :\nGrants 5 Charges for your other skills and briefly boosts your damage.")
@@ -207,8 +207,8 @@ function superchargedCopperAxe(player: Player) {
 		})
 }
 
-function auricPhotonizer(player: Player) {
-	const form = new ActionFormData()
+function auricPhotonizer(player: Player): void {
+	new ActionFormData()
 		.title(guideTitle("Auric Photonizer"))
 		.label("This Legendary sword, forged from high-grade Copper and Auric material, swings very fast. It has 4 skills:")
 		.label("Stab :\nDash-stab forward. Mobs you collide with take heavy damage.")

@@ -1,13 +1,13 @@
-import { /* [UNUSED] world */ system } from '@minecraft/server'
+import { system } from '@minecraft/server'
 import type { Player } from '@minecraft/server'
 import { ActionFormData, MessageFormData } from '@minecraft/server-ui'
 
-export function skillUnlock(player: Player) {
-    let dashLevelStatus = player.getDynamicProperty("ph:dash_level") ?? 0;
-    let healthLevelStatus = player.getDynamicProperty("ph:health_level") ?? 0;
-    let plungeUnlockStatus = (player.getDynamicProperty("ph:plunge_unlock") == true) ? "§2UNLOCKED" : "§4LOCKED";
+export function skillUnlock(player: Player): void {
+    const dashLevelStatus = player.getDynamicProperty("ph:dash_level") ?? 0;
+    const healthLevelStatus = player.getDynamicProperty("ph:health_level") ?? 0;
+    const plungeUnlockStatus = (player.getDynamicProperty("ph:plunge_unlock") == true) ? "§2UNLOCKED" : "§4LOCKED";
 
-    const form = new ActionFormData()
+    new ActionFormData()
         .title("Skill Unlocking")
         .body("Spend 30 experience levels to unlock one of these skills")
         .button(`Passive Dash\n§2Level : ${dashLevelStatus}`)
@@ -21,10 +21,10 @@ export function skillUnlock(player: Player) {
         })
 }
 
-function dashUnlock(player: Player) {
+function dashUnlock(player: Player): void {
     const exp = player.level;
-    let dashLevel = player.getDynamicProperty("ph:dash_level") ?? 0;
-	const form = new MessageFormData()
+    const dashLevel = player.getDynamicProperty("ph:dash_level") ?? 0;
+	new MessageFormData()
 		.title("Confirm Selection")
         .body(`Are you sure you want to unlock Passive Dash? Press Jump twice to use it.\n\nCurrent Level : ${exp}\nRequired Level : 30\n\nYou can change this control later with /setting.`)
         .button1("Confirm")
@@ -47,9 +47,9 @@ function dashUnlock(player: Player) {
         })
 }
 
-function healthUpgrade(player: Player) {
+function healthUpgrade(player: Player): void {
     const exp = player.level;
-    const form = new MessageFormData()
+    new MessageFormData()
         .title("Confirm Selection")
         .body(`Are you sure you want to upgrade your max health? +16 HP at level 1, +12 HP at later levels.\n\nCurrent Level : ${exp}\nRequired Level : 30`)
         .button1("Confirm")
@@ -83,10 +83,10 @@ function healthUpgrade(player: Player) {
         })
 }
 
-function plungeUnlock(player: Player) {
+function plungeUnlock(player: Player): void {
     const exp = player.level;
-    let plungeUnlock = player.getDynamicProperty("ph:plunge_unlock") ?? false;
-    const form = new MessageFormData()
+    const plungeUnlock = player.getDynamicProperty("ph:plunge_unlock") ?? false;
+    new MessageFormData()
         .title("Confirm Selection")
         .body(`Are you sure you want to unlock Wind Plunge? Press Sneak while falling more than 10 blocks to use it.\n\nCurrent Level : ${exp}\nRequired Level : 30`)
         .button1("Confirm")
@@ -109,14 +109,12 @@ function plungeUnlock(player: Player) {
         })
 }
 
-// [UNUSED] propertiesCheck - only called by openProperties in custom_components.ts, which
-// is itself never registered as a command. Kept in case you want to re-enable it.
-export function propertiesCheck(player: Player) {
-    let dashLevelStatus = player.getDynamicProperty("ph:dash_level");
-    let healthLevelStatus = player.getDynamicProperty("ph:health_level");
-    let plungeUnlockStatus = player.getDynamicProperty("ph:plunge_unlock");
+export function propertiesCheck(player: Player): void {
+    const dashLevelStatus = player.getDynamicProperty("ph:dash_level");
+    const healthLevelStatus = player.getDynamicProperty("ph:health_level");
+    const plungeUnlockStatus = player.getDynamicProperty("ph:plunge_unlock");
 
-    const form = new ActionFormData()
+    new ActionFormData()
         .title("Skill Unlocking")
         .body("Spend 30 experience levels to unlock one of these skills")
         .button(`Passive Dash\n§2Level : ${dashLevelStatus}`)

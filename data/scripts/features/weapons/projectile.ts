@@ -1,60 +1,40 @@
 import { system, Player, Entity, Dimension, type Vector3 } from "@minecraft/server";
 import { type StrikeStats, strikeStats, strikeEntity, canWeaponHit, EXCLUDED_TYPES, EXCLUDED_FAMILIES } from "./damage";
-
-// ======================================== Weapon projectiles ========================================
-// Script-driven bolts for ranged weapons. Nothing is summoned: each bolt is a point moved
-// a few sub-steps per tick, raycast against blocks and entity hitboxes along the way, and
-// drawn with particles. Damage names the player directly, so the Xeonnite Blessing,
-// damage indicators and kill credit all see the wielder as the attacker.
+import { isLoadedLocation } from "../../core/location";
 
 export interface ProjectileConfig {
-	/** Base damage per hit, scaled by Strength/Weakness/Sharpness like melee. */
-	damage: number;
-	/** Blocks per tick. */
-	speed: number;
-	/** Blocks before the bolt fizzles out. */
-	range: number;
-	/** Extra entities the bolt passes through before stopping. Default 0. */
-	pierce?: number;
-	/** Max steering towards the locked target, in degrees per tick. 0 flies straight. */
-	homing?: number;
-	/** Half-angle (degrees) around the crosshair in which a target gets locked. Default 12. */
-	lockCone?: number;
-	/** Yaw offsets in degrees, one bolt each. Default [0]. */
-	spread?: number[];
-	/** Launch point relative to the eyes: along the view, to the right, and up. */
-	origin?: { forward?: number; side?: number; up?: number };
-	/** Particle drawn along the path every sub-step. */
-	core: string;
-	/** Particle left behind once per tick. */
-	trail?: string;
-	/** Particles played where the bolt stops. */
-	impact?: string[];
-	impactSound?: string;
-	/** Knockback multiplier relative to a melee hit. Default 0.35. */
-	knockback?: number;
+	readonly damage: number;
+	readonly speed: number;
+	readonly range: number;
+	readonly pierce?: number;
+	readonly homing?: number;
+	readonly lockCone?: number;
+	readonly spread?: number[];
+	readonly origin?: { readonly forward?: number; readonly side?: number; readonly up?: number };
+	readonly core: string;
+	readonly trail?: string;
+	readonly impact?: string[];
+	readonly impactSound?: string;
+	readonly knockback?: number;
 }
 
 interface Bolt {
-	owner: Player;
-	dimension: Dimension;
+	readonly owner: Player;
+	readonly dimension: Dimension;
 	pos: Vector3;
 	dir: Vector3;
-	config: ProjectileConfig;
-	stats: StrikeStats;
+	readonly config: ProjectileConfig;
+	readonly stats: StrikeStats;
 	target: Entity | undefined;
 	travelled: number;
 	pierceLeft: number;
-	hit: Set<string>;
+	readonly hit: Set<string>;
 }
 
-// Sub-step length: short enough that the core particles read as one continuous streak.
 const STEP = 0.45;
 
 const bolts: Bolt[] = [];
 let runner: number | undefined;
-
-// -------- Vector helpers ----------
 
 function normalize(v: Vector3): Vector3 {
 	const length = Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
@@ -72,7 +52,6 @@ function rotateYaw(v: Vector3, degrees: number): Vector3 {
 	return { x: v.x * cos - v.z * sin, y: v.y, z: v.x * sin + v.z * cos };
 }
 
-/** Turns `from` towards `to` by at most `maxDegrees`. */
 function steer(from: Vector3, to: Vector3, maxDegrees: number): Vector3 {
 	const angle = Math.acos(Math.min(1, Math.max(-1, dot(from, to))));
 	const max = (maxDegrees * Math.PI) / 180;
@@ -81,21 +60,14 @@ function steer(from: Vector3, to: Vector3, maxDegrees: number): Vector3 {
 	return normalize({ x: from.x + (to.x - from.x) * t, y: from.y + (to.y - from.y) * t, z: from.z + (to.z - from.z) * t });
 }
 
-/** Roughly the middle of an entity's body, where a bolt should aim. */
 function bodyCenter(entity: Entity): Vector3 {
 	const base = entity.location;
-	try {
-		const head = entity.getHeadLocation();
-		return { x: base.x, y: base.y + (head.y - base.y) * 0.6, z: base.z };
-	} catch {
-		return { x: base.x, y: base.y + 0.5, z: base.z };
-	}
+	const head = entity.getHeadLocation();
+	return { x: base.x, y: base.y + (head.y - base.y) * 0.6, z: base.z };
 }
 
-// -------- Targeting ----------
-
-/** The visible target closest to the crosshair, if one sits inside the lock cone. */
 function lockTarget(owner: Player, eye: Vector3, view: Vector3, range: number, coneDegrees: number): Entity | undefined {
+	if (!isLoadedLocation(owner.dimension, eye)) return undefined;
 	const minDot = Math.cos((coneDegrees * Math.PI) / 180);
 	let best: Entity | undefined;
 	let bestDot = minDot;
@@ -115,12 +87,6 @@ function lockTarget(owner: Player, eye: Vector3, view: Vector3, range: number, c
 	return best;
 }
 
-// -------- Firing ----------
-
-/**
- * Fires one bolt per `spread` entry from `owner`'s eyes towards the crosshair. All bolts of
- * a volley share the same locked target, so a fan converges on whatever the player aimed at.
- */
 export function fireProjectile(owner: Player, config: ProjectileConfig): void {
 	if (!owner.isValid) return;
 	const view = normalize(owner.getViewDirection());
@@ -135,19 +101,12 @@ export function fireProjectile(owner: Player, config: ProjectileConfig): void {
 		z: eye.z + view.z * forward + right.z * side
 	};
 
-	let target: Entity | undefined;
-	try {
-		target = lockTarget(owner, eye, view, config.range, config.lockCone ?? 12);
-	} catch {
-		target = undefined;
-	}
+	const target = lockTarget(owner, eye, view, config.range, config.lockCone ?? 12);
 	const stats = strikeStats(owner, config.damage);
 
 	for (const yaw of config.spread ?? [0]) {
-		let dir = rotateYaw(view, yaw);
-		// Bolts launched off-centre aim at the crosshair point (or the target), not parallel to it.
 		const aim = target ? bodyCenter(target) : { x: eye.x + view.x * 16, y: eye.y + view.y * 16, z: eye.z + view.z * 16 };
-		if (yaw === 0) dir = normalize({ x: aim.x - start.x, y: aim.y - start.y, z: aim.z - start.z });
+		const dir = yaw === 0 ? normalize({ x: aim.x - start.x, y: aim.y - start.y, z: aim.z - start.z }) : rotateYaw(view, yaw);
 		bolts.push({
 			owner,
 			dimension: owner.dimension,
@@ -165,17 +124,9 @@ export function fireProjectile(owner: Player, config: ProjectileConfig): void {
 	runner ??= system.runInterval(tickBolts, 1);
 }
 
-// -------- Flight ----------
-
 function tickBolts(): void {
 	for (let i = bolts.length - 1; i >= 0; i--) {
-		let alive = false;
-		try {
-			alive = advance(bolts[i]);
-		} catch {
-			// Unloaded chunk or a dimension change under the bolt: drop it.
-		}
-		if (!alive) bolts.splice(i, 1);
+		if (!advance(bolts[i])) bolts.splice(i, 1);
 	}
 	if (bolts.length === 0 && runner !== undefined) {
 		system.clearRun(runner);
@@ -183,7 +134,6 @@ function tickBolts(): void {
 	}
 }
 
-/** Moves a bolt one tick. Returns false once it has stopped. */
 function advance(bolt: Bolt): boolean {
 	const { config, dimension } = bolt;
 	if (!bolt.owner.isValid) return false;
@@ -193,6 +143,7 @@ function advance(bolt: Bolt): boolean {
 	const homing = (config.homing ?? 0) / steps;
 
 	for (let s = 0; s < steps; s++) {
+		if (!isLoadedLocation(dimension, bolt.pos)) return false;
 		if (bolt.target && homing > 0) {
 			if (bolt.target.isValid) {
 				const center = bodyCenter(bolt.target);
@@ -218,6 +169,7 @@ function advance(bolt: Bolt): boolean {
 			excludeFamilies: EXCLUDED_FAMILIES
 		});
 		for (const { entity, distance } of hits.sort((a, b) => a.distance - b.distance)) {
+			if (!bolt.owner.isValid) return false;
 			if (bolt.hit.has(entity.id) || !canWeaponHit(bolt.owner, entity)) continue;
 			bolt.hit.add(entity.id);
 			strikeEntity(bolt.owner, entity, bolt.stats, normalize({ x: bolt.dir.x, y: 0, z: bolt.dir.z }), config.knockback ?? 0.35);
@@ -227,7 +179,6 @@ function advance(bolt: Bolt): boolean {
 			}
 		}
 
-		// A locked target close enough counts as hit even if the thin ray grazed past it.
 		if (bolt.target?.isValid && !bolt.hit.has(bolt.target.id)) {
 			const center = bodyCenter(bolt.target);
 			const dx = center.x - bolt.pos.x, dy = center.y - bolt.pos.y, dz = center.z - bolt.pos.z;
@@ -249,6 +200,7 @@ function advance(bolt: Bolt): boolean {
 
 		bolt.pos = along(bolt, stepLength);
 		bolt.travelled += stepLength;
+		if (!isLoadedLocation(dimension, bolt.pos)) return false;
 		dimension.spawnParticle(config.core, bolt.pos);
 		if (bolt.travelled >= config.range) {
 			impact(bolt, bolt.pos);
@@ -265,6 +217,7 @@ function along(bolt: Bolt, distance: number): Vector3 {
 }
 
 function impact(bolt: Bolt, at: Vector3): void {
+	if (!isLoadedLocation(bolt.dimension, at)) return;
 	for (const particle of bolt.config.impact ?? []) bolt.dimension.spawnParticle(particle, at);
 	if (bolt.config.impactSound) bolt.dimension.playSound(bolt.config.impactSound, at, { volume: 0.6, pitch: 1.2 + Math.random() * 0.4 });
 }
