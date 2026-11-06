@@ -1,4 +1,4 @@
-import { world, system, ItemStack, MolangVariableMap, EquipmentSlot, Player, type Block } from '@minecraft/server'
+import { world, system, ItemStack, MolangVariableMap, EquipmentSlot, Player, BlockVolume, type Block } from '@minecraft/server'
 import { getScore, addScore } from '../core/scoreboard'
 import { applyDurabilityDamage } from '../core/items'
 import { getAccessoryItems } from '../core/player'
@@ -398,27 +398,24 @@ system.runInterval(tickAccessories, 100);
 
 system.runInterval(sweepSentinels, 200);
 
+const crystallTypes = [...crystallDropIds];
+
 system.runInterval(() => {
     for (const player of world.getPlayers()) {
         if (!player.isValid) continue;
-        const base = player.location;
         const dimension = player.dimension;
-        const bx = Math.floor(base.x);
-        const by = Math.floor(base.y);
-        const bz = Math.floor(base.z);
-        const HR = 5;
-        const VR = 4;
-        for (let dx = -HR; dx <= HR; dx++) {
-            for (let dy = -VR; dy <= VR; dy++) {
-                for (let dz = -HR; dz <= HR; dz++) {
-                    const location = { x: bx + dx, y: by + dy, z: bz + dz };
-                    if (!isLoadedLocation(dimension, location)) continue;
-                    const block = dimension.getBlock(location);
-                    if (block && crystallDropIds.has(block.typeId)) {
-                        popCrystallIfFloating(block, true);
-                    }
-                }
-            }
+        const { min, max } = dimension.heightRange;
+        const bx = Math.floor(player.location.x);
+        const by = Math.floor(player.location.y);
+        const bz = Math.floor(player.location.z);
+        const fromY = Math.max(min, by - 4);
+        const toY = Math.min(max - 1, by + 4);
+        if (fromY > toY || !dimension.isChunkLoaded(player.location)) continue;
+        const volume = new BlockVolume({ x: bx - 5, y: fromY, z: bz - 5 }, { x: bx + 5, y: toY, z: bz + 5 });
+        const found = dimension.getBlocks(volume, { includeTypes: crystallTypes }, true);
+        for (const location of found.getBlockLocationIterator()) {
+            const block = dimension.getBlock(location);
+            if (block) popCrystallIfFloating(block, true);
         }
     }
 }, 40);

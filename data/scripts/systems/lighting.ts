@@ -52,20 +52,19 @@ interface LightingState {
 
 const lightingStates = new Map<string, LightingState>();
 
-function removeLightBlocks(player: Player): void {
+function removeLightBlocks(player: Player, level: number): void {
     if (!player.isValid) return;
     if (!player.dimension.isChunkLoaded(player.location)) return;
-    for (let i = 0; i <= 15; i++) {
-        player.runCommand(`fill ~-16~-8~-16~16~8~16 air replace light_block_${i}`);
-    }
+    player.runCommand(`fill ~-3~-1~-3~3~3~3 air replace light_block_${level}`);
 }
 
-function clearPlacedLight(state: LightingState): void {
+function clearPlacedLight(state: LightingState): boolean {
     const block = state.lastLightBlock;
     state.lastLightBlock = undefined;
-    if (!block?.isValid) return;
-    if (!block.typeId.startsWith('minecraft:light_block')) return;
+    if (!block?.isValid) return false;
+    if (!block.typeId.startsWith('minecraft:light_block')) return true;
     block.setType('minecraft:air');
+    return true;
 }
 
 function safeRemoveTag(player: Player, tag: string): void {
@@ -85,8 +84,7 @@ export function clearPlayerLighting(player: Player): void {
     if (!player?.isValid) return;
 
     safeRemoveTag(player, state.tag);
-    clearPlacedLight(state);
-    removeLightBlocks(player);
+    if (!clearPlacedLight(state)) removeLightBlocks(player, state.maxLight);
 }
 
 export function onDynamicLighting(player: Player): void {

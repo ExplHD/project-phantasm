@@ -1,5 +1,5 @@
 // data/scripts/events/index.ts
-import { world as world12, system as system18, ItemStack as ItemStack8, MolangVariableMap as MolangVariableMap6, EquipmentSlot as EquipmentSlot10, Player as Player19 } from "@minecraft/server";
+import { world as world12, system as system18, ItemStack as ItemStack8, MolangVariableMap as MolangVariableMap6, EquipmentSlot as EquipmentSlot10, Player as Player18, BlockVolume } from "@minecraft/server";
 
 // data/scripts/core/scoreboard.ts
 import { world } from "@minecraft/server";
@@ -1438,12 +1438,25 @@ function onDamageIndicator({ hurtEntity, damageSource, damage }) {
   const damageData = DamageTypes[damageSource.cause] ?? DamageTypes["none"];
   if (!hurtEntity || !hurtEntity.isValid) return;
   const { center, extent } = hurtEntity.getAABB();
+  const dimension = hurtEntity.dimension;
+  if (!dimension.isChunkLoaded(center)) return;
+  const players = dimension.getPlayers({ location: center, maxDistance: 64 });
+  if (players.length === 0) return;
   const radius = Math.hypot(extent.x, extent.z) + 0.3;
-  const players = hurtEntity.dimension.getEntities({ type: "minecraft:player", location: center, maxDistance: 64 });
-  for (const ent of players) {
-    const player = ent;
+  const iconMolang = new MolangVariableMap2();
+  iconMolang.setFloat("variable.length", 1.5);
+  iconMolang.setFloat("variable.icon_offset", damageData.icon ?? 14);
+  iconMolang.setColorRGB("variable.damagecolor", damageData.color);
+  const digits = `${Math.min(Math.abs(damageValue), 999999)}`;
+  const digitMolangs = [...digits].map((digit) => {
+    const molang = new MolangVariableMap2();
+    molang.setFloat("variable.length", 1.5);
+    molang.setFloat("variable.digit", Number(digit));
+    molang.setColorRGB("variable.damagecolor", damageData.color);
+    return molang;
+  });
+  for (const player of players) {
     if (!player.isValid) continue;
-    if (!player.dimension.isChunkLoaded(center)) continue;
     let dx = player.location.x - center.x;
     let dz = player.location.z - center.z;
     let len = Math.hypot(dx, dz);
@@ -1458,22 +1471,12 @@ function onDamageIndicator({ hurtEntity, damageSource, damage }) {
       y: center.y + extent.y * 0.5,
       z: center.z + dz / len * radius
     };
-    const iconMolang = new MolangVariableMap2();
-    const absDamage = Math.min(Math.abs(damageValue), 999999);
-    iconMolang.setFloat("variable.length", 1.5);
-    iconMolang.setFloat("variable.icon_offset", damageData.icon ?? 14);
-    iconMolang.setColorRGB("variable.damagecolor", damageData.color);
     const leftX = -dz / len;
     const leftZ = dx / len;
-    const digits = `${absDamage}`;
-    for (let i = 0; i < digits.length; i++) {
+    digitMolangs.forEach((molang, i) => {
       const offset = ((digits.length - 1) / 2 - i) / 3;
-      const molang = new MolangVariableMap2();
-      molang.setFloat("variable.length", 1.5);
-      molang.setFloat("variable.digit", Number(digits[i]));
-      molang.setColorRGB("variable.damagecolor", damageData.color);
       player.spawnParticle("ph:damage_number", { x: loc.x + leftX * offset, y: loc.y, z: loc.z + leftZ * offset }, molang);
-    }
+    });
     player.spawnParticle("ph:damage_icons", { x: loc.x, y: loc.y + 0.6, z: loc.z }, iconMolang);
   }
 }
@@ -2315,19 +2318,18 @@ var lightLevelMap = {
   "minecraft:small_amethyst_bud": 1
 };
 var lightingStates = /* @__PURE__ */ new Map();
-function removeLightBlocks(player) {
+function removeLightBlocks(player, level) {
   if (!player.isValid) return;
   if (!player.dimension.isChunkLoaded(player.location)) return;
-  for (let i = 0; i <= 15; i++) {
-    player.runCommand(`fill ~-16~-8~-16~16~8~16 air replace light_block_${i}`);
-  }
+  player.runCommand(`fill ~-3~-1~-3~3~3~3 air replace light_block_${level}`);
 }
 function clearPlacedLight(state) {
   const block = state.lastLightBlock;
   state.lastLightBlock = void 0;
-  if (!block?.isValid) return;
-  if (!block.typeId.startsWith("minecraft:light_block")) return;
+  if (!block?.isValid) return false;
+  if (!block.typeId.startsWith("minecraft:light_block")) return true;
   block.setType("minecraft:air");
+  return true;
 }
 function safeRemoveTag(player, tag) {
   if (!player?.isValid) return;
@@ -2342,8 +2344,7 @@ function clearPlayerLighting(player) {
   lightingStates.delete(key);
   if (!player?.isValid) return;
   safeRemoveTag(player, state.tag);
-  clearPlacedLight(state);
-  removeLightBlocks(player);
+  if (!clearPlacedLight(state)) removeLightBlocks(player, state.maxLight);
 }
 function onDynamicLighting(player) {
   const accessoryItems = getAccessoryItems(player);
@@ -3343,7 +3344,7 @@ function switchHeldWeaponSkill(player) {
 }
 
 // data/scripts/features/mace/detection.ts
-import { world as world6, system as system11, EquipmentSlot as EquipmentSlot7, Player as Player12, EntityDamageCause as EntityDamageCause5 } from "@minecraft/server";
+import { world as world6, system as system11, EquipmentSlot as EquipmentSlot7, Player as Player11, EntityDamageCause as EntityDamageCause5 } from "@minecraft/server";
 
 // data/scripts/features/mace/manager.ts
 import { EntityEquippableComponent, EquipmentSlot as EquipmentSlot6 } from "@minecraft/server";
@@ -3398,7 +3399,7 @@ function onMaceHurt(event) {
   const { damageSource, hurtEntity: victim } = event;
   if (damageSource.cause === EntityDamageCause5.maceSmash) return;
   const attacker = damageSource.damagingEntity;
-  if (!(attacker instanceof Player12)) return;
+  if (!(attacker instanceof Player11)) return;
   if (recentSwingHit.has(attacker.id)) return;
   const item = attacker.getComponent("minecraft:equippable")?.getEquipment(EquipmentSlot7.Mainhand);
   if (!item || !isCustomMace(item)) return;
@@ -3519,7 +3520,7 @@ function trackMaceFall() {
 import {
   world as world7,
   system as system12,
-  Player as Player14,
+  Player as Player13,
   EasingType,
   EntityComponentTypes,
   EntityDamageCause as EntityDamageCause6,
@@ -3732,7 +3733,7 @@ function onBlessingHurt(acc) {
   if (!hurtEntity.isValid) return;
   if (!hurtEntity.getComponent("minecraft:type_family")?.hasTypeFamily(TITAN_RIDGE_FAMILY)) return;
   const owner = world7.getEntity(ownerId);
-  const player = owner instanceof Player14 ? owner : void 0;
+  const player = owner instanceof Player13 ? owner : void 0;
   if (player && isBlessed(player)) return;
   acc.cancel = true;
   if (!dealer.isValid) return;
@@ -4205,7 +4206,7 @@ import {
   ItemCooldownComponent,
   ItemDurabilityComponent,
   ItemEnchantableComponent,
-  Player as Player18
+  Player as Player17
 } from "@minecraft/server";
 var COMPONENT_ID = "ph:shield";
 var onBlock = {};
@@ -4300,7 +4301,7 @@ function onShieldItemUse(player, using) {
   else usingItem.delete(player.id);
 }
 function onShieldHurt(data) {
-  if (!(data.hurtEntity instanceof Player18)) return;
+  if (!(data.hurtEntity instanceof Player17)) return;
   const player = data.hurtEntity;
   const id = player.id;
   if (!shielding.has(id) || delays.has(id) || usingItem.has(id)) return;
@@ -4413,6 +4414,7 @@ var MAX_CANDIDATES = 48;
 var ROTATIONS = [StructureRotation.None, StructureRotation.Rotate90, StructureRotation.Rotate180, StructureRotation.Rotate270];
 var ridges;
 var warnedMissing = false;
+var lastScanCell = /* @__PURE__ */ new Map();
 function loadRidges() {
   if (ridges) return ridges;
   ridges = [];
@@ -4546,12 +4548,15 @@ function placePair(dimension, cells) {
 }
 function tickTitanRidgeSites() {
   const scanned = /* @__PURE__ */ new Set();
+  const lastCells = /* @__PURE__ */ new Map();
   for (const player of world11.getPlayers()) {
     if (!player.isValid) continue;
     const dimension = player.dimension;
     if (dimension.id !== "minecraft:overworld" || !inTitanRidge(player)) continue;
     const startKey = cellKey(Math.floor(player.location.x / 16), Math.floor(player.location.z / 16));
-    if (scanned.has(startKey)) continue;
+    lastCells.set(player.id, startKey);
+    if (scanned.has(startKey) || lastScanCell.get(player.id) === startKey) continue;
+    if (loadRidges().some((ridge) => ridge.cells.has(startKey))) continue;
     const scan = scanRidge(dimension, player.location);
     scan.cells.forEach((cell) => scanned.add(cell));
     const known = loadRidges().find((ridge) => [...scan.cells].some((cell) => ridge.cells.has(cell)));
@@ -4567,6 +4572,7 @@ function tickTitanRidgeSites() {
     if (!scan.complete && loadRidges().some((ridge) => horizontalDistance2(ridge.data.core, player.location) < NEARBY_SITE)) continue;
     placePair(dimension, scan.cells);
   }
+  lastScanCell = lastCells;
 }
 
 // data/scripts/systems/lootBeam.ts
@@ -4579,6 +4585,7 @@ var BEAMS = {
   legendary: { color: hex(16747546), height: 2, alpha: 1 }
 };
 var RENEW_TICKS = 20;
+var MAX_COMMON_BEAMS = 32;
 var BIG_STACK = 5;
 var BIG_STACK_SCALE = 1.25;
 var LAND_DELAY_TICKS = 4;
@@ -4591,7 +4598,9 @@ function trackLootItem(entity) {
   if (entity.typeId !== "minecraft:item" || !entity.isValid || beams.has(entity.id)) return;
   const item = entity.getComponent("minecraft:item")?.itemStack;
   if (!item) return;
-  const beam = BEAMS[getItemRarity(item)];
+  const rarity = getItemRarity(item);
+  if (rarity === "common" && beams.size >= MAX_COMMON_BEAMS) return;
+  const beam = BEAMS[rarity];
   const molang = new MolangVariableMap5();
   molang.setColorRGB("variable.color", beam.color);
   molang.setFloat("variable.height", beam.height);
@@ -5026,7 +5035,7 @@ world12.afterEvents.entityRemove.subscribe(({ removedEntityId, typeId }) => {
   onTrooperRemove(removedEntityId, typeId);
 });
 world12.afterEvents.entityHealthChanged.subscribe(({ entity }) => {
-  if (!entity.isValid || !(entity instanceof Player19)) return;
+  if (!entity.isValid || !(entity instanceof Player18)) return;
   healthBarRuntime(entity, "healthChanged");
 });
 world12.afterEvents.playerDimensionChange.subscribe(({ player }) => {
@@ -5088,27 +5097,23 @@ system18.runInterval(tickLootBeams, 1);
 system18.runInterval(tickTitanRidgeSites, 100);
 system18.runInterval(tickAccessories, 100);
 system18.runInterval(sweepSentinels, 200);
+var crystallTypes = [...crystallDropIds];
 system18.runInterval(() => {
   for (const player of world12.getPlayers()) {
     if (!player.isValid) continue;
-    const base = player.location;
     const dimension = player.dimension;
-    const bx = Math.floor(base.x);
-    const by = Math.floor(base.y);
-    const bz = Math.floor(base.z);
-    const HR = 5;
-    const VR = 4;
-    for (let dx = -HR; dx <= HR; dx++) {
-      for (let dy = -VR; dy <= VR; dy++) {
-        for (let dz = -HR; dz <= HR; dz++) {
-          const location = { x: bx + dx, y: by + dy, z: bz + dz };
-          if (!isLoadedLocation(dimension, location)) continue;
-          const block = dimension.getBlock(location);
-          if (block && crystallDropIds.has(block.typeId)) {
-            popCrystallIfFloating(block, true);
-          }
-        }
-      }
+    const { min, max } = dimension.heightRange;
+    const bx = Math.floor(player.location.x);
+    const by = Math.floor(player.location.y);
+    const bz = Math.floor(player.location.z);
+    const fromY = Math.max(min, by - 4);
+    const toY = Math.min(max - 1, by + 4);
+    if (fromY > toY || !dimension.isChunkLoaded(player.location)) continue;
+    const volume = new BlockVolume({ x: bx - 5, y: fromY, z: bz - 5 }, { x: bx + 5, y: toY, z: bz + 5 });
+    const found = dimension.getBlocks(volume, { includeTypes: crystallTypes }, true);
+    for (const location of found.getBlockLocationIterator()) {
+      const block = dimension.getBlock(location);
+      if (block) popCrystallIfFloating(block, true);
     }
   }
 }, 40);
@@ -5195,7 +5200,7 @@ function applyPropertyDefaults(player) {
 }
 
 // data/scripts/features/blocks/customComponents.ts
-import { system as system19, MolangVariableMap as MolangVariableMap7, ItemStack as ItemStack9, Player as Player20, EquipmentSlot as EquipmentSlot11 } from "@minecraft/server";
+import { system as system19, MolangVariableMap as MolangVariableMap7, ItemStack as ItemStack9, Player as Player19, EquipmentSlot as EquipmentSlot11 } from "@minecraft/server";
 
 // data/scripts/core/params.ts
 function readParams(parameters) {
@@ -5420,7 +5425,7 @@ function registerCustomComponents(initEvent) {
   });
   initEvent.itemComponentRegistry.registerCustomComponent("ph:vanilla_tool_fix", {
     onUseOn({ source, block }) {
-      if (!(source instanceof Player20)) return;
+      if (!(source instanceof Player19)) return;
       const item = source.getComponent("inventory")?.container?.getItem(source.selectedSlotIndex);
       if (item?.hasTag("minecraft:is_shovel") && DIRT_PATHABLE.includes(block.typeId)) {
         block.dimension.setBlockType(block.location, "minecraft:dirt_path");
@@ -5429,7 +5434,7 @@ function registerCustomComponents(initEvent) {
       }
     },
     onMineBlock({ source }) {
-      if (source instanceof Player20) applyDurabilityDamage(source);
+      if (source instanceof Player19) applyDurabilityDamage(source);
     }
   });
   initEvent.itemComponentRegistry.registerCustomComponent("ph:custom_shooter", {
@@ -5544,7 +5549,7 @@ function registerCustomComponents(initEvent) {
       applyDurabilityDamage(player, { damage: 50 });
     },
     onUseOn({ source }) {
-      if (!(source instanceof Player20)) return;
+      if (!(source instanceof Player19)) return;
       system19.run(() => {
         if (source.isValid) source.sendMessage("Look up while using the skill!");
       });
@@ -5896,7 +5901,7 @@ function registerCustomComponents(initEvent) {
 }
 
 // data/scripts/ui/commands.ts
-import { system as system22, CommandPermissionLevel, CustomCommandStatus, CustomCommandParamType, Player as Player22 } from "@minecraft/server";
+import { system as system22, CommandPermissionLevel, CustomCommandStatus, CustomCommandParamType, Player as Player21 } from "@minecraft/server";
 
 // data/scripts/ui/forms/skillUnlock.ts
 import { system as system20 } from "@minecraft/server";
@@ -6523,7 +6528,7 @@ function openDynamicPropertyMenu(player) {
 
 // data/scripts/ui/commands.ts
 function originPlayer(origin) {
-  return origin.sourceEntity instanceof Player22 ? origin.sourceEntity : void 0;
+  return origin.sourceEntity instanceof Player21 ? origin.sourceEntity : void 0;
 }
 function registerUiCommands(initEvent) {
   initEvent.itemComponentRegistry.registerCustomComponent("ph:guidebook", {

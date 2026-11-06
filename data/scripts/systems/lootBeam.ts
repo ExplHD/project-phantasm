@@ -23,6 +23,7 @@ const BEAMS: Record<ItemRarity, BeamStyle> = {
 }
 
 const RENEW_TICKS = 20;
+const MAX_COMMON_BEAMS = 32;
 
 const BIG_STACK = 5;
 const BIG_STACK_SCALE = 1.25;
@@ -41,7 +42,9 @@ export function trackLootItem(entity: Entity): void {
     const item = entity.getComponent("minecraft:item")?.itemStack;
     if (!item) return;
 
-    const beam = BEAMS[getItemRarity(item)];
+    const rarity = getItemRarity(item);
+    if (rarity === "common" && beams.size >= MAX_COMMON_BEAMS) return;
+    const beam = BEAMS[rarity];
     const molang = new MolangVariableMap();
     molang.setColorRGB("variable.color", beam.color);
     molang.setFloat("variable.height", beam.height);

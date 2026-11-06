@@ -48,6 +48,7 @@ interface Ridge {
 
 let ridges: Ridge[] | undefined;
 let warnedMissing = false;
+let lastScanCell = new Map<string, string>();
 
 function loadRidges(): Ridge[] {
 	if (ridges) return ridges;
@@ -202,13 +203,16 @@ function placePair(dimension: Dimension, cells: Set<string>): void {
 
 export function tickTitanRidgeSites(): void {
 	const scanned = new Set<string>();
+	const lastCells = new Map<string, string>();
 	for (const player of world.getPlayers()) {
 		if (!player.isValid) continue;
 		const dimension = player.dimension;
 		if (dimension.id !== "minecraft:overworld" || !inTitanRidge(player)) continue;
 
 		const startKey = cellKey(Math.floor(player.location.x / 16), Math.floor(player.location.z / 16));
-		if (scanned.has(startKey)) continue;
+		lastCells.set(player.id, startKey);
+		if (scanned.has(startKey) || lastScanCell.get(player.id) === startKey) continue;
+		if (loadRidges().some(ridge => ridge.cells.has(startKey))) continue;
 		const scan = scanRidge(dimension, player.location);
 		scan.cells.forEach(cell => scanned.add(cell));
 
@@ -226,4 +230,5 @@ export function tickTitanRidgeSites(): void {
 
 		placePair(dimension, scan.cells);
 	}
+	lastScanCell = lastCells;
 }

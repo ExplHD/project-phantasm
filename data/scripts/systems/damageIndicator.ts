@@ -1,4 +1,4 @@
-import { MolangVariableMap, EntityHurtAfterEvent, Player } from '@minecraft/server'
+import { MolangVariableMap, EntityHurtAfterEvent } from '@minecraft/server'
 
 const VarSets: Record<string, { icon: Record<string, number>; color: { red: number; green: number; blue: number } }> = {
     physical: {
@@ -90,14 +90,29 @@ export function onDamageIndicator({ hurtEntity, damageSource, damage }: EntityHu
     const damageData = DamageTypes[damageSource.cause] ?? DamageTypes["none"];
     if (!hurtEntity || !hurtEntity.isValid) return;
     const { center, extent } = hurtEntity.getAABB();
+    const dimension = hurtEntity.dimension;
+    if (!dimension.isChunkLoaded(center)) return;
+
+    const players = dimension.getPlayers({ location: center, maxDistance: 64 });
+    if (players.length === 0) return;
 
     const radius = Math.hypot(extent.x, extent.z) + 0.3;
-	const players = hurtEntity.dimension.getEntities({ type: "minecraft:player", location: center, maxDistance: 64 });
+    const iconMolang = new MolangVariableMap();
+    iconMolang.setFloat("variable.length", 1.5);
+    iconMolang.setFloat("variable.icon_offset", damageData.icon ?? 14);
+    iconMolang.setColorRGB("variable.damagecolor", damageData.color);
 
-    for (const ent of players) {
-        const player = ent as Player;
+    const digits = `${Math.min(Math.abs(damageValue), 999999)}`;
+    const digitMolangs = [...digits].map(digit => {
+        const molang = new MolangVariableMap();
+        molang.setFloat("variable.length", 1.5);
+        molang.setFloat("variable.digit", Number(digit));
+        molang.setColorRGB("variable.damagecolor", damageData.color);
+        return molang;
+    });
+
+    for (const player of players) {
         if (!player.isValid) continue;
-        if (!player.dimension.isChunkLoaded(center)) continue;
         let dx = player.location.x - center.x;
         let dz = player.location.z - center.z;
         let len = Math.hypot(dx, dz);
@@ -112,23 +127,12 @@ export function onDamageIndicator({ hurtEntity, damageSource, damage }: EntityHu
             y: center.y + extent.y * 0.5,
             z: center.z + (dz / len) * radius
         };
-		const iconMolang = new MolangVariableMap();
-        const absDamage = Math.min(Math.abs(damageValue), 999999);
-        iconMolang.setFloat("variable.length", 1.5);
-        iconMolang.setFloat("variable.icon_offset", damageData.icon ?? 14);
-		iconMolang.setColorRGB("variable.damagecolor", damageData.color);
-
         const leftX = -dz / len;
         const leftZ = dx / len;
-        const digits = `${absDamage}`;
-        for (let i = 0; i < digits.length; i++) {
+        digitMolangs.forEach((molang, i) => {
             const offset = ((digits.length - 1) / 2 - i) / 3;
-            const molang = new MolangVariableMap();
-            molang.setFloat("variable.length", 1.5);
-            molang.setFloat("variable.digit", Number(digits[i]));
-            molang.setColorRGB("variable.damagecolor", damageData.color);
             player.spawnParticle("ph:damage_number", { x: loc.x + leftX * offset, y: loc.y, z: loc.z + leftZ * offset }, molang);
-        }
+        });
         player.spawnParticle("ph:damage_icons", { x: loc.x, y: loc.y + 0.6, z: loc.z }, iconMolang);
     }
 }
