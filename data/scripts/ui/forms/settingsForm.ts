@@ -4,6 +4,7 @@ import { ActionFormData } from '@minecraft/server-ui'
 import {
     DASH_CONTROL_NAMES,
     DASH_CONTROL_HINTS,
+    SKILL_SWITCH_CONTROL,
     SKILL_SWITCH_CONTROL_NAMES,
     SKILL_SWITCH_CONTROL_HINTS,
     PARRY_CONTROL_NAMES,
@@ -123,10 +124,10 @@ function parrySoundMenu(player: Player): void {
 
 function resetSettings(player: Player): void {
     setDashControl(player, 0);
-    setSkillSwitchControl(player, 0);
+    setSkillSwitchControl(player, SKILL_SWITCH_CONTROL.DOUBLE_SNEAK);
     setParryControl(player, 0);
     setParrySound(player, 0);
     player.playSound("random.levelup");
-    player.sendMessage("§aSettings reset. Dash: §fDouble-tap Jump§a, skill switch: §fSneak§a, parry: §fSneak§a, parry sound: §fPhantasm");
+    player.sendMessage("§aSettings reset. Dash: §fDouble-tap Jump§a, skill switch: §fDouble Sneak§a, parry: §fSneak§a, parry sound: §fPhantasm");
     openSettings(player);
 }

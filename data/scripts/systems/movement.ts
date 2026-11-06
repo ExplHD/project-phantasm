@@ -46,74 +46,99 @@ export function dashRuntime(player: Player): void {
     }
 }
 
-// Wind Plunge, merged with the Luna plunge attack: short hang in the air, straight
-// dive, area hit on landing. Fall damage is cancelled from the start of the plunge
-// until NO_FALL_GRACE_TICKS after landing (onPlungeFallHurt), the fall damage event
-// can arrive before or after tickPlunges sees the landing.
-const PLUNGE_MIN_HEIGHT = 10;
+const PLUNGE_MIN_HEIGHT = 4;
 const PLUNGE_RADIUS = 6;
 const PLUNGE_DAMAGE = 10;
-const PLUNGE_HANG_TICKS = 4; // matches the 0.2s windup of animation.player_extend.plunge_attack
+const PLUNGE_HANG_TICKS = 4;
 const PLUNGE_DIVE_SPEED = 1.6;
 const PLUNGE_MAX_TICKS = 100;
 const NO_FALL_GRACE_TICKS = 5;
+const PLUNGE_RECOVERY_TICKS = 15;
+const PLUNGE_LOOP_STOP = "query.is_on_ground || query.is_in_water";
 const PLUNGE_ANIM_OPTS = { controller: "ph_plunge", blendOutTime: 0.15 };
 
-const plunging = new Map<string, number>(); // player id -> plunge start tick
-const noFallUntil = new Map<string, number>(); // player id -> last tick without fall damage
+interface PlungeAnimations {
+    readonly start: string;
+    readonly impact: string;
+}
+
+const UNARMED_PLUNGE: PlungeAnimations = {
+    start: "animation.player_extend.plunge_attack",
+    impact: "animation.player_extend.plunge_land"
+};
+
+const WEAPON_PLUNGE: PlungeAnimations = {
+    start: "animation.player_extend.plunge_weapon_loop",
+    impact: "animation.player_extend.plunge_weapon_impact"
+};
+
+interface PlungeState {
+    readonly start: number;
+    readonly animations: PlungeAnimations;
+}
+
+const plunging = new Map<string, PlungeState>();
+const noFallUntil = new Map<string, number>();
+const recoveringUntil = new Map<string, number>();
 
 function heightAboveGround(player: Player): number {
-    try {
-        const hit = player.dimension.getBlockFromRay(player.location, { x: 0, y: -1, z: 0 }, {
-            maxDistance: 64,
-            includeLiquidBlocks: true,
-            includePassableBlocks: false
-        });
-        return hit ? player.location.y - (hit.block.location.y + hit.faceLocation.y) : Infinity;
-    } catch {
-        return 0;
-    }
+    const dimension = player.dimension;
+    const origin = player.location;
+    if (origin.y < dimension.heightRange.min || origin.y > dimension.heightRange.max) return 0;
+    const hit = dimension.getBlockFromRay(origin, { x: 0, y: -1, z: 0 }, {
+        maxDistance: 64,
+        includeLiquidBlocks: true,
+        includePassableBlocks: false
+    });
+    return hit ? origin.y - (hit.block.location.y + hit.faceLocation.y) : Infinity;
 }
 
 export function isPlunging(player: Player): boolean {
-    return plunging.has(player.id);
+    if (plunging.has(player.id)) return true;
+    const until = recoveringUntil.get(player.id);
+    if (until === undefined) return false;
+    if (system.currentTick <= until) return true;
+    recoveringUntil.delete(player.id);
+    return false;
 }
 
-export function windPlungeRuntime(player: Player): boolean {
+export function holdsPlungeWeapon(player: Player): boolean {
+    return isCustomWeapon(player.getComponent("minecraft:equippable")?.getEquipment(EquipmentSlot.Mainhand));
+}
+
+export function windPlungeRuntime(player: Player, trigger: "sneak" | "attack"): boolean {
     if (player.getDynamicProperty("ph:plunge_unlock") !== true) return false;
-    if (plunging.has(player.id)) return false;
+    if (isPlunging(player)) return false;
+    const armed = holdsPlungeWeapon(player);
+    if (armed !== (trigger === "attack")) return false;
     if (!player.isFalling || player.isOnGround || player.isInWater || player.isGliding || player.isFlying) return false;
     if (heightAboveGround(player) <= PLUNGE_MIN_HEIGHT) return false;
 
-    plunging.set(player.id, system.currentTick);
+    const animations = armed ? WEAPON_PLUNGE : UNARMED_PLUNGE;
+    plunging.set(player.id, { start: system.currentTick, animations });
     noFallUntil.set(player.id, Infinity);
-    player.playAnimation("animation.player_extend.plunge_attack", PLUNGE_ANIM_OPTS);
+    player.playAnimation(animations.start, armed ? { ...PLUNGE_ANIM_OPTS, stopExpression: PLUNGE_LOOP_STOP } : PLUNGE_ANIM_OPTS);
     player.dimension.spawnParticle("minecraft:wind_explosion_emitter", player.location);
     player.dimension.playSound("wind_charge.burst", player.location);
     player.playSound("mob.enderdragon.flap", { volume: 0.5, pitch: 1.8 });
     return true;
 }
 
-function plungeImpact(player: Player): void {
+function plungeImpact(player: Player, animations: PlungeAnimations): void {
     const dimension = player.dimension;
     const location = player.location;
-    player.playAnimation("animation.player_extend.plunge_land", PLUNGE_ANIM_OPTS);
-    try {
-        dimension.playSound("random.explode", location, { volume: 0.5, pitch: 1.6 });
-        dimension.playSound("dig.stone", location, { volume: 1, pitch: 0.6 });
-        dimension.spawnParticle("minecraft:breeze_wind_explosion_emitter", location);
-        dimension.spawnParticle("ph:plunge_shockwave", location);
-        dimension.spawnParticle("minecraft:critical_hit_emitter", { x: location.x, y: location.y + 0.2, z: location.z });
-        player.runCommand("camerashake add @s 0.25 0.15 positional");
-    } catch { }
+    player.playAnimation(animations.impact, PLUNGE_ANIM_OPTS);
+    if (!dimension.isChunkLoaded(location)) return;
 
-    // other players only take the hit when the pvp gamerule is on
-    let pvp = true;
-    try {
-        pvp = world.gameRules.pvp;
-    } catch { }
+    dimension.playSound("random.explode", location, { volume: 0.5, pitch: 1.6 });
+    dimension.playSound("dig.stone", location, { volume: 1, pitch: 0.6 });
+    dimension.spawnParticle("minecraft:breeze_wind_explosion_emitter", location);
+    dimension.spawnParticle("ph:plunge_shockwave", location);
+    dimension.spawnParticle("minecraft:critical_hit_emitter", { x: location.x, y: location.y + 0.2, z: location.z });
+    player.runCommand("camerashake add @s 0.25 0.15 positional");
+
     const excludeTypes = ["minecraft:item", "minecraft:armor_stand"];
-    if (!pvp) excludeTypes.push("minecraft:player");
+    if (!world.gameRules.pvp) excludeTypes.push("minecraft:player");
 
     const targets = dimension.getEntities({
         location,
@@ -122,16 +147,14 @@ function plungeImpact(player: Player): void {
         excludeFamilies: ["inanimate"]
     });
     for (const target of targets) {
-        if (target.id === player.id) continue;
-        try {
-            target.applyDamage(PLUNGE_DAMAGE, { cause: EntityDamageCause.entityAttack, damagingEntity: player });
-        } catch { }
+        if (target.id === player.id || !target.isValid) continue;
+        target.applyDamage(PLUNGE_DAMAGE, { cause: EntityDamageCause.entityAttack, damagingEntity: player });
     }
 }
 
 export function tickPlunges(): void {
     const now = system.currentTick;
-    for (const [id, start] of plunging) {
+    for (const [id, state] of plunging) {
         const player = world.getEntity(id) as Player | undefined;
         if (!player?.isValid) {
             plunging.delete(id);
@@ -139,19 +162,18 @@ export function tickPlunges(): void {
             continue;
         }
 
-        const elapsedTicks = now - start;
+        const elapsedTicks = now - state.start;
         if (player.isOnGround || player.isInWater || elapsedTicks > PLUNGE_MAX_TICKS) {
             plunging.delete(id);
             noFallUntil.set(id, now + NO_FALL_GRACE_TICKS);
-            if (player.isOnGround) plungeImpact(player);
-            else player.playAnimation("animation.player_extend.plunge_land", PLUNGE_ANIM_OPTS);
+            recoveringUntil.set(id, now + PLUNGE_RECOVERY_TICKS);
+            if (player.isOnGround) plungeImpact(player, state.animations);
+            else player.playAnimation(state.animations.impact, PLUNGE_ANIM_OPTS);
             continue;
         }
 
-        try {
-            if (elapsedTicks < PLUNGE_HANG_TICKS) player.applyKnockback({ x: 0, z: 0 }, 0.04);
-            else player.applyKnockback({ x: 0, z: 0 }, -PLUNGE_DIVE_SPEED);
-        } catch { }
+        if (elapsedTicks < PLUNGE_HANG_TICKS) player.applyKnockback({ x: 0, z: 0 }, 0.04);
+        else player.applyKnockback({ x: 0, z: 0 }, -PLUNGE_DIVE_SPEED);
     }
 }
 
@@ -167,6 +189,7 @@ export function onPlungeFallHurt(event: EntityHurtBeforeEvent): void {
 export function clearPlungeState(playerId: string): void {
     plunging.delete(playerId);
     noFallUntil.delete(playerId);
+    recoveringUntil.delete(playerId);
 }
 
 function strippingSound(typeId: string): string | undefined {
@@ -230,50 +253,30 @@ export function vanillaBlockInteractFix(player: Player, item: ItemStack | undefi
     }
 }
 
-const PARRY_ITEMS = new Set([
-    "minecraft:wooden_sword",
-    "minecraft:stone_sword",
-    "minecraft:copper_sword",
-    "minecraft:iron_sword",
-    "minecraft:golden_sword",
-    "minecraft:diamond_sword",
-    "minecraft:netherite_sword",
-    "ph:prismatic_sword",
-    "ph:xeon_plasm_sword"
-]);
+const WEAPON_TAGS = ["minecraft:is_sword", "minecraft:is_axe", "minecraft:is_spear"];
+const PARRY_TICKS = 6;
+const EPIC_PARRY_TICKS = 8;
 
-export function parryRuntime(source: Player, itemStack: ItemStack | undefined): void {
-    if (!itemStack?.typeId || !PARRY_ITEMS.has(itemStack.typeId)) return;
-    if (source.hasTag("parried")) return;
-
-    source.playAnimation("animation.player_extend.parry");
-    source.dimension.spawnParticle("ph:parry_prepare", source.location);
-    source.dimension.playSound("item.spear.use", source.location);
-    source.addTag("parried");
-    source.inputPermissions.setPermissionCategory(2, false);
-    applyDurabilityDamage(source, { damage: 1 });
-    system.runTimeout(() => {
-        if (!source.isValid) return;
-        if (source.hasTag("parried")) source.removeTag("parried");
-        source.inputPermissions.setPermissionCategory(2, true);
-    }, 6)
-}
-
-const CUSTOM_WEAPON_TAGS = ["minecraft:is_sword", "minecraft:is_axe", "minecraft:is_spear"];
-const CUSTOM_PARRY_TICKS = 8;
-
-function isEpicCustomWeapon(item: ItemStack | undefined): boolean {
+function isCustomWeapon(item: ItemStack | undefined): boolean {
     if (!item?.typeId.startsWith("ph:")) return false;
-    const rarity = getItemRarity(item);
-    if (rarity !== "epic" && rarity !== "legendary") return false;
-    return (LEGENDARY_TIER as readonly string[]).includes(item.typeId) || CUSTOM_WEAPON_TAGS.some(tag => item.hasTag(tag));
+    return (LEGENDARY_TIER as readonly string[]).includes(item.typeId) || WEAPON_TAGS.some(tag => item.hasTag(tag));
 }
 
-// Parry for Epic+ custom weapons, triggered by the parry control (ph:parry_control)
-export function customWeaponParry(player: Player): void {
+function isParryWeapon(item: ItemStack | undefined): item is ItemStack {
+    if (!item) return false;
+    if (item.typeId.startsWith("minecraft:")) return WEAPON_TAGS.some(tag => item.hasTag(tag));
+    return isCustomWeapon(item);
+}
+
+function parryWindow(item: ItemStack): number {
+    const rarity = getItemRarity(item);
+    return rarity === "epic" || rarity === "legendary" ? EPIC_PARRY_TICKS : PARRY_TICKS;
+}
+
+export function weaponParry(player: Player): void {
     const item = player.getComponent("minecraft:equippable")?.getEquipment(EquipmentSlot.Mainhand);
-    if (!isEpicCustomWeapon(item)) return;
-    if (player.hasTag("parried") || plunging.has(player.id)) return;
+    if (!isParryWeapon(item)) return;
+    if (player.hasTag("parried") || isPlunging(player)) return;
 
     player.playAnimation("animation.player_extend.parry");
     player.dimension.spawnParticle("ph:parry_prepare", player.location);
@@ -281,7 +284,7 @@ export function customWeaponParry(player: Player): void {
     player.addTag("parried");
     system.runTimeout(() => {
         if (player.isValid && player.hasTag("parried")) player.removeTag("parried");
-    }, CUSTOM_PARRY_TICKS);
+    }, parryWindow(item));
 }
 
 export function startBetterMending(source: Player, itemStack: ItemStack | undefined): void {

@@ -2459,8 +2459,8 @@ var RARITY = /* @__PURE__ */ new Map([
   ["ph:prismatic_sword", "rare"],
   ["ph:punicea_crimson_eye_treasure_bag", "epic"],
   ["ph:rust_coin", "epic"],
-  ["ph:scimitar", "rare"],
-  ["ph:scimitar_2", "rare"],
+  ["ph:scimitar", "epic"],
+  ["ph:scimitar_2", "epic"],
   ["ph:seiketsu", "epic"],
   ["ph:sentinel_scale", "rare"],
   ["ph:sentinel_shield", "rare"],
@@ -2647,61 +2647,78 @@ function dashRuntime(player) {
     });
   }
 }
-var PLUNGE_MIN_HEIGHT = 10;
+var PLUNGE_MIN_HEIGHT = 4;
 var PLUNGE_RADIUS = 6;
 var PLUNGE_DAMAGE = 10;
 var PLUNGE_HANG_TICKS = 4;
 var PLUNGE_DIVE_SPEED = 1.6;
 var PLUNGE_MAX_TICKS = 100;
 var NO_FALL_GRACE_TICKS = 5;
+var PLUNGE_RECOVERY_TICKS = 15;
+var PLUNGE_LOOP_STOP = "query.is_on_ground || query.is_in_water";
 var PLUNGE_ANIM_OPTS = { controller: "ph_plunge", blendOutTime: 0.15 };
+var UNARMED_PLUNGE = {
+  start: "animation.player_extend.plunge_attack",
+  impact: "animation.player_extend.plunge_land"
+};
+var WEAPON_PLUNGE = {
+  start: "animation.player_extend.plunge_weapon_loop",
+  impact: "animation.player_extend.plunge_weapon_impact"
+};
 var plunging = /* @__PURE__ */ new Map();
 var noFallUntil = /* @__PURE__ */ new Map();
+var recoveringUntil = /* @__PURE__ */ new Map();
 function heightAboveGround(player) {
-  try {
-    const hit = player.dimension.getBlockFromRay(player.location, { x: 0, y: -1, z: 0 }, {
-      maxDistance: 64,
-      includeLiquidBlocks: true,
-      includePassableBlocks: false
-    });
-    return hit ? player.location.y - (hit.block.location.y + hit.faceLocation.y) : Infinity;
-  } catch {
-    return 0;
-  }
+  const dimension = player.dimension;
+  const origin = player.location;
+  if (origin.y < dimension.heightRange.min || origin.y > dimension.heightRange.max) return 0;
+  const hit = dimension.getBlockFromRay(origin, { x: 0, y: -1, z: 0 }, {
+    maxDistance: 64,
+    includeLiquidBlocks: true,
+    includePassableBlocks: false
+  });
+  return hit ? origin.y - (hit.block.location.y + hit.faceLocation.y) : Infinity;
 }
-function windPlungeRuntime(player) {
+function isPlunging(player) {
+  if (plunging.has(player.id)) return true;
+  const until = recoveringUntil.get(player.id);
+  if (until === void 0) return false;
+  if (system10.currentTick <= until) return true;
+  recoveringUntil.delete(player.id);
+  return false;
+}
+function holdsPlungeWeapon(player) {
+  return isCustomWeapon(player.getComponent("minecraft:equippable")?.getEquipment(EquipmentSlot4.Mainhand));
+}
+function windPlungeRuntime(player, trigger) {
   if (player.getDynamicProperty("ph:plunge_unlock") !== true) return false;
-  if (plunging.has(player.id)) return false;
+  if (isPlunging(player)) return false;
+  const armed = holdsPlungeWeapon(player);
+  if (armed !== (trigger === "attack")) return false;
   if (!player.isFalling || player.isOnGround || player.isInWater || player.isGliding || player.isFlying) return false;
   if (heightAboveGround(player) <= PLUNGE_MIN_HEIGHT) return false;
-  plunging.set(player.id, system10.currentTick);
+  const animations2 = armed ? WEAPON_PLUNGE : UNARMED_PLUNGE;
+  plunging.set(player.id, { start: system10.currentTick, animations: animations2 });
   noFallUntil.set(player.id, Infinity);
-  player.playAnimation("animation.player_extend.plunge_attack", PLUNGE_ANIM_OPTS);
+  player.playAnimation(animations2.start, armed ? { ...PLUNGE_ANIM_OPTS, stopExpression: PLUNGE_LOOP_STOP } : PLUNGE_ANIM_OPTS);
   player.dimension.spawnParticle("minecraft:wind_explosion_emitter", player.location);
   player.dimension.playSound("wind_charge.burst", player.location);
   player.playSound("mob.enderdragon.flap", { volume: 0.5, pitch: 1.8 });
   return true;
 }
-function plungeImpact(player) {
+function plungeImpact(player, animations2) {
   const dimension = player.dimension;
   const location = player.location;
-  player.playAnimation("animation.player_extend.plunge_land", PLUNGE_ANIM_OPTS);
-  try {
-    dimension.playSound("random.explode", location, { volume: 0.5, pitch: 1.6 });
-    dimension.playSound("dig.stone", location, { volume: 1, pitch: 0.6 });
-    dimension.spawnParticle("minecraft:breeze_wind_explosion_emitter", location);
-    dimension.spawnParticle("ph:plunge_shockwave", location);
-    dimension.spawnParticle("minecraft:critical_hit_emitter", { x: location.x, y: location.y + 0.2, z: location.z });
-    player.runCommand("camerashake add @s 0.25 0.15 positional");
-  } catch {
-  }
-  let pvp = true;
-  try {
-    pvp = world5.gameRules.pvp;
-  } catch {
-  }
+  player.playAnimation(animations2.impact, PLUNGE_ANIM_OPTS);
+  if (!dimension.isChunkLoaded(location)) return;
+  dimension.playSound("random.explode", location, { volume: 0.5, pitch: 1.6 });
+  dimension.playSound("dig.stone", location, { volume: 1, pitch: 0.6 });
+  dimension.spawnParticle("minecraft:breeze_wind_explosion_emitter", location);
+  dimension.spawnParticle("ph:plunge_shockwave", location);
+  dimension.spawnParticle("minecraft:critical_hit_emitter", { x: location.x, y: location.y + 0.2, z: location.z });
+  player.runCommand("camerashake add @s 0.25 0.15 positional");
   const excludeTypes = ["minecraft:item", "minecraft:armor_stand"];
-  if (!pvp) excludeTypes.push("minecraft:player");
+  if (!world5.gameRules.pvp) excludeTypes.push("minecraft:player");
   const targets = dimension.getEntities({
     location,
     maxDistance: PLUNGE_RADIUS,
@@ -2709,35 +2726,30 @@ function plungeImpact(player) {
     excludeFamilies: ["inanimate"]
   });
   for (const target of targets) {
-    if (target.id === player.id) continue;
-    try {
-      target.applyDamage(PLUNGE_DAMAGE, { cause: EntityDamageCause4.entityAttack, damagingEntity: player });
-    } catch {
-    }
+    if (target.id === player.id || !target.isValid) continue;
+    target.applyDamage(PLUNGE_DAMAGE, { cause: EntityDamageCause4.entityAttack, damagingEntity: player });
   }
 }
 function tickPlunges() {
   const now = system10.currentTick;
-  for (const [id, start] of plunging) {
+  for (const [id, state] of plunging) {
     const player = world5.getEntity(id);
     if (!player?.isValid) {
       plunging.delete(id);
       noFallUntil.delete(id);
       continue;
     }
-    const elapsedTicks = now - start;
+    const elapsedTicks = now - state.start;
     if (player.isOnGround || player.isInWater || elapsedTicks > PLUNGE_MAX_TICKS) {
       plunging.delete(id);
       noFallUntil.set(id, now + NO_FALL_GRACE_TICKS);
-      if (player.isOnGround) plungeImpact(player);
-      else player.playAnimation("animation.player_extend.plunge_land", PLUNGE_ANIM_OPTS);
+      recoveringUntil.set(id, now + PLUNGE_RECOVERY_TICKS);
+      if (player.isOnGround) plungeImpact(player, state.animations);
+      else player.playAnimation(state.animations.impact, PLUNGE_ANIM_OPTS);
       continue;
     }
-    try {
-      if (elapsedTicks < PLUNGE_HANG_TICKS) player.applyKnockback({ x: 0, z: 0 }, 0.04);
-      else player.applyKnockback({ x: 0, z: 0 }, -PLUNGE_DIVE_SPEED);
-    } catch {
-    }
+    if (elapsedTicks < PLUNGE_HANG_TICKS) player.applyKnockback({ x: 0, z: 0 }, 0.04);
+    else player.applyKnockback({ x: 0, z: 0 }, -PLUNGE_DIVE_SPEED);
   }
 }
 function onPlungeFallHurt(event) {
@@ -2751,6 +2763,7 @@ function onPlungeFallHurt(event) {
 function clearPlungeState(playerId) {
   plunging.delete(playerId);
   noFallUntil.delete(playerId);
+  recoveringUntil.delete(playerId);
 }
 function strippingSound(typeId) {
   if (typeId === "minecraft:cherry_log") return "step.cherry_wood";
@@ -2799,51 +2812,33 @@ function vanillaBlockInteractFix(player, item, block) {
     });
   }
 }
-var PARRY_ITEMS = /* @__PURE__ */ new Set([
-  "minecraft:wooden_sword",
-  "minecraft:stone_sword",
-  "minecraft:copper_sword",
-  "minecraft:iron_sword",
-  "minecraft:golden_sword",
-  "minecraft:diamond_sword",
-  "minecraft:netherite_sword",
-  "ph:prismatic_sword",
-  "ph:xeon_plasm_sword"
-]);
-function parryRuntime(source, itemStack) {
-  if (!itemStack?.typeId || !PARRY_ITEMS.has(itemStack.typeId)) return;
-  if (source.hasTag("parried")) return;
-  source.playAnimation("animation.player_extend.parry");
-  source.dimension.spawnParticle("ph:parry_prepare", source.location);
-  source.dimension.playSound("item.spear.use", source.location);
-  source.addTag("parried");
-  source.inputPermissions.setPermissionCategory(2, false);
-  applyDurabilityDamage(source, { damage: 1 });
-  system10.runTimeout(() => {
-    if (!source.isValid) return;
-    if (source.hasTag("parried")) source.removeTag("parried");
-    source.inputPermissions.setPermissionCategory(2, true);
-  }, 6);
-}
-var CUSTOM_WEAPON_TAGS = ["minecraft:is_sword", "minecraft:is_axe", "minecraft:is_spear"];
-var CUSTOM_PARRY_TICKS = 8;
-function isEpicCustomWeapon(item) {
+var WEAPON_TAGS = ["minecraft:is_sword", "minecraft:is_axe", "minecraft:is_spear"];
+var PARRY_TICKS = 6;
+var EPIC_PARRY_TICKS = 8;
+function isCustomWeapon(item) {
   if (!item?.typeId.startsWith("ph:")) return false;
-  const rarity = getItemRarity(item);
-  if (rarity !== "epic" && rarity !== "legendary") return false;
-  return LEGENDARY_TIER.includes(item.typeId) || CUSTOM_WEAPON_TAGS.some((tag) => item.hasTag(tag));
+  return LEGENDARY_TIER.includes(item.typeId) || WEAPON_TAGS.some((tag) => item.hasTag(tag));
 }
-function customWeaponParry(player) {
+function isParryWeapon(item) {
+  if (!item) return false;
+  if (item.typeId.startsWith("minecraft:")) return WEAPON_TAGS.some((tag) => item.hasTag(tag));
+  return isCustomWeapon(item);
+}
+function parryWindow(item) {
+  const rarity = getItemRarity(item);
+  return rarity === "epic" || rarity === "legendary" ? EPIC_PARRY_TICKS : PARRY_TICKS;
+}
+function weaponParry(player) {
   const item = player.getComponent("minecraft:equippable")?.getEquipment(EquipmentSlot4.Mainhand);
-  if (!isEpicCustomWeapon(item)) return;
-  if (player.hasTag("parried") || plunging.has(player.id)) return;
+  if (!isParryWeapon(item)) return;
+  if (player.hasTag("parried") || isPlunging(player)) return;
   player.playAnimation("animation.player_extend.parry");
   player.dimension.spawnParticle("ph:parry_prepare", player.location);
   player.dimension.playSound("item.spear.use", player.location);
   player.addTag("parried");
   system10.runTimeout(() => {
     if (player.isValid && player.hasTag("parried")) player.removeTag("parried");
-  }, CUSTOM_PARRY_TICKS);
+  }, parryWindow(item));
 }
 function startBetterMending(source, itemStack) {
   if (!source.isSneaking || !itemStack) return;
@@ -3038,10 +3033,10 @@ var PARRY_CONTROL_NAMES = [
   "Disabled"
 ];
 var PARRY_CONTROL_HINTS = [
-  "\xA7aSneak \xA77- Press Sneak while holding an Epic or Legendary weapon.",
-  "\xA7aSneak + Attack \xA77- Attack while sneaking (or right after tapping Sneak) with an Epic or Legendary weapon.",
-  "\xA7aDouble Sneak \xA77- Press Sneak twice quickly while holding an Epic or Legendary weapon.",
-  "\xA7aDisabled \xA77- Epic and Legendary weapons never parry from Sneak."
+  "\xA7aSneak \xA77- Press Sneak while holding a sword, axe or spear.",
+  "\xA7aSneak + Attack \xA77- Attack while sneaking (or right after tapping Sneak) with a sword, axe or spear.",
+  "\xA7aDouble Sneak \xA77- Press Sneak twice quickly while holding a sword, axe or spear.",
+  "\xA7aDisabled \xA77- Swords, axes and spears never parry from Sneak."
 ];
 var PARRY_SOUND = {
   PHANTASM: 0,
@@ -3067,7 +3062,7 @@ function getState(player) {
   if (existing) return existing;
   const state = {
     dash: readControl(player, "ph:dash_control", DASH_CONTROL_NAMES.length),
-    skill: readControl(player, "ph:skill_switch_control", SKILL_SWITCH_CONTROL_NAMES.length),
+    skill: readControl(player, "ph:skill_switch_control", SKILL_SWITCH_CONTROL_NAMES.length, SKILL_SWITCH_CONTROL.DOUBLE_SNEAK),
     parry: readControl(player, "ph:parry_control", PARRY_CONTROL_NAMES.length),
     parrySound: readControl(player, "ph:parry_sound", PARRY_SOUND_NAMES.length),
     jumpAt: -Infinity,
@@ -3076,9 +3071,10 @@ function getState(player) {
   states.set(player.id, state);
   return state;
 }
-function readControl(player, property, length) {
-  const stored = Number(player.getDynamicProperty(property));
-  return stored >= 0 && stored < length ? stored : 0;
+function readControl(player, property, length, fallback = 0) {
+  const stored = player.getDynamicProperty(property);
+  if (typeof stored !== "number") return fallback;
+  return stored >= 0 && stored < length ? stored : fallback;
 }
 function getDashControl(player) {
   return getState(player).dash;
@@ -4967,28 +4963,27 @@ function runControlActions(player, actions, plunged = false) {
   for (const action of actions) {
     if (action === "dash" || action === "airDash") dashRuntime(player);
     else if (action === "switchSkill") switchHeldWeaponSkill(player);
-    else if (action === "parry" && !plunged) customWeaponParry(player);
+    else if (action === "parry" && !plunged) weaponParry(player);
   }
 }
 world12.afterEvents.playerSwingStart.subscribe(({ player, heldItemStack, swingSource }) => {
+  const attacked = swingSource == "Mine" || swingSource == "Attack";
+  if (attacked && (isPlunging(player) || windPlungeRuntime(player, "attack"))) return;
   runControlActions(player, onControlSwingInput(player, swingSource));
   onShieldSwing(player);
+  if (!attacked) return;
   for (const weapon of weapons) {
-    if (heldItemStack?.typeId === weapon.itemId) {
-      if (swingSource != "Mine" && swingSource != "Attack") return;
-      weapon.handleAttack(player);
-    }
+    if (heldItemStack?.typeId === weapon.itemId) weapon.handleAttack(player);
   }
 });
 world12.afterEvents.playerButtonInput.subscribe(({ player: source, button, newButtonState }) => {
   if (button == "Sneak") onShieldSneak(source, newButtonState == "Pressed");
   if (newButtonState != "Pressed") return;
-  const plunged = button == "Sneak" && windPlungeRuntime(source);
+  const plunged = button == "Sneak" && windPlungeRuntime(source, "sneak");
   runControlActions(source, onControlButtonInput(source, button), plunged);
 });
 world12.afterEvents.itemUse.subscribe(({ source, itemStack }) => {
   if (!itemStack) return;
-  parryRuntime(source, itemStack);
   startBetterMending(source, itemStack);
   for (const skill of weaponSkills) {
     if (itemStack.typeId === skill.itemId) {
@@ -5177,7 +5172,7 @@ import { world as world13, system as system23, ItemStack as ItemStack11 } from "
 // data/scripts/core/playerProperties.ts
 var PLAYER_PROPERTIES = [
   { id: "ph:dash_control", label: "Passive Dash control", type: "number", group: "Settings", default: 0 },
-  { id: "ph:skill_switch_control", label: "Skill switch control", type: "number", group: "Settings", default: 0 },
+  { id: "ph:skill_switch_control", label: "Skill switch control", type: "number", group: "Settings", default: 2 },
   { id: "ph:parry_control", label: "Weapon parry control", type: "number", group: "Settings", default: 0 },
   { id: "ph:parry_sound", label: "Parry sound (0 Phantasm, 1 Luna)", type: "number", group: "Settings", default: 0 },
   { id: "ph:dash_level", label: "Dash level", type: "number", group: "Progress", default: 0 },
@@ -5982,7 +5977,7 @@ Required Level : 30`).button1("Confirm").button2("Cancel").show(player).then((r)
 function plungeUnlock(player) {
   const exp = player.level;
   const plungeUnlock2 = player.getDynamicProperty("ph:plunge_unlock") ?? false;
-  new MessageFormData().title("Confirm Selection").body(`Are you sure you want to unlock Wind Plunge? Press Sneak while falling more than 10 blocks to use it.
+  new MessageFormData().title("Confirm Selection").body(`Are you sure you want to unlock Wind Plunge? Press Sneak while falling more than 4 blocks to use it, or attack if you hold a custom sword, axe or spear.
 
 Current Level : ${exp}
 Required Level : 30`).button1("Confirm").button2("Cancel").show(player).then((r) => {
@@ -6090,11 +6085,11 @@ function parrySoundMenu(player) {
 }
 function resetSettings(player) {
   setDashControl(player, 0);
-  setSkillSwitchControl(player, 0);
+  setSkillSwitchControl(player, SKILL_SWITCH_CONTROL.DOUBLE_SNEAK);
   setParryControl(player, 0);
   setParrySound(player, 0);
   player.playSound("random.levelup");
-  player.sendMessage("\xA7aSettings reset. Dash: \xA7fDouble-tap Jump\xA7a, skill switch: \xA7fSneak\xA7a, parry: \xA7fSneak\xA7a, parry sound: \xA7fPhantasm");
+  player.sendMessage("\xA7aSettings reset. Dash: \xA7fDouble-tap Jump\xA7a, skill switch: \xA7fDouble Sneak\xA7a, parry: \xA7fSneak\xA7a, parry sound: \xA7fPhantasm");
   openSettings(player);
 }
 
@@ -6235,7 +6230,7 @@ function extraHealth(player) {
   });
 }
 function windPlunge(player) {
-  new ActionFormData4().title(guideTitle("Wind Plunging")).header("Wind Plunge Attack").divider().label("Sneak while falling more than 10 blocks above the ground. You hang in the air for a moment, then dive straight down.").label("Landing sends out a wind shockwave that deals 10 damage to everything within 6 blocks. You take no fall damage from a plunge.").divider().button("Back").show(player).then((r) => {
+  new ActionFormData4().title(guideTitle("Wind Plunging")).header("Wind Plunge Attack").divider().label("Sneak while falling more than 4 blocks above the ground. With a custom sword, axe or spear in hand, attack instead of sneaking. You hang in the air for a moment, then dive straight down.").label("Landing sends out a wind shockwave that deals 10 damage to everything within 6 blocks. You take no fall damage from a plunge.").divider().button("Back").show(player).then((r) => {
     if (r.selection == 0 || r.canceled) mechanicsList(player);
   });
 }
@@ -6245,7 +6240,7 @@ function dynamicLighting(player) {
   });
 }
 function legendaryItems(player) {
-  new ActionFormData4().title(guideTitle("Legendary Items")).header("Legendary Mechanics").divider().label("Legendary weapons and items can be complicated. Here is how to use them:").label("Attack: left-click (or tap Attack).\nSkill: Interact / right-click.\nSwitch skill: Sneak.").label("Use /setting to change how you switch skill: Sneak, Sneak + Attack, or Double Sneak.").label("Epic and Legendary melee weapons can parry. Press Sneak to block the next hit for a short moment. Use /setting to change the parry control or turn it off.").divider().button("Back").show(player).then((r) => {
+  new ActionFormData4().title(guideTitle("Legendary Items")).header("Legendary Mechanics").divider().label("Legendary weapons and items can be complicated. Here is how to use them:").label("Attack: left-click (or tap Attack).\nSkill: Interact / right-click.\nSwitch skill: Double Sneak.").label("Use /setting to change how you switch skill: Double Sneak (default), Sneak, or Sneak + Attack.").label("Every sword, axe and spear can parry, vanilla or Phantasm. Press Sneak to block the next hit for a short moment (0.3s, or 0.4s on Epic and Legendary weapons). Seiketsu can also parry with Interact. Use /setting to change the parry control or turn it off.").divider().button("Back").show(player).then((r) => {
     if (r.selection == 0 || r.canceled) mechanicsList(player);
   });
 }

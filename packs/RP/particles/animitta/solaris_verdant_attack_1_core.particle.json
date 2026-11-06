@@ -2,16 +2,13 @@
 	"format_version": "1.10.0",
 	"particle_effect": {
 		"description": {
-			"identifier": "ph:aura_slash_test_attack_2_core",
+			"identifier": "ph:solaris_verdant_attack_1_core",
 			"basic_render_parameters": {
 				"material": "particles_alpha",
-				"texture": "textures/particle/aura_slash_test/aura_slash_core_mirror"
+				"texture": "textures/particle/aura_slash/aura_slash_core"
 			}
 		},
 		"components": {
-			"minecraft:emitter_initialization": {
-				"creation_expression": "v.tint_r = v.core_r ?? 0.79; v.tint_g = v.core_g ?? 1.0; v.tint_b = v.core_b ?? 0.78;"
-			},
 			"minecraft:emitter_local_space": {
 				"position": true,
 				"rotation": true,
@@ -34,7 +31,7 @@
 				"max_lifetime": 0.367
 			},
 			"minecraft:particle_initial_spin": {
-				"rotation": 30
+				"rotation": -30
 			},
 			"minecraft:particle_initial_speed": 0.0001,
 			"minecraft:particle_motion_dynamic": {
@@ -77,9 +74,9 @@
 			},
 			"minecraft:particle_appearance_tinting": {
 				"color": [
-					"v.tint_r",
-					"v.tint_g",
-					"v.tint_b",
+					0.79,
+					1.0,
+					0.78,
 					1
 				]
 			}

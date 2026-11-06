@@ -36,7 +36,7 @@
 					}
 				]
 			},
-			"minecraft:rarity": "rare",
+			"minecraft:rarity": "epic",
 			"minecraft:digger": {
 				"use_efficiency": true,
 				"destroy_speeds": [

@@ -842,19 +842,38 @@
 					"effect": "forge_sweep_trail_gold",
 					"locator": "sweep_blade_tip"
 				},
-				"0.46": {
-					"effect": "forge_slash_gold",
-					"locator": "slash_center",
-					"pre_effect_script": "variable.slash_angle = 0;"
-				},
-				"0.51": {
-					"effect": "forge_slash_gold",
-					"locator": "slash_center",
-					"pre_effect_script": "variable.slash_angle = 120;"
-				},
+				"0.46": [
+					{
+						"effect": "forge_slash_gold",
+						"locator": "slash_center",
+						"pre_effect_script": "variable.slash_angle = 0;"
+					},
+					{
+						"effect": "forge_slash_gold_core",
+						"locator": "slash_center",
+						"pre_effect_script": "variable.slash_angle = 0;"
+					}
+				],
+				"0.51": [
+					{
+						"effect": "forge_slash_gold",
+						"locator": "slash_center",
+						"pre_effect_script": "variable.slash_angle = 120;"
+					},
+					{
+						"effect": "forge_slash_gold_core",
+						"locator": "slash_center",
+						"pre_effect_script": "variable.slash_angle = 120;"
+					}
+				],
 				"0.55": [
 					{
 						"effect": "forge_slash_gold",
+						"locator": "slash_center",
+						"pre_effect_script": "variable.slash_angle = 240;"
+					},
+					{
+						"effect": "forge_slash_gold_core",
 						"locator": "slash_center",
 						"pre_effect_script": "variable.slash_angle = 240;"
 					},
@@ -876,19 +895,38 @@
 					"effect": "forge_sweep_trail_plasma",
 					"locator": "sweep_blade_tip"
 				},
-				"0.46": {
-					"effect": "forge_slash_plasma",
-					"locator": "slash_center",
-					"pre_effect_script": "variable.slash_angle = 0;"
-				},
-				"0.51": {
-					"effect": "forge_slash_plasma",
-					"locator": "slash_center",
-					"pre_effect_script": "variable.slash_angle = 120;"
-				},
+				"0.46": [
+					{
+						"effect": "forge_slash_plasma",
+						"locator": "slash_center",
+						"pre_effect_script": "variable.slash_angle = 0;"
+					},
+					{
+						"effect": "forge_slash_plasma_core",
+						"locator": "slash_center",
+						"pre_effect_script": "variable.slash_angle = 0;"
+					}
+				],
+				"0.51": [
+					{
+						"effect": "forge_slash_plasma",
+						"locator": "slash_center",
+						"pre_effect_script": "variable.slash_angle = 120;"
+					},
+					{
+						"effect": "forge_slash_plasma_core",
+						"locator": "slash_center",
+						"pre_effect_script": "variable.slash_angle = 120;"
+					}
+				],
 				"0.55": [
 					{
 						"effect": "forge_slash_plasma",
+						"locator": "slash_center",
+						"pre_effect_script": "variable.slash_angle = 240;"
+					},
+					{
+						"effect": "forge_slash_plasma_core",
 						"locator": "slash_center",
 						"pre_effect_script": "variable.slash_angle = 240;"
 					},
@@ -910,19 +948,38 @@
 					"effect": "forge_sweep_trail_amber",
 					"locator": "sweep_blade_tip"
 				},
-				"0.46": {
-					"effect": "forge_slash_amber",
-					"locator": "slash_center",
-					"pre_effect_script": "variable.slash_angle = 0;"
-				},
-				"0.51": {
-					"effect": "forge_slash_amber",
-					"locator": "slash_center",
-					"pre_effect_script": "variable.slash_angle = 120;"
-				},
+				"0.46": [
+					{
+						"effect": "forge_slash_amber",
+						"locator": "slash_center",
+						"pre_effect_script": "variable.slash_angle = 0;"
+					},
+					{
+						"effect": "forge_slash_amber_core",
+						"locator": "slash_center",
+						"pre_effect_script": "variable.slash_angle = 0;"
+					}
+				],
+				"0.51": [
+					{
+						"effect": "forge_slash_amber",
+						"locator": "slash_center",
+						"pre_effect_script": "variable.slash_angle = 120;"
+					},
+					{
+						"effect": "forge_slash_amber_core",
+						"locator": "slash_center",
+						"pre_effect_script": "variable.slash_angle = 120;"
+					}
+				],
 				"0.55": [
 					{
 						"effect": "forge_slash_amber",
+						"locator": "slash_center",
+						"pre_effect_script": "variable.slash_angle = 240;"
+					},
+					{
+						"effect": "forge_slash_amber_core",
 						"locator": "slash_center",
 						"pre_effect_script": "variable.slash_angle = 240;"
 					},

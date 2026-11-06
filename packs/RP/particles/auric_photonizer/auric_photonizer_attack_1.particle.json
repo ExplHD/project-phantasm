@@ -2,24 +2,13 @@
 	"format_version": "1.10.0",
 	"particle_effect": {
 		"description": {
-			"identifier": "ph:aura_slash_test_attack_1",
+			"identifier": "ph:auric_photonizer_attack_1",
 			"basic_render_parameters": {
 				"material": "particles_add",
-				"texture": "textures/particle/aura_slash_test/aura_slash_aura"
-			}
-		},
-		"events": {
-			"spawn_core": {
-				"particle_effect": {
-					"effect": "ph:aura_slash_test_attack_1_core",
-					"type": "emitter_bound"
-				}
+				"texture": "textures/particle/aura_slash/aura_slash_aura"
 			}
 		},
 		"components": {
-			"minecraft:emitter_initialization": {
-				"creation_expression": "v.tint_r = v.aura_r ?? 0.4; v.tint_g = v.aura_g ?? 1.0; v.tint_b = v.aura_b ?? 0.5;"
-			},
 			"minecraft:emitter_local_space": {
 				"position": true,
 				"rotation": true,
@@ -85,14 +74,22 @@
 			},
 			"minecraft:particle_appearance_tinting": {
 				"color": [
-					"v.tint_r",
-					"v.tint_g",
-					"v.tint_b",
+					1.0,
+					0.72,
+					0.18,
 					1
 				]
 			},
 			"minecraft:emitter_lifetime_events": {
 				"creation_event": "spawn_core"
+			}
+		},
+		"events": {
+			"spawn_core": {
+				"particle_effect": {
+					"effect": "ph:auric_photonizer_attack_1_core",
+					"type": "emitter_bound"
+				}
 			}
 		}
 	}

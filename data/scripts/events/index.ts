@@ -11,7 +11,7 @@ import { onDummyHurt } from '../systems/combatDummy'
 import { onTitanCoreHurt, onTitanCoreDie } from '../features/titan_core/manager'
 import { onSentinelSpawn, onSentinelHurt, onSentinelHit, onSentinelDie } from '../features/ancient_sentinel/manager'
 import { clearPlayerLighting, onDynamicLighting } from '../systems/lighting'
-import { windPlungeRuntime, tickPlunges, onPlungeFallHurt, clearPlungeState, customWeaponParry, dashRuntime, vanillaBlockInteractFix, parryRuntime, startBetterMending, javaSaturationRegen, healthBarRuntime, specifiedFamilityAndSpeed, onAbsorptionAdded, onAbsorptionHurt, syncAbsorption, clearAbsorption } from '../systems/movement'
+import { windPlungeRuntime, isPlunging, tickPlunges, onPlungeFallHurt, clearPlungeState, weaponParry, dashRuntime, vanillaBlockInteractFix, startBetterMending, javaSaturationRegen, healthBarRuntime, specifiedFamilityAndSpeed, onAbsorptionAdded, onAbsorptionHurt, syncAbsorption, clearAbsorption } from '../systems/movement'
 import { onControlButtonInput, onControlSwingInput, clearControlState, getParrySound, PARRY_SOUND, type ControlAction } from '../systems/controls'
 import { weapons, switchHeldWeaponSkill } from '../features/weapons/weapons'
 import { onMaceHurt, trackMaceFall } from '../features/mace/detection'
@@ -240,19 +240,20 @@ function runControlActions(player: Player, actions: ControlAction[], plunged: bo
     for (const action of actions) {
         if (action === "dash" || action === "airDash") dashRuntime(player);
         else if (action === "switchSkill") switchHeldWeaponSkill(player);
-        else if (action === "parry" && !plunged) customWeaponParry(player);
+        else if (action === "parry" && !plunged) weaponParry(player);
     }
 }
 
 world.afterEvents.playerSwingStart.subscribe(({ player, heldItemStack, swingSource }) => {
+    const attacked = swingSource == "Mine" || swingSource == "Attack";
+    if (attacked && (isPlunging(player) || windPlungeRuntime(player, "attack"))) return;
+
     runControlActions(player, onControlSwingInput(player, swingSource));
     onShieldSwing(player);
+    if (!attacked) return;
 
     for (const weapon of weapons) {
-        if (heldItemStack?.typeId === weapon.itemId) {
-			if (swingSource != "Mine" && swingSource != "Attack") return;
-            weapon.handleAttack(player);
-        }
+        if (heldItemStack?.typeId === weapon.itemId) weapon.handleAttack(player);
     }
 })
 
@@ -260,14 +261,13 @@ world.afterEvents.playerButtonInput.subscribe(({ player: source, button, newButt
     if (button == "Sneak") onShieldSneak(source, newButtonState == "Pressed");
     if (newButtonState != "Pressed") return;
 
-    const plunged = button == "Sneak" && windPlungeRuntime(source);
+    const plunged = button == "Sneak" && windPlungeRuntime(source, "sneak");
 
     runControlActions(source, onControlButtonInput(source, button), plunged);
 })
 
 world.afterEvents.itemUse.subscribe(({ source, itemStack }) => {
     if (!itemStack) return;
-    parryRuntime(source, itemStack);
     startBetterMending(source, itemStack);
 
     for (const skill of weaponSkills) {

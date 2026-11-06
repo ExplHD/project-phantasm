@@ -88,7 +88,7 @@ function plungeUnlock(player: Player): void {
     const plungeUnlock = player.getDynamicProperty("ph:plunge_unlock") ?? false;
     new MessageFormData()
         .title("Confirm Selection")
-        .body(`Are you sure you want to unlock Wind Plunge? Press Sneak while falling more than 10 blocks to use it.\n\nCurrent Level : ${exp}\nRequired Level : 30`)
+        .body(`Are you sure you want to unlock Wind Plunge? Press Sneak while falling more than 4 blocks to use it, or attack if you hold a custom sword, axe or spear.\n\nCurrent Level : ${exp}\nRequired Level : 30`)
         .button1("Confirm")
         .button2("Cancel")
         .show(player).then(r => {

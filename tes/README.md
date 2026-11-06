@@ -58,15 +58,8 @@ python3 tes/build.py ~/pixelfx
 
 Butuh Node 18+, Pillow, numpy, sama checkout pixelfx. Kalau `src/fx/melee/aura-slash.js` belum ada di checkout, script-nya copy dari `source/`. Edit effect-nya di checkout pixelfx, terus copy balik ke `source/`.
 
-## Tes sementara di Solaris Verdant
+## Udah masuk pack
 
-Slash attack Solaris Verdant lagi di-swap ke aura slash buat dites. File lama nggak diubah, yang diubah cuma alias di `packs/RP/entity/player.entity.json`:
+Semua slash pakai aura slash sekarang. Texture-nya di `packs/RP/textures/particle/aura_slash/`, termasuk `*_reverse.png` (versi `_mirror` yang tiap frame-nya dibalik atas-bawah, buat attack 3 Supercharged Copper Axe sama Auric Photonizer).
 
-```json
-"solaris_verdant_attack_1": "ph:aura_slash_test_attack_1",
-"solaris_verdant_attack_2": "ph:aura_slash_test_attack_2",
-```
-
-File tesnya ada di `packs/RP/particles/aura_slash_test/` dan `packs/RP/textures/particle/aura_slash_test/`. Attack 2 pakai texture yang di-mirror, sama kayak slash lama. Layer aura nge-spawn layer core lewat creation event (`emitter_bound`), jadi satu alias cukup. Warnanya mint kayak tint lama.
-
-Buat balikin, ganti dua alias itu ke `ph:solaris_verdant_attack_1` dan `ph:solaris_verdant_attack_2`, terus hapus dua folder `aura_slash_test` tadi.
+Tiap slash punya dua file: `<id>.particle.json` (aura, `particles_add`) sama `<id>_core.particle.json` (core, `particles_alpha`). Warnanya di-bake per file, soalnya emitter anak nggak ikut dapet variable dari parent. Aura nge-spawn core lewat creation event (`emitter_bound`), jadi animasi cukup manggil satu alias. Pengecualian Forge Trooper: slash-nya butuh `variable.slash_angle` dari `pre_effect_script`, jadi core-nya dipanggil sendiri di animasi (`forge_slash_<varian>_core`).

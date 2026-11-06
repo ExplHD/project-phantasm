@@ -51,10 +51,10 @@ export const PARRY_CONTROL_NAMES: string[] = [
 ]
 
 export const PARRY_CONTROL_HINTS: string[] = [
-    "§aSneak §7- Press Sneak while holding an Epic or Legendary weapon.",
-    "§aSneak + Attack §7- Attack while sneaking (or right after tapping Sneak) with an Epic or Legendary weapon.",
-    "§aDouble Sneak §7- Press Sneak twice quickly while holding an Epic or Legendary weapon.",
-    "§aDisabled §7- Epic and Legendary weapons never parry from Sneak."
+    "§aSneak §7- Press Sneak while holding a sword, axe or spear.",
+    "§aSneak + Attack §7- Attack while sneaking (or right after tapping Sneak) with a sword, axe or spear.",
+    "§aDouble Sneak §7- Press Sneak twice quickly while holding a sword, axe or spear.",
+    "§aDisabled §7- Swords, axes and spears never parry from Sneak."
 ]
 
 export const PARRY_SOUND = {
@@ -96,7 +96,7 @@ function getState(player: Player): ControlState {
     if (existing) return existing;
     const state: ControlState = {
         dash: readControl(player, "ph:dash_control", DASH_CONTROL_NAMES.length),
-        skill: readControl(player, "ph:skill_switch_control", SKILL_SWITCH_CONTROL_NAMES.length),
+        skill: readControl(player, "ph:skill_switch_control", SKILL_SWITCH_CONTROL_NAMES.length, SKILL_SWITCH_CONTROL.DOUBLE_SNEAK),
         parry: readControl(player, "ph:parry_control", PARRY_CONTROL_NAMES.length),
         parrySound: readControl(player, "ph:parry_sound", PARRY_SOUND_NAMES.length),
         jumpAt: -Infinity,
@@ -106,9 +106,10 @@ function getState(player: Player): ControlState {
     return state;
 }
 
-function readControl(player: Player, property: string, length: number): number {
-    const stored = Number(player.getDynamicProperty(property));
-    return stored >= 0 && stored < length ? stored : 0;
+function readControl(player: Player, property: string, length: number, fallback: number = 0): number {
+    const stored = player.getDynamicProperty(property);
+    if (typeof stored !== "number") return fallback;
+    return stored >= 0 && stored < length ? stored : fallback;
 }
 
 export function getDashControl(player: Player): number {
@@ -192,7 +193,6 @@ export function onControlButtonInput(player: Player, button: string): ControlAct
         actions.push("parry");
     }
 
-    // a used double sneak must not chain into the next press
     const usedDoubleSneak = doubleTapped && (
         (state.skill == SKILL_SWITCH_CONTROL.DOUBLE_SNEAK && actions.includes("switchSkill")) ||
         (state.parry == PARRY_CONTROL.DOUBLE_SNEAK && actions.includes("parry"))
@@ -207,7 +207,6 @@ export function onControlSwingInput(player: Player, swingSource: string): Contro
 
     const state = getState(player);
     const actions: ControlAction[] = [];
-    // holding Sneak counts every attack, a quick Sneak tap counts for COMBO_WINDOW
     if (!player.isSneaking && elapsed(Date.now(), state.sneakAt) > COMBO_WINDOW) return actions;
 
     if (state.skill == SKILL_SWITCH_CONTROL.SNEAK_ATTACK) actions.push("switchSkill");
