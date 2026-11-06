@@ -2,6 +2,12 @@ import { system, Player, Entity, Dimension, type Vector3 } from "@minecraft/serv
 import { type StrikeStats, strikeStats, strikeEntity, canWeaponHit, EXCLUDED_TYPES, EXCLUDED_FAMILIES } from "./damage";
 import { isLoadedLocation } from "../../core/location";
 
+export interface ProjectileBlast {
+	readonly radius: number;
+	readonly damage: number;
+	readonly knockback?: number;
+}
+
 export interface ProjectileConfig {
 	readonly damage: number;
 	readonly speed: number;
@@ -11,11 +17,13 @@ export interface ProjectileConfig {
 	readonly lockCone?: number;
 	readonly spread?: number[];
 	readonly origin?: { readonly forward?: number; readonly side?: number; readonly up?: number };
-	readonly core: string;
+	readonly core?: string;
 	readonly trail?: string;
 	readonly impact?: string[];
 	readonly impactSound?: string;
+	readonly impactPitch?: number;
 	readonly knockback?: number;
+	readonly blast?: ProjectileBlast;
 }
 
 interface Bolt {
@@ -67,7 +75,7 @@ function bodyCenter(entity: Entity): Vector3 {
 }
 
 function lockTarget(owner: Player, eye: Vector3, view: Vector3, range: number, coneDegrees: number): Entity | undefined {
-	if (!isLoadedLocation(owner.dimension, eye)) return undefined;
+	if (coneDegrees <= 0 || !isLoadedLocation(owner.dimension, eye)) return undefined;
 	const minDot = Math.cos((coneDegrees * Math.PI) / 180);
 	let best: Entity | undefined;
 	let bestDot = minDot;
@@ -201,7 +209,7 @@ function advance(bolt: Bolt): boolean {
 		bolt.pos = along(bolt, stepLength);
 		bolt.travelled += stepLength;
 		if (!isLoadedLocation(dimension, bolt.pos)) return false;
-		dimension.spawnParticle(config.core, bolt.pos);
+		if (config.core) dimension.spawnParticle(config.core, bolt.pos);
 		if (bolt.travelled >= config.range) {
 			impact(bolt, bolt.pos);
 			return false;
@@ -219,5 +227,17 @@ function along(bolt: Bolt, distance: number): Vector3 {
 function impact(bolt: Bolt, at: Vector3): void {
 	if (!isLoadedLocation(bolt.dimension, at)) return;
 	for (const particle of bolt.config.impact ?? []) bolt.dimension.spawnParticle(particle, at);
-	if (bolt.config.impactSound) bolt.dimension.playSound(bolt.config.impactSound, at, { volume: 0.6, pitch: 1.2 + Math.random() * 0.4 });
+	if (bolt.config.impactSound) bolt.dimension.playSound(bolt.config.impactSound, at, { volume: 0.6, pitch: (bolt.config.impactPitch ?? 1.2) + Math.random() * 0.4 });
+	if (bolt.config.blast) detonate(bolt, at, bolt.config.blast);
+}
+
+function detonate(bolt: Bolt, at: Vector3, blast: ProjectileBlast): void {
+	const stats = { ...bolt.stats, damage: bolt.stats.damage * (blast.damage / bolt.config.damage) };
+	const targets = bolt.dimension.getEntities({ location: at, maxDistance: blast.radius, excludeTypes: EXCLUDED_TYPES, excludeFamilies: EXCLUDED_FAMILIES });
+	for (const entity of targets) {
+		if (!bolt.owner.isValid) return;
+		if (bolt.hit.has(entity.id) || !canWeaponHit(bolt.owner, entity)) continue;
+		const push = normalize({ x: entity.location.x - at.x, y: 0, z: entity.location.z - at.z });
+		strikeEntity(bolt.owner, entity, stats, push, blast.knockback ?? 1);
+	}
 }

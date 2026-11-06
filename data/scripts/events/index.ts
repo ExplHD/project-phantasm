@@ -20,6 +20,8 @@ import { checkBlessingMilestones, onBlessingHurt, forgetWard } from '../systems/
 import { onTrooperHurt, tickTroopers, onTrooperDie, onTrooperRemove } from '../features/forge_trooper/manager'
 import { sweepSentinels } from '../features/ancient_sentinel/manager'
 import { onPolarisItemUse, cancelPolarisCharge } from '../features/polaris_power/manager'
+import { onBlasterStartUse, onBlasterStopUse, clearBlasterState, tickBlasters } from '../features/weapons/xeonniteBlaster'
+import { onShooterUse } from '../features/weapons/shooters'
 import { tickTitanRadiation } from '../features/titan_core/radiation'
 import { tickShields, onShieldHurt, onShieldEffectAdd, onShieldSneak, onShieldSwing, onShieldItemUse, clearShieldState } from '../features/shield/manager'
 import { tickTitanRidgeSites } from '../features/titan_core/sites'
@@ -269,6 +271,7 @@ world.afterEvents.playerButtonInput.subscribe(({ player: source, button, newButt
 world.afterEvents.itemUse.subscribe(({ source, itemStack }) => {
     if (!itemStack) return;
     startBetterMending(source, itemStack);
+    onShooterUse(source, itemStack);
 
     for (const skill of weaponSkills) {
         if (itemStack.typeId === skill.itemId) {
@@ -277,15 +280,21 @@ world.afterEvents.itemUse.subscribe(({ source, itemStack }) => {
     }
 })
 
-world.afterEvents.itemStartUse.subscribe(({ source }) => onShieldItemUse(source, true))
+world.afterEvents.itemStartUse.subscribe(({ itemStack, source }) => {
+    onShieldItemUse(source, true);
+    onBlasterStartUse(itemStack, source);
+})
 world.afterEvents.itemStopUse.subscribe(({ itemStack, source }) => {
     cancelPolarisCharge(itemStack, source);
     onShieldItemUse(source, false);
+    onBlasterStopUse(source);
 })
 world.afterEvents.itemReleaseUse.subscribe(({ itemStack, source }) => {
     cancelPolarisCharge(itemStack, source);
     onShieldItemUse(source, false);
+    onBlasterStopUse(source);
 })
+world.afterEvents.itemCompleteUse.subscribe(({ source }) => onBlasterStopUse(source))
 
 world.afterEvents.entityDie.subscribe(({ damageSource, deadEntity }) => {
     const killer = damageSource?.damagingEntity;
@@ -374,6 +383,7 @@ world.beforeEvents.playerLeave.subscribe(({ player }) => {
     clearPlungeState(player.id);
     clearAbsorption(player);
     clearShieldState(player.id);
+    clearBlasterState(player.id);
 });
 
 system.runInterval(() => {
@@ -388,6 +398,7 @@ system.runInterval(tickPlunges, 1);
 
 system.runInterval(tickTroopers, 4);
 system.runInterval(tickShields, 1);
+system.runInterval(tickBlasters, 1);
 system.runInterval(checkBlessingMilestones, 20);
 system.runInterval(tickTitanRadiation, 40);
 

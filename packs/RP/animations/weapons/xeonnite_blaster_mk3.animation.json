@@ -1,0 +1,210 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"animation.xeonnite_blaster_mk3.hold_fpp": {
+			"loop": true,
+			"bones": {
+				"rightArm": {
+					"rotation": [
+						-5,
+						45,
+						65
+					],
+					"position": [
+						0,
+						3,
+						0
+					]
+				},
+				"leftArm": {
+					"rotation": [
+						-95,
+						-160,
+						20
+					],
+					"position": [
+						-1,
+						-6,
+						17
+					]
+				}
+			}
+		},
+		"animation.xeonnite_blaster_mk3.hold": {
+			"loop": true,
+			"bones": {
+				"rightArm": {
+					"rotation": [
+						-35,
+						-10,
+						0
+					]
+				},
+				"leftArm": {
+					"rotation": [
+						-50,
+						40,
+						0
+					]
+				},
+				"weapon_root": {
+					"rotation": [
+						-25,
+						0,
+						0
+					]
+				}
+			}
+		},
+		"animation.xeonnite_blaster_mk3.aim_fpp": {
+			"loop": true,
+			"bones": {
+				"rightArm": {
+					"rotation": [
+						-5,
+						45,
+						65
+					],
+					"position": [
+						-9.5,
+						5.6,
+						"-8 - v.xeonnite_blaster_kick * 0.6"
+					]
+				},
+				"leftArm": {
+					"rotation": [
+						-95,
+						-160,
+						20
+					],
+					"position": [
+						-10.5,
+						-3.4,
+						"9 - v.xeonnite_blaster_kick * 0.6"
+					]
+				},
+				"back_chamber": {
+					"position": [
+						0,
+						"-v.xeonnite_blaster_kick * 6",
+						0
+					]
+				}
+			}
+		},
+		"animation.xeonnite_blaster_mk3.aim": {
+			"loop": true,
+			"override_previous_animation": true,
+			"bones": {
+				"rightArm": {
+					"rotation": [
+						"q.target_x_rotation - 90 - v.xeonnite_blaster_kick * 2",
+						"q.target_y_rotation - 5",
+						0
+					]
+				},
+				"leftArm": {
+					"rotation": [
+						"q.target_x_rotation - 90",
+						"q.target_y_rotation + 40",
+						0
+					]
+				},
+				"back_chamber": {
+					"position": [
+						0,
+						"-v.xeonnite_blaster_kick * 6",
+						0
+					]
+				}
+			}
+		},
+		"animation.xeonnite_blaster_mk3.missile_recoil": {
+			"animation_length": 0.4,
+			"bones": {
+				"rightArm": {
+					"rotation": {
+						"0.0": {
+							"post": [
+								0,
+								0,
+								0
+							],
+							"lerp_mode": "catmullrom"
+						},
+						"0.05": {
+							"post": [
+								-14,
+								0,
+								0
+							],
+							"lerp_mode": "catmullrom"
+						},
+						"0.4": {
+							"post": [
+								0,
+								0,
+								0
+							],
+							"lerp_mode": "catmullrom"
+						}
+					},
+					"position": {
+						"0.0": {
+							"post": [
+								0,
+								0,
+								0
+							],
+							"lerp_mode": "catmullrom"
+						},
+						"0.05": {
+							"post": [
+								0,
+								0.5,
+								1.5
+							],
+							"lerp_mode": "catmullrom"
+						},
+						"0.4": {
+							"post": [
+								0,
+								0,
+								0
+							],
+							"lerp_mode": "catmullrom"
+						}
+					}
+				},
+				"mag": {
+					"position": {
+						"0.0": {
+							"post": [
+								0,
+								0,
+								0
+							],
+							"lerp_mode": "catmullrom"
+						},
+						"0.05": {
+							"post": [
+								0,
+								1.2,
+								0
+							],
+							"lerp_mode": "catmullrom"
+						},
+						"0.4": {
+							"post": [
+								0,
+								0,
+								0
+							],
+							"lerp_mode": "catmullrom"
+						}
+					}
+				}
+			}
+		}
+	}
+}

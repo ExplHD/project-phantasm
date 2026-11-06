@@ -145,6 +145,17 @@
                 }
             ]
         },
+        "controller.render.xeonnite_blaster_mk3": {
+            "textures": [
+                "texture.xeonnite_blaster_mk3"
+            ],
+            "geometry": "geometry.xeonnite_blaster_mk3",
+            "materials": [
+                {
+                    "*": "material.default"
+                }
+            ]
+        },
         "controller.render.item_outline": {
             "geometry": "geometry.outline",
             "ignore_lighting": true,

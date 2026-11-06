@@ -57,6 +57,14 @@
 			],
 			"subtitle": "subtitles.weapons.gunshot"
 		},
+		"weapon_slash.ump_shot": {
+			"category": "player",
+			"max_distance": 20,
+			"sounds": [
+				"sounds/weapons/ump_shot"
+			],
+			"subtitle": "subtitles.weapons.gunshot"
+		},
 		"custom_sfx.animirra_summon": {
 			"sounds": [
 				"sounds/custom_sfx/animirra_summon"

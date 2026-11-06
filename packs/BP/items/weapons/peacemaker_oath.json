@@ -8,14 +8,6 @@
 			}
 		},
 		"components": {
-			"ph:custom_shooter": {
-				"projectile_entity": "ph:peacemaker_oath_projectile",
-				"sound_effect": "weapon_slash.glock_shot",
-				"animations": "animation.peacemaker_oath",
-				"cost_type": "auric_charge",
-				"cost_value": 1,
-				"animation": "animation.peacemaker_oath.fire"
-			},
 			"minecraft:durability": {
 				"max_durability": 1900
 			},

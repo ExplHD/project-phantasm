@@ -1,0 +1,22 @@
+{
+	"format_version": "1.21.0",
+	"minecraft:attachable": {
+		"description": {
+			"identifier": "ph:xeonnite_blaster_mk3",
+			"materials": {
+				"default": "entity_alphatest",
+				"enchanted": "entity_alphatest_glint"
+			},
+			"textures": {
+				"default": "textures/3ds/xeonnite_blaster_mk3",
+				"enchanted": "textures/misc/enchanted_item_glint"
+			},
+			"geometry": {
+				"default": "geometry.xeonnite_blaster_mk3"
+			},
+			"render_controllers": [
+				"controller.render.item_default"
+			]
+		}
+	}
+}

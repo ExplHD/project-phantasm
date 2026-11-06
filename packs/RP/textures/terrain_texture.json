@@ -19,6 +19,9 @@
 		"ph_peacemaker_oath_3d": {
 			"textures": "textures/3ds/peacemaker_oath"
 		},
+		"ph_xeonnite_blaster_mk3_3d": {
+			"textures": "textures/3ds/xeonnite_blaster_mk3"
+		},
 		"ph_seiketsu_3d": {
 			"textures": "textures/3ds/seiketsu"
 		},

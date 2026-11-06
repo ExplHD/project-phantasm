@@ -8,15 +8,6 @@
             }
         },
         "components": {
-            "ph:custom_shooter": {
-                "projectile_entity": "ph:player_land_crystal_laser",
-                "sound_effect": "weapon_slash.magic_staff",
-                "cost_type": "durability",
-                "cost_value": 1,
-                "alt_projectile_event": "oceanic_attack",
-                "alt_cost_type": "durability",
-                "alt_cost_value": 1
-            },
             "minecraft:block_placer": {
                 "block": "ph:nature_staff",
                 "replace_block_item": true

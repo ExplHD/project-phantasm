@@ -6,7 +6,6 @@ execute as @e[family=crystal,tag=!locked] at @s run tp @s ~~~ facing @e[c=1,r=16
 execute as @e[family=copper_mechanical,tag=locked] at @s run tp @s ~~~ facing @e[name=LOCK_DIRECTION,type=armor_stand,c=1]
 execute at @e[type=ph:spectric_laser] run particle ph:spectric_laser_small ^1^^
 execute at @e[type=ph:spectric_laser] run particle ph:spectric_laser_small ^-1^^
-execute at @e[type=ph:peacemaker_oath_projectile] run particle ph:peacemaker_oath_flash ~~~
 execute at @e[type=ph:plasmoid_drone_projectile] run particle ph:plasmoid_drone_trail ~~~
 
 # Batch Sound Cooldown

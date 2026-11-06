@@ -102,6 +102,7 @@ const RARITY = new Map<string, ItemRarity>([
     ["ph:xeon_plasm_spear", "epic"],
     ["ph:xeon_plasm_sword", "epic"],
     ["ph:xeon_plasma", "rare"],
+    ["ph:xeonnite_blaster_mk3", "epic"],
     ["ph:xeonnite_cube", "rare"],
     ["ph:xeonnite_shard", "uncommon"],
     ["minecraft:creeper_banner_pattern", "uncommon"],

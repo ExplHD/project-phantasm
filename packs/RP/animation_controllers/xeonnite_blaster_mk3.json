@@ -1,0 +1,30 @@
+{
+	"format_version": "1.10.0",
+	"animation_controllers": {
+		"controller.animation.xeonnite_blaster_mk3": {
+			"initial_state": "hold",
+			"states": {
+				"hold": {
+					"animations": [
+						{"xeonnite_blaster_mk3_hold_fpp": "v.is_first_person"},
+						{"xeonnite_blaster_mk3_hold": "!v.is_first_person"}
+					],
+					"blend_transition": 0.15,
+					"transitions": [
+						{"aim": "q.is_using_item"}
+					]
+				},
+				"aim": {
+					"animations": [
+						{"xeonnite_blaster_mk3_aim_fpp": "v.is_first_person"},
+						{"xeonnite_blaster_mk3_aim": "!v.is_first_person"}
+					],
+					"blend_transition": 0.12,
+					"transitions": [
+						{"hold": "!q.is_using_item"}
+					]
+				}
+			}
+		}
+	}
+}
