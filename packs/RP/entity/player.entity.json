@@ -25,6 +25,7 @@
                 "thunder_gale": "textures/none",
                 "seiketsu": "textures/none",
                 "scimitar": "textures/none",
+                "rupture_blade": "textures/none",
                 "xeonnite_blaster_mk3": "textures/none"
             },
             "geometry": {
@@ -42,6 +43,7 @@
                 "thunder_gale": "geometry.thunder_gale",
                 "seiketsu": "geometry.seiketsu",
                 "scimitar": "geometry.scimitar",
+                "rupture_blade": "geometry.rupture_blade",
                 "xeonnite_blaster_mk3": "geometry.xeonnite_blaster_mk3"
             },
             "particle_effects": {
@@ -82,7 +84,12 @@
                 "scimitar_slash": "ph:scimitar_slash",
                 "scimitar_slash_mirror": "ph:scimitar_slash_mirror",
                 "scimitar_thrust": "ph:scimitar_thrust",
-                "scimitar_spin": "ph:scimitar_spin"
+                "scimitar_spin": "ph:scimitar_spin",
+                "rupture_blade_attack_1": "ph:rupture_blade_attack_1",
+                "rupture_blade_attack_2": "ph:rupture_blade_attack_2",
+                "rupture_blade_attack_3": "ph:rupture_blade_attack_3",
+                "rupture_blade_trail": "ph:rupture_blade_trail",
+                "rupture_blade_sparks": "ph:rupture_blade_sparks"
             },
             "scripts": {
                 "scale": "0.9375",
@@ -105,6 +112,7 @@
                     "variable.peacemaker_oath": "public",
                     "variable.thunder_gale": "public",
                     "variable.seiketsu": "public",
+                    "variable.rupture_blade": "public",
                     "variable.xeonnite_blaster_mk3": "public"
                 },
                 "initialize": [
@@ -197,6 +205,7 @@
                     "variable.peacemaker_oath = query.get_equipped_item_name(0) == 'peacemaker_oath';",
                     "variable.thunder_gale = query.get_equipped_item_name(0) == 'thunder_gale';",
                     "variable.seiketsu = query.get_equipped_item_name(0) == 'seiketsu';",
+                    "variable.rupture_blade = query.get_equipped_item_name(0) == 'rupture_blade';",
                     "variable.scimitar = query.get_equipped_item_name(0) == 'scimitar' || query.get_equipped_item_name(0) == 'scimitar_2';",
                     "variable.scimitar_off_hand = query.get_equipped_item_name(1) == 'scimitar' || query.get_equipped_item_name(1) == 'scimitar_2';",
                     "variable.xeonnite_blaster_mk3 = query.get_equipped_item_name(0) == 'xeonnite_blaster_mk3';",
@@ -246,6 +255,9 @@
                     },
                     {
                         "seiketsu_fpp": "variable.seiketsu&&variable.is_first_person"
+                    },
+                    {
+                        "rupture_blade_fpp": "variable.rupture_blade&&variable.is_first_person"
                     },
                     {
                         "scimitar_fpp": "variable.scimitar&&variable.is_first_person"
@@ -352,6 +364,7 @@
                 "peacemaker_oath_fire": "animation.peacemaker_oath.fire",
                 "seiketsu_scale": "animation.seiketsu_scale",
                 "seiketsu_fpp": "animation.weapon.fpp_1",
+                "rupture_blade_fpp": "animation.weapon.fpp_1",
                 "scimitar_fpp": "animation.weapon.fpp_1",
                 "scimitar_off_hand_fpp": "animation.weapon.fpp_1_off_hand",
                 "xeonnite_blaster_mk3": "controller.animation.xeonnite_blaster_mk3",
@@ -414,6 +427,9 @@
                 },
                 {
                     "controller.render.scimitar": "variable.scimitar"
+                },
+                {
+                    "controller.render.rupture_blade": "variable.rupture_blade"
                 },
                 {
                     "controller.render.xeonnite_blaster_mk3": "variable.xeonnite_blaster_mk3"

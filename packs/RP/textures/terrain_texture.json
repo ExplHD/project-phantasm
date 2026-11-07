@@ -25,6 +25,9 @@
 		"ph_seiketsu_3d": {
 			"textures": "textures/3ds/seiketsu"
 		},
+		"ph_rupture_blade_3d": {
+			"textures": "textures/3ds/rupture_blade"
+		},
 		"ph_spectric_bow_3d": {
 			"textures": "textures/3ds/spectric_bow"
 		},

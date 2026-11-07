@@ -59,7 +59,7 @@ world.beforeEvents.entityHurt.subscribe((acc) => {
             const parrySound = getParrySound(player) === PARRY_SOUND.LUNA ? "weapon_slash.parry_success" : "weapon_slash.slash_clash";
             hurtEntity.dimension.playSound(parrySound, hurtEntity.location);
             hurtEntity.removeTag("parried");
-            if (mainItem?.typeId === "ph:seiketsu") {
+            if (mainItem?.typeId === "ph:seiketsu" || mainItem?.typeId === "ph:rupture_blade") {
                 applyDurabilityDamage(player, { damage: 1 });
                 return;
             }

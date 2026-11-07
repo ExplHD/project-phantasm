@@ -61,7 +61,8 @@ const objectives: string[] = [
     "seiketsu_atk",
     "scimitar_atk",
     "scimitar_dual_atk",
-    "scimitar_dual_charge"
+    "scimitar_dual_charge",
+    "rupture_blade_atk"
 ]
 
 system.beforeEvents.startup.subscribe((initEvent) => {

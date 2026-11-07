@@ -134,6 +134,17 @@
                 ]
             }
         },
+        "controller.render.rupture_blade": {
+            "textures": [
+                "texture.rupture_blade"
+            ],
+            "geometry": "geometry.rupture_blade",
+            "materials": [
+                {
+                    "*": "material.default"
+                }
+            ]
+        },
         "controller.render.seiketsu": {
             "textures": [
                 "texture.seiketsu"

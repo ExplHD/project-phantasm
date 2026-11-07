@@ -199,7 +199,31 @@ const scimitarDual = SCIMITARS.map(id => new WeaponHandler(id, "scimitar_dual_at
     }
 }))
 
-export const weapons = [solarisVerdant, superchargedCopperAxe, prismWeaver, auricPhotonizer, theBleedingSpire, seiketsu, ...scimitarSingle, ...scimitarDual];
+const ruptureBlade = new WeaponHandler("ph:rupture_blade", "rupture_blade_atk", [12, 12, 12, 12], [
+    { delay: 4, damage: 18, radius: 4, animation: "animation.rupture_blade.attack_1", sound: "weapon_slash.slash_heavy" },
+    { delay: 4, damage: 18, radius: 4, animation: "animation.rupture_blade.attack_2", sound: "weapon_slash.slash_heavy" },
+    { delay: 8, damage: 19, radius: 4, animation: "animation.rupture_blade.attack_3", sound: "weapon_slash.slash_heavy" },
+    {
+        delay: 3, damage: 19, radius: 4, animation: "animation.rupture_blade.attack_4", sound: "weapon_slash.slash_heavy", action: new CommandHandler([
+            {
+                delay: 5, action: (src) => {
+                    src.dimension.playSound("weapon_slash.slash_heavy", src.location);
+                    src.dimension.spawnParticle("minecraft:large_explosion", src.location);
+                    applyCustomDamage(src, 19, 4);
+                }
+            },
+            {
+                delay: 2, action: (src) => {
+                    src.dimension.playSound("weapon_slash.slash_heavy", src.location);
+                    src.dimension.spawnParticle("minecraft:large_explosion", src.location);
+                    applyCustomDamage(src, 19, 4);
+                }
+            }
+        ])
+    }
+])
+
+export const weapons = [solarisVerdant, superchargedCopperAxe, prismWeaver, auricPhotonizer, theBleedingSpire, seiketsu, ...scimitarSingle, ...scimitarDual, ruptureBlade];
 export const switcherSkills = [solarisVerdantSS, superchargedCopperAxeSS, prismWeaverSS, auricPhotonizerSS, theBleedingSpireSS];
 
 const switcherByItemId = new Map<string, (typeof switcherSkills)[number]>(

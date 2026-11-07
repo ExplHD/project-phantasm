@@ -13,6 +13,7 @@ export default function guideWeapons(player: Player): void {
 		.button("§5Cruxshaper", "textures/items/weapons/cruxshaper")
 		.button("§5Nature Staff", "textures/items/weapons/nature_staff")
 		.button("§5Peacemaker Oath", "textures/items/weapons/peacemaker_oath")
+		.button("§5Rupture Blade")
 		.button("§5Seiketsu", "textures/items/weapons/seiketsu")
 		.button("§5Spectric Bow", "textures/items/weapons/spectric_bow")
 		.button("§5Thunder Gale", "textures/items/weapons/thunder_gale")
@@ -23,21 +24,22 @@ export default function guideWeapons(player: Player): void {
 		.button("§pThe Bleeding Spire", "textures/items/weapons/the_bleeding_spire")
 		.button("Back")
 		.show(player).then(r => {
-			if (r.canceled || r.selection == 14) mainGuideScreen(player);
+			if (r.canceled || r.selection == 15) mainGuideScreen(player);
 			if (r.selection == 0) prismaticTools(player);
 			if (r.selection == 1) xeonPlasmTools(player);
 			if (r.selection == 2) chargedCopperAxe(player);
 			if (r.selection == 3) cruxshaper(player);
 			if (r.selection == 4) natureStaff(player);
 			if (r.selection == 5) peacemakerOath(player);
-			if (r.selection == 6) seiketsu(player);
-			if (r.selection == 7) spectricBow(player);
-			if (r.selection == 8) thunderGale(player);
-			if (r.selection == 9) animitta(player);
-			if (r.selection == 10) auricPhotonizer(player);
-			if (r.selection == 11) prismWeaver(player);
-			if (r.selection == 12) superchargedCopperAxe(player);
-			if (r.selection == 13) theBleedingSpire(player);
+			if (r.selection == 6) ruptureBlade(player);
+			if (r.selection == 7) seiketsu(player);
+			if (r.selection == 8) spectricBow(player);
+			if (r.selection == 9) thunderGale(player);
+			if (r.selection == 10) animitta(player);
+			if (r.selection == 11) auricPhotonizer(player);
+			if (r.selection == 12) prismWeaver(player);
+			if (r.selection == 13) superchargedCopperAxe(player);
+			if (r.selection == 14) theBleedingSpire(player);
 		})
 }
 
@@ -108,6 +110,17 @@ function peacemakerOath(player: Player): void {
 		.label("A pistol that fires Auric Charges. High damage and high attack speed.")
 		.label("It has no unique skill or passive because it is already strong, especially with the Auric Proton accessory.")
 		.label("Find it in Trial Chambers, same as the Auric Proton.")
+		.button("Back")
+		.show(player).then(r => {
+			if (r.canceled || r.selection == 0) guideWeapons(player);
+		})
+}
+
+function ruptureBlade(player: Player): void {
+	new ActionFormData()
+		.title(guideTitle("Rupture Blade"))
+		.label("A heavy sword that swings like the Supercharged Copper Axe. The 4th hit of the combo strikes the area two more times.")
+		.label("Interact for a 700ms parry, or Sneak for the regular 400ms one. Each parry costs 1 durability.")
 		.button("Back")
 		.show(player).then(r => {
 			if (r.canceled || r.selection == 0) guideWeapons(player);

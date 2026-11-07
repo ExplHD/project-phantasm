@@ -9,6 +9,7 @@ scoreboard players set @a[scores={delayatk=30..}] the_bleeding_spire_atk 0
 scoreboard players set @a[scores={delayatk=30..}] seiketsu_atk 0
 scoreboard players set @a[scores={delayatk=30..}] scimitar_atk 0
 scoreboard players set @a[scores={delayatk=30..}] scimitar_dual_atk 0
+scoreboard players set @a[scores={delayatk=30..}] rupture_blade_atk 0
 scoreboard players add @a sectick 1
 scoreboard players set @a[scores={sectick=20..}] sectick 0
 execute at @a[scores={sectick=19..}] run function weapons/weapons_skill
