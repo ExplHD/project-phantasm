@@ -1,0 +1,57 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"animation.auric_apex.hold_fpp": {
+			"loop": true,
+			"bones": {
+				"rightArm": {
+					"rotation": [-5, 45, 65],
+					"position": [0, 3, "-v.auric_apex_kick * 1.4"]
+				},
+				"leftArm": {
+					"rotation": [-95, -160, 20],
+					"position": [-1, -6, "17 - v.auric_apex_kick * 1.4"]
+				}
+			}
+		},
+		"animation.auric_apex.hold": {
+			"loop": true,
+			"bones": {
+				"rightArm": {
+					"rotation": ["-35 - v.auric_apex_kick * 6", -10, 0]
+				},
+				"leftArm": {
+					"rotation": [-50, 40, 0]
+				},
+				"weapon_root": {
+					"rotation": [-25, 0, 0]
+				}
+			}
+		},
+		"animation.auric_apex.aim_fpp": {
+			"loop": true,
+			"bones": {
+				"rightArm": {
+					"rotation": [-5, 45, 65],
+					"position": [-9.5, 1.6, "-8 - v.auric_apex_kick * 1.4"]
+				},
+				"leftArm": {
+					"rotation": [-95, -160, 20],
+					"position": [-10.5, -3.4, "9 - v.auric_apex_kick * 1.4"]
+				}
+			}
+		},
+		"animation.auric_apex.aim": {
+			"loop": true,
+			"override_previous_animation": true,
+			"bones": {
+				"rightArm": {
+					"rotation": ["q.target_x_rotation - 90 - v.auric_apex_kick * 6", "q.target_y_rotation - 5", 0]
+				},
+				"leftArm": {
+					"rotation": ["q.target_x_rotation - 90", "q.target_y_rotation + 40", 0]
+				}
+			}
+		}
+	}
+}

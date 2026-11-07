@@ -65,6 +65,39 @@
 			],
 			"subtitle": "subtitles.weapons.gunshot"
 		},
+		"weapon_slash.auric_apex_fire": {
+			"category": "player",
+			"max_distance": 48,
+			"sounds": [
+				{
+					"name": "sounds/weapons/auric_apex_fire",
+					"volume": 1
+				}
+			],
+			"subtitle": "subtitles.weapons.railgun_fire"
+		},
+		"weapon_slash.auric_apex_charge": {
+			"category": "player",
+			"max_distance": 20,
+			"sounds": [
+				{
+					"name": "sounds/weapons/auric_apex_charge",
+					"volume": 0.8
+				}
+			],
+			"subtitle": "subtitles.weapons.railgun_charge"
+		},
+		"weapon_slash.auric_apex_ready": {
+			"category": "player",
+			"max_distance": 16,
+			"sounds": [
+				{
+					"name": "sounds/weapons/auric_apex_ready",
+					"volume": 0.7
+				}
+			],
+			"subtitle": "subtitles.weapons.railgun_charge"
+		},
 		"custom_sfx.animirra_summon": {
 			"sounds": [
 				"sounds/custom_sfx/animirra_summon"

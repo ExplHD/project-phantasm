@@ -1,0 +1,32 @@
+{
+	"id": "ph:peacemaker_oath",
+	"name": "Peacemaker Oath",
+	"type": "single",
+	"assets": false,
+	"mechanics": {
+		"projectile": {
+			"trail": "ph:peacemaker_oath_flash",
+			"impact": [
+				"ph:peacemaker_oath_hit_effect"
+			],
+			"damage": 28,
+			"speed": 2,
+			"range": 80,
+			"lockCone": 0,
+			"knockback": 0,
+			"blast": {
+				"radius": 2,
+				"damage": 28,
+				"knockback": 0
+			},
+			"origin": {
+				"forward": 0.6,
+				"side": 0,
+				"up": 0
+			}
+		},
+		"sound": "weapon_slash.glock_shot",
+		"chargeCost": 1,
+		"animation": "animation.peacemaker_oath.fire"
+	}
+}

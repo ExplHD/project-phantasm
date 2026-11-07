@@ -1,0 +1,92 @@
+{
+	"id": "ph:xeonnite_blaster_mk3",
+	"name": "Xeonnite Blaster MK.III",
+	"type": "auto",
+	"assets": false,
+	"mechanics": {
+		"shotCategory": "ph:xeonnite_shot",
+		"raiseTicks": 3,
+		"interval": 2,
+		"wear": 1,
+		"muzzle": {
+			"forward": 1.1,
+			"side": 0.04,
+			"up": -0.18
+		},
+		"muzzleParticle": "ph:xeonnite_blaster_muzzle",
+		"sound": {
+			"id": "weapon_slash.ump_shot",
+			"pitch": 1.7,
+			"pitchJitter": 0.2
+		},
+		"projectile": {
+			"core": "ph:xeonnite_plasmoid",
+			"trail": "ph:xeonnite_plasmoid_trail",
+			"impact": [
+				"ph:xeonnite_plasmoid_impact"
+			],
+			"impactSound": "random.fizz",
+			"impactPitch": 1.6,
+			"damage": 16,
+			"speed": 2.4,
+			"range": 40,
+			"lockCone": 4,
+			"knockback": 0.1,
+			"origin": {
+				"forward": 1.1,
+				"side": 0.04,
+				"up": -0.18
+			}
+		},
+		"heat": {
+			"objective": "xeonnite_heat",
+			"overheatObjective": "xeonnite_overheat",
+			"max": 100,
+			"perShot": 3,
+			"coolDelay": 10,
+			"coolRate": 1.5,
+			"overheatCoolRate": 1,
+			"steamInterval": 5
+		},
+		"altFire": {
+			"projectile": {
+				"core": "ph:xeonnite_missile",
+				"trail": "ph:xeonnite_missile_trail",
+				"impact": [
+					"ph:xeonnite_missile_blast",
+					"ph:xeonnite_missile_sparks",
+					"ph:xeonnite_missile_smoke"
+				],
+				"impactSound": "random.explode",
+				"impactPitch": 0.9,
+				"damage": 45,
+				"speed": 1.1,
+				"range": 48,
+				"homing": 5,
+				"lockCone": 18,
+				"knockback": 0.6,
+				"blast": {
+					"radius": 3.5,
+					"damage": 25,
+					"knockback": 1.2
+				},
+				"origin": {
+					"forward": 1.1,
+					"side": 0.04,
+					"up": -0.18
+				}
+			},
+			"chargeTicks": 16,
+			"chargeFxInterval": 4,
+			"chargeParticle": "ph:xeonnite_missile",
+			"interval": 50,
+			"wear": 5,
+			"sound": {
+				"id": "firework.launch",
+				"pitch": 0.8
+			},
+			"recoilAnimation": "animation.xeonnite_blaster_mk3.missile_recoil",
+			"shake": "0.2 0.15"
+		}
+	}
+}

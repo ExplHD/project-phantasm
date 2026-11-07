@@ -27,6 +27,7 @@ const RARITY = new Map<string, ItemRarity>([
     ["ph:astralium_shovel", "rare"],
     ["ph:astralium_spear", "rare"],
     ["ph:astralium_sword", "rare"],
+    ["ph:auric_apex", "epic"],
     ["ph:auric_charging_module", "rare"],
     ["ph:auric_communicator", "epic"],
     ["ph:auric_photonizer", "legendary"],

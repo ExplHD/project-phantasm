@@ -199,22 +199,22 @@ const scimitarDual = SCIMITARS.map(id => new WeaponHandler(id, "scimitar_dual_at
     }
 }))
 
-const ruptureBlade = new WeaponHandler("ph:rupture_blade", "rupture_blade_atk", [12, 12, 12, 12], [
-    { delay: 4, damage: 18, radius: 4, animation: "animation.rupture_blade.attack_1", sound: "weapon_slash.slash_heavy" },
-    { delay: 4, damage: 18, radius: 4, animation: "animation.rupture_blade.attack_2", sound: "weapon_slash.slash_heavy" },
-    { delay: 8, damage: 19, radius: 4, animation: "animation.rupture_blade.attack_3", sound: "weapon_slash.slash_heavy" },
+const ruptureBlade = new WeaponHandler("ph:rupture_blade", "rupture_blade_atk", [7, 7, 7, 10], [
+    { delay: 4, damage: 18, radius: 4, animation: "animation.rupture_blade.attack_1", sound: "weapon_slash.slash_medium" },
+    { delay: 4, damage: 18, radius: 4, animation: "animation.rupture_blade.attack_2", sound: "weapon_slash.slash_medium" },
+    { delay: 8, damage: 19, radius: 4, animation: "animation.rupture_blade.attack_3", sound: "weapon_slash.slash_medium" },
     {
-        delay: 3, damage: 19, radius: 4, animation: "animation.rupture_blade.attack_4", sound: "weapon_slash.slash_heavy", action: new CommandHandler([
+        delay: 3, damage: 19, radius: 4, animation: "animation.rupture_blade.attack_4", sound: "weapon_slash.slash_medium", action: new CommandHandler([
             {
                 delay: 5, action: (src) => {
-                    src.dimension.playSound("weapon_slash.slash_heavy", src.location);
+                    src.dimension.playSound("weapon_slash.slash_medium", src.location);
                     src.dimension.spawnParticle("minecraft:large_explosion", src.location);
                     applyCustomDamage(src, 19, 4);
                 }
             },
             {
                 delay: 2, action: (src) => {
-                    src.dimension.playSound("weapon_slash.slash_heavy", src.location);
+                    src.dimension.playSound("weapon_slash.slash_medium", src.location);
                     src.dimension.spawnParticle("minecraft:large_explosion", src.location);
                     applyCustomDamage(src, 19, 4);
                 }

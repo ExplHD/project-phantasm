@@ -1,0 +1,42 @@
+{
+	"format_version": "1.10.0",
+	"animation_controllers": {
+		"controller.animation.auric_apex": {
+			"initial_state": "hold",
+			"states": {
+				"hold": {
+					"animations": [
+						{
+							"auric_apex_hold_fpp": "v.is_first_person"
+						},
+						{
+							"auric_apex_hold": "!v.is_first_person"
+						}
+					],
+					"blend_transition": 0.15,
+					"transitions": [
+						{
+							"aim": "q.is_sneaking"
+						}
+					]
+				},
+				"aim": {
+					"animations": [
+						{
+							"auric_apex_aim_fpp": "v.is_first_person"
+						},
+						{
+							"auric_apex_aim": "!v.is_first_person"
+						}
+					],
+					"blend_transition": 0.15,
+					"transitions": [
+						{
+							"hold": "!q.is_sneaking"
+						}
+					]
+				}
+			}
+		}
+	}
+}

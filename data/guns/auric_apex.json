@@ -1,0 +1,169 @@
+{
+	"id": "ph:auric_apex",
+	"name": "Auric Apex",
+	"type": "charge_beam",
+	"assets": true,
+	"item": {
+		"rarity": "epic",
+		"durability": 1800,
+		"movement": 0.45,
+		"enchantValue": 12
+	},
+	"model": {
+		"geometry": "geometry.auric_apex",
+		"file": "packs/RP/models/entity/items/auric_apex.geo.json",
+		"texture": "textures/3ds/auric_apex",
+		"iconScale": 0.56
+	},
+	"twoHanded": true,
+	"tooltip": "§r§aHold Interact to charge, release to fire a piercing laser\\n§r§aFull charge takes 2s and hits hardest, under 0.5s it misfires\\n§r§aSneak to look down the scope\\n§r§gEach shot uses 10 Auric Charge\\n§9Phantasm",
+	"scope": 30,
+	"pose": {
+		"adsOn": "sneak",
+		"ads": {
+			"rightArm": {
+				"rotation": [
+					"q.target_x_rotation - 90",
+					"q.target_y_rotation - 5",
+					0
+				]
+			},
+			"leftArm": {
+				"rotation": [
+					"q.target_x_rotation - 90",
+					"q.target_y_rotation + 40",
+					0
+				]
+			}
+		},
+		"kick": {
+			"category": "ph:auric_apex_shot",
+			"seconds": 0.3,
+			"push": 1.4,
+			"pitch": 6
+		},
+		"hold_fpp": {
+			"rightArm": {
+				"rotation": [
+					-5,
+					45,
+					65
+				],
+				"position": [
+					0,
+					3,
+					0
+				]
+			},
+			"leftArm": {
+				"rotation": [
+					-95,
+					-160,
+					20
+				],
+				"position": [
+					-1,
+					-6,
+					17
+				]
+			}
+		},
+		"hold": {
+			"rightArm": {
+				"rotation": [
+					-35,
+					-10,
+					0
+				]
+			},
+			"leftArm": {
+				"rotation": [
+					-50,
+					40,
+					0
+				]
+			},
+			"weapon_root": {
+				"rotation": [
+					-25,
+					0,
+					0
+				]
+			}
+		},
+		"ads_fpp": {
+			"rightArm": {
+				"rotation": [
+					-5,
+					45,
+					65
+				],
+				"position": [
+					-9.5,
+					1.6,
+					-8
+				]
+			},
+			"leftArm": {
+				"rotation": [
+					-95,
+					-160,
+					20
+				],
+				"position": [
+					-10.5,
+					-3.4,
+					9
+				]
+			}
+		}
+	},
+	"sounds": {
+		"weapon_slash.auric_apex_fire": {
+			"file": "sounds/weapons/auric_apex_fire",
+			"volume": 1.0,
+			"distance": 48,
+			"subtitle": "subtitles.weapons.railgun_fire"
+		},
+		"weapon_slash.auric_apex_charge": {
+			"file": "sounds/weapons/auric_apex_charge",
+			"volume": 0.8,
+			"distance": 20,
+			"subtitle": "subtitles.weapons.railgun_charge"
+		},
+		"weapon_slash.auric_apex_ready": {
+			"file": "sounds/weapons/auric_apex_ready",
+			"volume": 0.7,
+			"distance": 16,
+			"subtitle": "subtitles.weapons.railgun_charge"
+		}
+	},
+	"mechanics": {
+		"shotCategory": "ph:auric_apex_shot",
+		"chargeTicks": 40,
+		"minChargeTicks": 10,
+		"refireTicks": 20,
+		"recoilTicks": 6,
+		"chargeFxInterval": 2,
+		"chargeSoundTicks": 43,
+		"damage": 80,
+		"minPower": 0.3,
+		"range": 96,
+		"maxTargets": 10,
+		"pierceFalloff": 0.8,
+		"pierceFloor": 0.4,
+		"knockback": 0.8,
+		"wear": 3,
+		"auricCost": 10,
+		"muzzle": {
+			"forward": 1.9,
+			"side": 0.04,
+			"up": -0.2
+		},
+		"sounds": {
+			"charge": "weapon_slash.auric_apex_charge",
+			"ready": "weapon_slash.auric_apex_ready",
+			"fire": "weapon_slash.auric_apex_fire"
+		}
+	}
+}

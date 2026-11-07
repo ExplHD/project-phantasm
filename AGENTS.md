@@ -13,6 +13,7 @@ Minecraft Bedrock addon built with Regolith. Behavior pack `packs/BP`, resource 
 | Write filter output back into `packs/` (before commit) | `rgl apply default` |
 | Release `.mcaddon` (obfuscated) | `rgl run package-file` |
 | Regenerate item rarity table by hand | `node filters/item_rarity/main.mjs` |
+| Generate guns from `data/guns/*.json` | `node tools/gun_generator/main.mjs` |
 
 No package.json scripts, tests, linter or CI. The typecheck plus an in-game check is the whole verification loop. The typecheck must print nothing; `noUnusedLocals` and `noUnusedParameters` are on.
 
@@ -20,6 +21,7 @@ No package.json scripts, tests, linter or CI. The typecheck plus an in-game chec
 
 - `default` profile: `item_rarity` → `esbuild`. `package-file` adds `js_obfuscator` → `mcaddon`.
 - `filters/item_rarity/main.mjs` reads `packs/BP/items/*.json` and writes `data/scripts/core/itemRarity.ts`. That file is generated: change item JSON or the filter, never the `.ts`.
+- `tools/gun_generator/main.mjs` (run by hand, not a filter) reads the gun specs in `data/guns/*.json` and writes `data/scripts/features/weapons/gunSpecs.ts`, `packs/BP/functions/guns.mcfunction` and, for specs with `"assets": true`, the gun's pack files and wiring. Change the spec and re-run, never the generated output.
 - `esbuild` bundles `data/scripts/main.ts` into `packs/BP/scripts/main.js`. Never edit `main.js`.
 - RP changes (models, animations, particles, textures, lang) need `/reload all` in-game; `/reload` alone only reloads BP.
 
@@ -50,6 +52,7 @@ Path alias: `~/*` → `data/scripts/*`. `tsconfig` uses `verbatimModuleSyntax`, 
 - New player dynamic property: register it in `core/playerProperties.ts` so `/dynamicproperties`, join defaults and resets pick it up.
 - Script-spawned summons that deal damage: go through `core/summons.ts` so ownership (Xeonnite Blessing checks) carries over.
 - Legendary weapon list: `LEGENDARY_TIER` in `core/constants.ts`.
+- Guns: a spec in `data/guns/`, run by `features/weapons/shooters.ts` (single), `autoGun.ts` (auto), `chargeBeamGun.ts` (charge beam) and `gunScope.ts` (ADS zoom). Use the `gun-generator` skill.
 
 ## TypeScript rules
 
@@ -100,10 +103,12 @@ Load the skill before doing the work it covers.
 
 - Writing anything a person reads (lang strings, guide text in `ui/guide/`, `changes.txt`, README, commit messages, replies): `unslop`, then `clean-user-facing-text`, then `remove-ai-marks`. Not for code, ids or paths. `remove-ai-marks` needs its local service running (`~/watermarks-remover/server.py` on port 8765).
 - Particles / VFX: `particle-jester` (pixel sprites: `pixelfx`).
+- New guns, or changing a gun's pose, stats or firing: `gun-generator`.
 - Player animations, first-person poses: `minecraft-player-animation`, `weight-driven-animation`.
 - Models in Blockbench, attachables: `blockbench-workflow`, `attachable-uv-rotation`.
 - Script cameras / cutscenes: `bedrock-camera`.
 - Texturing: `pixelfx`.
+- Sound effects: `procedural-sfx`. Make every new SFX with this skill, synthesized from code. Never download samples. Run its scripts with the venv Python `~/.local/share/procedural-sfx-venv/bin/python` (it has numpy, scipy and soundfile, and system pip is blocked). Keep project recipes and draft wavs in `tes/sfx/`. Convert the final take to mono `.ogg` with `ffmpeg -i in.wav -ac 1 -c:a libvorbis -q:a 5 out.ogg` and save it under `packs/RP/sounds/<category>/`. Register it in `packs/RP/sounds/sound_definitions.json` using the existing `<category>.<name>` id pattern (`weapon_slash.slash_light`), with no file extension in the path. Skip the skill's `mux.sh`/`master.sh`: they are for video, and in-game loudness is set with `volume` in `sound_definitions.json`. The user has to listen to every new sound in-game; the skill's numbers don't replace that.
 - JSON UI (`packs/RP/ui/`): start at `mcbe-json-ui-master`; it routes to the specific `mcbe-json-ui-*` skill.
 
 ## Editor schema

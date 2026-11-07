@@ -4,8 +4,9 @@ import { applyDurabilityDamage } from "../../core/items";
 import { getScore, removeScore } from "../../core/scoreboard";
 import { summonOwned } from "../../core/summons";
 import { isLoadedLocation } from "../../core/location";
+import { SINGLE_GUNS } from "./gunSpecs";
 
-interface Shooter {
+export interface Shooter {
 	readonly projectile: ProjectileConfig;
 	readonly sound: string;
 	readonly chargeCost?: number;
@@ -25,23 +26,8 @@ function oceanicAttack(player: Player, sound: string): void {
 	playShot(player, sound);
 }
 
-const SHOOTERS: Record<string, Shooter> = {
-	"ph:peacemaker_oath": {
-		projectile: {
-			trail: "ph:peacemaker_oath_flash",
-			impact: ["ph:peacemaker_oath_hit_effect"],
-			damage: 28,
-			speed: 2,
-			range: 80,
-			lockCone: 0,
-			knockback: 0,
-			blast: { radius: 2, damage: 28, knockback: 0 },
-			origin: MUZZLE
-		},
-		sound: "weapon_slash.glock_shot",
-		chargeCost: 1,
-		animation: "animation.peacemaker_oath.fire"
-	},
+const SHOOTERS: Readonly<Record<string, Shooter>> = {
+	...SINGLE_GUNS,
 	"ph:nature_staff": {
 		projectile: {
 			trail: "ph:nature_staff_laser_trail",

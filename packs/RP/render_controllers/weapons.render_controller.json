@@ -178,6 +178,17 @@
                 }
             ]
         },
+        "controller.render.auric_apex": {
+            "textures": [
+                "texture.auric_apex"
+            ],
+            "geometry": "geometry.auric_apex",
+            "materials": [
+                {
+                    "*": "material.default"
+                }
+            ]
+        },
         "controller.render.item_outline": {
             "geometry": "geometry.outline",
             "ignore_lighting": true,

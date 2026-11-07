@@ -11,6 +11,7 @@ import {
 	type Vector3
 } from "@minecraft/server";
 import { isLoadedLocation } from "../../core/location";
+import { spawnPolarisBeam } from "../../core/beam";
 
 const ITEM_ID = "ph:a_part_of_polaris_power";
 const COOLDOWN_CATEGORY = "polaris_power";
@@ -27,10 +28,6 @@ const LOCK_MAX_TICKS = CHARGE_TICKS + 20;
 const BEAM_RANGE = 32;
 const BEAM_DAMAGE = 100;
 const BEAM_HIT_RADIUS = 1.2;
-const CORE_STEP = 0.25;
-const SPIRAL_STEP = 0.25;
-const SPIRAL_RADIUS = 0.55;
-const SPIRAL_TURN_LENGTH = 1.6;
 const SKIP_FAMILIES = ["inanimate"];
 const SKIP_TYPES = ["minecraft:item", "minecraft:xp_orb", "minecraft:player"];
 
@@ -45,10 +42,6 @@ const readyAt = new Map<string, number>();
 
 function add(a: Vector3, b: Vector3, scale = 1): Vector3 {
 	return { x: a.x + b.x * scale, y: a.y + b.y * scale, z: a.z + b.z * scale };
-}
-
-function cross(a: Vector3, b: Vector3): Vector3 {
-	return { x: a.y * b.z - a.z * b.y, y: a.z * b.x - a.x * b.z, z: a.x * b.y - a.y * b.x };
 }
 
 function normalize(v: Vector3): Vector3 {
@@ -124,24 +117,7 @@ function fireBeam(player: Player): void {
 	const dir = normalize(player.getViewDirection());
 
 	const length = beamLength(dimension, start, dir);
-	const end = add(start, dir, length);
-
-	const up = Math.abs(dir.y) > 0.95 ? { x: 1, y: 0, z: 0 } : { x: 0, y: 1, z: 0 };
-	const u = normalize(cross(dir, up));
-	const v = cross(dir, u);
-
-	for (let d = 0; d <= length; d += CORE_STEP) spawn(dimension, "ph:polaris_beam_core", add(start, dir, d));
-
-	for (let d = 0.6; d <= length; d += SPIRAL_STEP) {
-		const angle = (d / SPIRAL_TURN_LENGTH) * Math.PI * 2;
-		const center = add(start, dir, d);
-		for (const offset of [0, Math.PI]) {
-			const cos = Math.cos(angle + offset) * SPIRAL_RADIUS;
-			const sin = Math.sin(angle + offset) * SPIRAL_RADIUS;
-			spawn(dimension, "ph:polaris_beam_spiral", add(add(center, u, cos), v, sin));
-		}
-	}
-	spawn(dimension, "ph:polaris_impact", end);
+	spawnPolarisBeam(dimension, start, dir, length);
 
 	dimension.playSound("mob.warden.sonic_boom", start, { pitch: 1.5, volume: 1 });
 	dimension.playSound("beacon.power.select", start, { pitch: 1.8, volume: 1 });

@@ -20,7 +20,9 @@ import { checkBlessingMilestones, onBlessingHurt, forgetWard } from '../systems/
 import { onTrooperHurt, tickTroopers, onTrooperDie, onTrooperRemove } from '../features/forge_trooper/manager'
 import { sweepSentinels } from '../features/ancient_sentinel/manager'
 import { onPolarisItemUse, cancelPolarisCharge } from '../features/polaris_power/manager'
-import { onBlasterStartUse, onBlasterStopUse, clearBlasterState, tickBlasters } from '../features/weapons/xeonniteBlaster'
+import { onAutoGunStartUse, onAutoGunStopUse, clearAutoGunState, tickAutoGuns } from '../features/weapons/autoGun'
+import { onChargeBeamStartUse, onChargeBeamStopUse, clearChargeBeamState, tickChargeBeamGuns } from '../features/weapons/chargeBeamGun'
+import { onGunScopeSneak, onGunScopeSlotChange, clearGunScopeState, tickGunScopes } from '../features/weapons/gunScope'
 import { onShooterUse } from '../features/weapons/shooters'
 import { tickTitanRadiation } from '../features/titan_core/radiation'
 import { tickShields, onShieldHurt, onShieldEffectAdd, onShieldSneak, onShieldSwing, onShieldItemUse, clearShieldState } from '../features/shield/manager'
@@ -260,7 +262,10 @@ world.afterEvents.playerSwingStart.subscribe(({ player, heldItemStack, swingSour
 })
 
 world.afterEvents.playerButtonInput.subscribe(({ player: source, button, newButtonState }) => {
-    if (button == "Sneak") onShieldSneak(source, newButtonState == "Pressed");
+    if (button == "Sneak") {
+        onShieldSneak(source, newButtonState == "Pressed");
+        onGunScopeSneak(source, newButtonState == "Pressed");
+    }
     if (newButtonState != "Pressed") return;
 
     const plunged = button == "Sneak" && windPlungeRuntime(source, "sneak");
@@ -282,19 +287,26 @@ world.afterEvents.itemUse.subscribe(({ source, itemStack }) => {
 
 world.afterEvents.itemStartUse.subscribe(({ itemStack, source }) => {
     onShieldItemUse(source, true);
-    onBlasterStartUse(itemStack, source);
+    onAutoGunStartUse(itemStack, source);
+    onChargeBeamStartUse(itemStack, source);
 })
 world.afterEvents.itemStopUse.subscribe(({ itemStack, source }) => {
     cancelPolarisCharge(itemStack, source);
     onShieldItemUse(source, false);
-    onBlasterStopUse(source);
+    onAutoGunStopUse(source);
+    onChargeBeamStopUse(source);
 })
 world.afterEvents.itemReleaseUse.subscribe(({ itemStack, source }) => {
     cancelPolarisCharge(itemStack, source);
     onShieldItemUse(source, false);
-    onBlasterStopUse(source);
+    onAutoGunStopUse(source);
+    onChargeBeamStopUse(source);
 })
-world.afterEvents.itemCompleteUse.subscribe(({ source }) => onBlasterStopUse(source))
+world.afterEvents.itemCompleteUse.subscribe(({ source }) => {
+    onAutoGunStopUse(source);
+    onChargeBeamStopUse(source);
+})
+world.afterEvents.playerHotbarSelectedSlotChange.subscribe(({ player, itemStack }) => onGunScopeSlotChange(player, itemStack))
 
 world.afterEvents.entityDie.subscribe(({ damageSource, deadEntity }) => {
     const killer = damageSource?.damagingEntity;
@@ -383,7 +395,9 @@ world.beforeEvents.playerLeave.subscribe(({ player }) => {
     clearPlungeState(player.id);
     clearAbsorption(player);
     clearShieldState(player.id);
-    clearBlasterState(player.id);
+    clearAutoGunState(player.id);
+    clearChargeBeamState(player.id);
+    clearGunScopeState(player.id);
 });
 
 system.runInterval(() => {
@@ -398,7 +412,9 @@ system.runInterval(tickPlunges, 1);
 
 system.runInterval(tickTroopers, 4);
 system.runInterval(tickShields, 1);
-system.runInterval(tickBlasters, 1);
+system.runInterval(tickAutoGuns, 1);
+system.runInterval(tickChargeBeamGuns, 1);
+system.runInterval(tickGunScopes, 1);
 system.runInterval(checkBlessingMilestones, 20);
 system.runInterval(tickTitanRadiation, 40);
 

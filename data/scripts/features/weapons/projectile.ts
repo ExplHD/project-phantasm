@@ -8,6 +8,12 @@ export interface ProjectileBlast {
 	readonly knockback?: number;
 }
 
+export interface MuzzleOffset {
+	readonly forward?: number;
+	readonly side?: number;
+	readonly up?: number;
+}
+
 export interface ProjectileConfig {
 	readonly damage: number;
 	readonly speed: number;
@@ -16,7 +22,7 @@ export interface ProjectileConfig {
 	readonly homing?: number;
 	readonly lockCone?: number;
 	readonly spread?: number[];
-	readonly origin?: { readonly forward?: number; readonly side?: number; readonly up?: number };
+	readonly origin?: MuzzleOffset;
 	readonly core?: string;
 	readonly trail?: string;
 	readonly impact?: string[];
@@ -44,7 +50,7 @@ const STEP = 0.45;
 const bolts: Bolt[] = [];
 let runner: number | undefined;
 
-function normalize(v: Vector3): Vector3 {
+export function normalize(v: Vector3): Vector3 {
 	const length = Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
 	return length > 0 ? { x: v.x / length, y: v.y / length, z: v.z / length } : { x: 0, y: 0, z: 1 };
 }
@@ -95,19 +101,25 @@ function lockTarget(owner: Player, eye: Vector3, view: Vector3, range: number, c
 	return best;
 }
 
-export function fireProjectile(owner: Player, config: ProjectileConfig): void {
-	if (!owner.isValid) return;
-	const view = normalize(owner.getViewDirection());
-	const eye = owner.getHeadLocation();
+export function muzzlePoint(player: Player, origin: MuzzleOffset | undefined): Vector3 {
+	const view = normalize(player.getViewDirection());
+	const eye = player.getHeadLocation();
 	const right = normalize({ x: -view.z, y: 0, z: view.x });
-	const forward = config.origin?.forward ?? 0.6;
-	const side = config.origin?.side ?? 0;
-	const up = config.origin?.up ?? -0.15;
-	const start = {
+	const forward = origin?.forward ?? 0.6;
+	const side = origin?.side ?? 0;
+	const up = origin?.up ?? -0.15;
+	return {
 		x: eye.x + view.x * forward + right.x * side,
 		y: eye.y + view.y * forward + up,
 		z: eye.z + view.z * forward + right.z * side
 	};
+}
+
+export function fireProjectile(owner: Player, config: ProjectileConfig): void {
+	if (!owner.isValid) return;
+	const view = normalize(owner.getViewDirection());
+	const eye = owner.getHeadLocation();
+	const start = muzzlePoint(owner, config.origin);
 
 	const target = lockTarget(owner, eye, view, config.range, config.lockCone ?? 12);
 	const stats = strikeStats(owner, config.damage);

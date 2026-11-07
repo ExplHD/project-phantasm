@@ -10,7 +10,8 @@ import { registerPolarisComponent, onPolarisSpawn } from '../features/polaris_po
 import { registerUiCommands } from '../ui/commands'
 import { registerShieldComponent } from '../features/shield/manager'
 import { trackLootItem } from '../systems/lootBeam'
-import { resetBlasterHeat } from '../features/weapons/xeonniteBlaster'
+import { resetAutoGunHeat } from '../features/weapons/autoGun'
+import { GUN_OBJECTIVES } from '../features/weapons/gunSpecs'
 
 const objectives: string[] = [
 
@@ -34,8 +35,6 @@ const objectives: string[] = [
 
     "charged_copper_axe",
     "auric_charge",
-    "xeonnite_heat",
-    "xeonnite_overheat",
     "gapple_cooldown",
 
     "prism_weaver",
@@ -62,7 +61,8 @@ const objectives: string[] = [
     "scimitar_atk",
     "scimitar_dual_atk",
     "scimitar_dual_charge",
-    "rupture_blade_atk"
+    "rupture_blade_atk",
+    ...GUN_OBJECTIVES
 ]
 
 system.beforeEvents.startup.subscribe((initEvent) => {
@@ -130,7 +130,7 @@ function onPlayerSpawn(player: Player, initialSpawn: boolean): void {
 
 	if (!initialSpawn) return;
 	loadPlayerScore(player)
-	resetBlasterHeat(player)
+	resetAutoGunHeat(player)
     if (player.getDynamicProperty("ph:guidebook_acquired") === undefined || player.getDynamicProperty("ph:guidebook_acquired") === false) {
 		player.dimension.spawnItem(new ItemStack("ph:guidebook"), player.location);
         player.sendMessage("§eWelcome to Phantasm! Pick up your Guidebook or use /guide to learn the features of this add-on.");
