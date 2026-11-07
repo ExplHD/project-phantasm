@@ -43,8 +43,9 @@ export function strikeEntity(source: Player, entity: Entity, stats: StrikeStats,
 	if (stats.fireAspect > 0) entity.setOnFire(stats.fireAspect * 4 - 1);
 }
 
-export function applyCustomDamage(source: Player, damage: number, radius: number): void {
-	const stats = strikeStats(source, damage);
+export function applyCustomDamage(source: Player, damage: number, radius: number, multiplier: number = 1): number {
+	const base = strikeStats(source, damage);
+	const stats: StrikeStats = { ...base, damage: base.damage * multiplier };
 	const entities = source.dimension.getEntities({
 		location: source.location,
 		minDistance: 0.1,
@@ -53,6 +54,7 @@ export function applyCustomDamage(source: Player, damage: number, radius: number
 		excludeFamilies: EXCLUDED_FAMILIES
 	});
 
+	let hits = 0;
 	for (const entity of entities) {
 		if (!canWeaponHit(source, entity)) continue;
 		const dx = entity.location.x - source.location.x;
@@ -60,5 +62,7 @@ export function applyCustomDamage(source: Player, damage: number, radius: number
 		const dist = Math.sqrt(dx * dx + dz * dz);
 		const push = dist > 0 ? { x: dx / dist, z: dz / dist } : { x: 0, z: 1 };
 		strikeEntity(source, entity, stats, push);
+		hits++;
 	}
+	return hits;
 }

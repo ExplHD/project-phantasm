@@ -1,4 +1,4 @@
-import { system, Player } from "@minecraft/server";
+import { system, Player, EquipmentSlot } from "@minecraft/server";
 import { addScore, removeScore, setScore, getScore } from "../../core/scoreboard";
 import { applyCustomDamage } from "./damage";
 import { type ProjectileConfig, fireProjectile } from "./projectile";
@@ -11,6 +11,14 @@ interface AttackPattern {
 	readonly sound: string;
 	readonly action?: CommandHandler;
 	readonly projectile?: ProjectileConfig;
+	readonly controller?: string;
+}
+
+interface SpecialAttack {
+	readonly objective: string;
+	readonly hits: number;
+	readonly recovery: number;
+	readonly pattern: AttackPattern;
 }
 
 interface SkillConfig {
@@ -37,12 +45,26 @@ class WeaponHandler {
 	readonly objective: string;
 	readonly delayPerAttackPattern: number[];
 	readonly attackPatterns: AttackPattern[];
+	readonly pairedWith: readonly string[];
+	readonly dual: boolean;
+	readonly special?: SpecialAttack;
 
-	constructor(itemId: string, objective: string, delayPerAttackPattern: number[], attackPatterns: AttackPattern[]) {
+	constructor(itemId: string, objective: string, delayPerAttackPattern: number[], attackPatterns: AttackPattern[], pairedWith: readonly string[] = [], dual: boolean = false, special?: SpecialAttack) {
 		this.itemId = itemId;
 		this.objective = objective;
 		this.delayPerAttackPattern = delayPerAttackPattern
 		this.attackPatterns = attackPatterns;
+		this.pairedWith = pairedWith;
+		this.dual = dual;
+		this.special = special;
+	}
+
+	matches(source: Player, mainhandId: string | undefined): boolean {
+		if (mainhandId !== this.itemId) return false;
+		if (this.pairedWith.length === 0) return true;
+		const offhandId = source.getComponent("minecraft:equippable")?.getEquipment(EquipmentSlot.Offhand)?.typeId;
+		const holdsPair = offhandId !== undefined && this.pairedWith.includes(offhandId);
+		return holdsPair === this.dual;
 	}
 
 	static addScore(target: Player, objective: string, score: number): void {
@@ -62,6 +84,26 @@ class WeaponHandler {
 	}
 
 	handleAttack(source: Player): void {
+		const special = this.special;
+		if (special) {
+			const charge = getScore(source, special.objective);
+			const sinceLast = getScore(source, "delayatk");
+			if (charge < 0) {
+				if (sinceLast > 0 && sinceLast < special.recovery) return;
+				setScore(source, special.objective, 0);
+			}
+			if (charge >= special.hits) {
+				if (sinceLast > 0 && sinceLast < (this.delayPerAttackPattern[getScore(source, this.objective)] ?? 0)) return;
+				const pattern = special.pattern;
+				triggerAttack(source, pattern.delay, pattern.damage, pattern.radius, pattern.animation, pattern.sound, pattern.projectile, pattern.controller);
+				setScore(source, special.objective, -1);
+				setScore(source, this.objective, 0);
+				setScore(source, "delayatk", 1);
+				pattern.action?.run(source);
+				return;
+			}
+		}
+
 		const currentStep = getScore(source, this.objective);
 
 		if (currentStep < this.attackPatterns.length) {
@@ -70,7 +112,9 @@ class WeaponHandler {
 
 			if (getScore(source, "delayatk") > 0 && getScore(source, "delayatk") < delay) return;
 
-			triggerAttack(source, pattern.delay, pattern.damage, pattern.radius, pattern.animation, pattern.sound, pattern.projectile);
+			triggerAttack(source, pattern.delay, pattern.damage, pattern.radius, pattern.animation, pattern.sound, pattern.projectile, pattern.controller, special ? (hits) => {
+				if (hits > 0) addScore(source, special.objective, 1);
+			} : undefined);
 
 			if (currentStep < this.attackPatterns.length - 1) {
 				addScore(source, this.objective, 1);
@@ -181,18 +225,21 @@ export { WeaponHandler, SkillSwitcher, SkillHandler, CommandHandler };
 
 export { applyCustomDamage };
 
-export function triggerAttack(source: Player, delay: number, damage: number, radius: number, animation: string, sound: string, projectile?: ProjectileConfig): void {
+export function triggerAttack(source: Player, delay: number, damage: number, radius: number, animation: string, sound: string, projectile?: ProjectileConfig, controller?: string, onHit?: (hits: number) => void): void {
 	if (!source) return console.error("No Players found!");
 	if (!delay && !damage) return console.error("Specify Damage and Delay before Damage Value");
 	if (!radius && !projectile) return console.error("Specify Radius Value");
 	if (!animation) return;
 	if (!source.isValid) return;
 
-	source.playAnimation(animation);
+	source.playAnimation(animation, controller ? { controller, blendOutTime: 0 } : undefined);
 	system.runTimeout(() => {
 		if (!source.isValid) return;
 		if (projectile) fireProjectile(source, projectile);
-		else applyCustomDamage(source, damage, radius);
+		else {
+			const hits = applyCustomDamage(source, damage, radius);
+			onHit?.(hits);
+		}
 		if (!sound) return;
 		source.dimension.playSound(sound, source.location);
 	}, delay);

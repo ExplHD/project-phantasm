@@ -1,0 +1,66 @@
+{
+	"format_version": "1.10.0",
+	"animation_controllers": {
+		"controller.animation.ph.look_at_target": {
+			"initial_state": "default",
+			"states": {
+				"default": {
+					"animations": [
+						"look_at_target_default"
+					],
+					"transitions": [
+						{
+							"locked": "v.ph_head_lock"
+						},
+						{
+							"gliding": "query.is_gliding"
+						},
+						{
+							"swimming": "query.is_swimming || query.is_crawling"
+						}
+					]
+				},
+				"gliding": {
+					"animations": [
+						"look_at_target_gliding"
+					],
+					"transitions": [
+						{
+							"locked": "v.ph_head_lock"
+						},
+						{
+							"swimming": "query.is_swimming || query.is_crawling"
+						},
+						{
+							"default": "!query.is_gliding"
+						}
+					]
+				},
+				"swimming": {
+					"animations": [
+						"look_at_target_swimming"
+					],
+					"transitions": [
+						{
+							"locked": "v.ph_head_lock"
+						},
+						{
+							"gliding": "query.is_gliding"
+						},
+						{
+							"default": "!query.is_swimming && !query.is_crawling"
+						}
+					]
+				},
+				"locked": {
+					"transitions": [
+						{
+							"default": "!v.ph_head_lock"
+						}
+					],
+					"blend_transition": 0.15
+				}
+			}
+		}
+	}
+}

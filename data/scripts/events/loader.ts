@@ -58,7 +58,10 @@ const objectives: string[] = [
     "the_bleeding_spire_s3",
 
     "auric_communicator_mode",
-    "seiketsu_atk"
+    "seiketsu_atk",
+    "scimitar_atk",
+    "scimitar_dual_atk",
+    "scimitar_dual_charge"
 ]
 
 system.beforeEvents.startup.subscribe((initEvent) => {

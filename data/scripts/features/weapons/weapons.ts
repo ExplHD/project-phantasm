@@ -165,7 +165,41 @@ const seiketsu = new WeaponHandler("ph:seiketsu", "seiketsu_atk", [9, 9, 9], [
     }
 ])
 
-export const weapons = [solarisVerdant, superchargedCopperAxe, prismWeaver, auricPhotonizer, theBleedingSpire, seiketsu];
+const SCIMITARS = ["ph:scimitar", "ph:scimitar_2"];
+
+const scimitarSingle = SCIMITARS.map(id => new WeaponHandler(id, "scimitar_atk", [8, 8, 8], [
+    { delay: 4, damage: 14, radius: 5, animation: "animation.scimitar.attack_1", sound: "weapon_slash.slash_medium" },
+    { delay: 3, damage: 14, radius: 5, animation: "animation.scimitar.attack_2", sound: "weapon_slash.slash_medium" },
+    { delay: 4, damage: 15, radius: 5, animation: "animation.scimitar.attack_3", sound: "weapon_slash.slash_medium" }
+], SCIMITARS, false))
+
+const SPIN_DAMAGE = 24;
+const SPIN_GAP = 4;
+
+function spinHit(src: Player, multiplier: number): void {
+    const held = src.getComponent("equippable")?.getEquipment(EquipmentSlot.Mainhand)?.typeId;
+    if (held === undefined || !SCIMITARS.includes(held)) return;
+    src.dimension.playSound(multiplier === 3 ? "weapon_slash.slash_heavy" : "weapon_slash.slash_medium", src.location);
+    applyCustomDamage(src, SPIN_DAMAGE, 4, multiplier);
+}
+
+const scimitarDual = SCIMITARS.map(id => new WeaponHandler(id, "scimitar_dual_atk", [8, 8, 8], [
+    { delay: 4, damage: 13, radius: 3.5, animation: "animation.scimitar.dual_3", sound: "weapon_slash.slash_medium" },
+    { delay: 4, damage: 13, radius: 3.5, animation: "animation.scimitar.dual_2", sound: "weapon_slash.slash_medium" },
+    { delay: 4, damage: 26, radius: 3.5, animation: "animation.scimitar.dual_1", sound: "weapon_slash.slash_medium" }
+], SCIMITARS, true, {
+    objective: "scimitar_dual_charge",
+    hits: 6,
+    recovery: 25,
+    pattern: {
+        delay: 9, damage: SPIN_DAMAGE, radius: 4, animation: "animation.scimitar.sig.dual_special", controller: "scimitar_sig", sound: "weapon_slash.slash_medium", action: new CommandHandler([
+            { delay: 9 + SPIN_GAP, action: (src) => spinHit(src, 2) },
+            { delay: SPIN_GAP, action: (src) => spinHit(src, 3) }
+        ])
+    }
+}))
+
+export const weapons = [solarisVerdant, superchargedCopperAxe, prismWeaver, auricPhotonizer, theBleedingSpire, seiketsu, ...scimitarSingle, ...scimitarDual];
 export const switcherSkills = [solarisVerdantSS, superchargedCopperAxeSS, prismWeaverSS, auricPhotonizerSS, theBleedingSpireSS];
 
 const switcherByItemId = new Map<string, (typeof switcherSkills)[number]>(

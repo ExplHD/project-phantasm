@@ -255,7 +255,7 @@ world.afterEvents.playerSwingStart.subscribe(({ player, heldItemStack, swingSour
     if (!attacked) return;
 
     for (const weapon of weapons) {
-        if (heldItemStack?.typeId === weapon.itemId) weapon.handleAttack(player);
+        if (weapon.matches(player, heldItemStack?.typeId)) weapon.handleAttack(player);
     }
 })
 

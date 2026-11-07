@@ -16,6 +16,13 @@
 			"minecraft:durability": {
 				"max_durability": 2031
 			},
+			"minecraft:piercing_weapon": {
+				"hitbox_margin": 0,
+				"reach": {
+					"min": 0,
+					"max": 0
+				}
+			},
 			"minecraft:block_placer": {
 				"block": "ph:scimitar_2",
 				"replace_block_item": true

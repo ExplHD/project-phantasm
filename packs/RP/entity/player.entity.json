@@ -24,6 +24,7 @@
                 "peacemaker_oath": "textures/none",
                 "thunder_gale": "textures/none",
                 "seiketsu": "textures/none",
+                "scimitar": "textures/none",
                 "xeonnite_blaster_mk3": "textures/none"
             },
             "geometry": {
@@ -40,6 +41,7 @@
                 "peacemaker_oath": "geometry.peacemaker_oath",
                 "thunder_gale": "geometry.thunder_gale",
                 "seiketsu": "geometry.seiketsu",
+                "scimitar": "geometry.scimitar",
                 "xeonnite_blaster_mk3": "geometry.xeonnite_blaster_mk3"
             },
             "particle_effects": {
@@ -76,7 +78,11 @@
                 "the_bleeding_spire_blood": "ph:the_bleeding_spire_blood",
                 "seiketsu_trail": "ph:seiketsu_trail",
                 "seiketsu_embers": "ph:seiketsu_embers",
-                "weapon_slam_dust": "ph:weapon_slam_dust"
+                "weapon_slam_dust": "ph:weapon_slam_dust",
+                "scimitar_slash": "ph:scimitar_slash",
+                "scimitar_slash_mirror": "ph:scimitar_slash_mirror",
+                "scimitar_thrust": "ph:scimitar_thrust",
+                "scimitar_spin": "ph:scimitar_spin"
             },
             "scripts": {
                 "scale": "0.9375",
@@ -102,6 +108,10 @@
                     "variable.xeonnite_blaster_mk3": "public"
                 },
                 "initialize": [
+                    "variable.scimitar_spin_t0 = -100;",
+                    "variable.ph_head_lock = 0;",
+                    "variable.scimitar_spin_seq = 0;",
+                    "variable.scimitar_spin_seen = 0;",
                     "v.is_holding_right = 0.0;",
                     "v.is_blinking = 0.0;",
                     "v.last_blink_time = 0.0;",
@@ -110,6 +120,7 @@
                     "v.melee_spear_equipped = 0.0;"
                 ],
                 "pre_animation": [
+                    "variable.ph_head_lock = (query.life_time - variable.scimitar_spin_t0) < 1.25;",
                     "v.helmet_layer_visible = !query.has_head_gear;",
                     "v.leg_layer_visible = 1.0;",
                     "v.boot_layer_visible = 1.0;",
@@ -244,17 +255,20 @@
                     },
                     {
                         "xeonnite_blaster_mk3": "variable.xeonnite_blaster_mk3"
-                    }
+                    },
+                    "scimitar_dual_special_ctrl"
                 ],
                 "should_update_effects_offscreen": "1.0"
             },
             "animations": {
                 "root": "controller.animation.player.root",
+                "scimitar_dual_special": "animation.scimitar.dual_special",
+                "scimitar_dual_special_ctrl": "controller.animation.scimitar.dual_special",
                 "base_controller": "controller.animation.player.base",
                 "first_person_breathing_bob": "animation.player.first_person.breathing_bob",
                 "hudplayer": "controller.animation.player.hudplayer",
                 "humanoid_base_pose": "animation.humanoid.base_pose",
-                "look_at_target": "controller.animation.humanoid.look_at_target",
+                "look_at_target": "controller.animation.ph.look_at_target",
                 "look_at_target_ui": "animation.player.look_at_target.ui",
                 "look_at_target_default": "animation.humanoid.look_at_target.default",
                 "look_at_target_gliding": "animation.humanoid.look_at_target.gliding",
@@ -397,6 +411,9 @@
                 },
                 {
                     "controller.render.seiketsu": "variable.seiketsu"
+                },
+                {
+                    "controller.render.scimitar": "variable.scimitar"
                 },
                 {
                     "controller.render.xeonnite_blaster_mk3": "variable.xeonnite_blaster_mk3"

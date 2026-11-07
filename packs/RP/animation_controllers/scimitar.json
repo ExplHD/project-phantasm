@@ -1,0 +1,52 @@
+{
+	"format_version": "1.10.0",
+	"animation_controllers": {
+		"controller.animation.scimitar.dual_special": {
+			"initial_state": "idle",
+			"states": {
+				"idle": {
+					"transitions": [
+						{
+							"a": "v.scimitar_spin_seq != v.scimitar_spin_seen"
+						}
+					],
+					"blend_transition": 0.2
+				},
+				"a": {
+					"animations": [
+						"scimitar_dual_special"
+					],
+					"on_entry": [
+						"v.scimitar_spin_seen = v.scimitar_spin_seq;"
+					],
+					"transitions": [
+						{
+							"b": "v.scimitar_spin_seq != v.scimitar_spin_seen"
+						},
+						{
+							"idle": "q.life_time - v.scimitar_spin_t0 > 1.25"
+						}
+					],
+					"blend_transition": 0.1
+				},
+				"b": {
+					"animations": [
+						"scimitar_dual_special"
+					],
+					"on_entry": [
+						"v.scimitar_spin_seen = v.scimitar_spin_seq;"
+					],
+					"transitions": [
+						{
+							"a": "v.scimitar_spin_seq != v.scimitar_spin_seen"
+						},
+						{
+							"idle": "q.life_time - v.scimitar_spin_t0 > 1.25"
+						}
+					],
+					"blend_transition": 0.1
+				}
+			}
+		}
+	}
+}

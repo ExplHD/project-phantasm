@@ -145,6 +145,17 @@
                 }
             ]
         },
+        "controller.render.scimitar": {
+            "textures": [
+                "texture.scimitar"
+            ],
+            "geometry": "geometry.scimitar",
+            "materials": [
+                {
+                    "*": "material.default"
+                }
+            ]
+        },
         "controller.render.xeonnite_blaster_mk3": {
             "textures": [
                 "texture.xeonnite_blaster_mk3"
