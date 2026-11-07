@@ -88,7 +88,7 @@
 							"name": "category.ph:other_weapons",
 							"icon": "ph:cruxshaper"
 						},
-						"items": ["ph:cruxshaper", "ph:nature_staff", "ph:peacemaker_oath", "ph:spectric_bow", "ph:prism_weaver"]
+						"items": ["ph:cruxshaper", "ph:nature_staff", "ph:peacemaker_oath", "ph:spectric_bow", "ph:prism_weaver", "ph:aethel_synapse", "ph:xeonnite_blaster_mk3", "ph:auric_apex"]
 					}
 				]
 			}

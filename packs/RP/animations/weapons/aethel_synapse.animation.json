@@ -1,0 +1,93 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"animation.aethel_synapse.idle": {
+			"loop": true,
+			"bones": {
+				"aethel_core": {
+					"scale": "1 + math.sin(q.life_time * 240) * 0.08"
+				},
+				"aethel_blade_front": {
+					"position": [
+						0,
+						"math.sin(q.life_time * 150) * 0.35",
+						"-0.3 - math.sin(q.life_time * 110) * 0.4"
+					],
+					"rotation": [
+						0,
+						0,
+						"math.sin(q.life_time * 90) * 4"
+					]
+				},
+				"aethel_blade_back": {
+					"position": [
+						0,
+						"math.sin(q.life_time * 150 + 120) * 0.35",
+						"0.3 + math.sin(q.life_time * 110 + 120) * 0.4"
+					],
+					"rotation": [
+						0,
+						0,
+						"math.sin(q.life_time * 90 + 120) * 4"
+					]
+				}
+			}
+		},
+		"animation.aethel_synapse.guard": {
+			"loop": true,
+			"animation_length": 0.5,
+			"bones": {
+				"rightArm": {
+					"rotation": [
+						"-82 * (1 - v.is_first_person)",
+						"-12 * (1 - v.is_first_person)",
+						"8 * (1 - v.is_first_person)"
+					]
+				},
+				"leftArm": {
+					"rotation": [
+						"-35 * (1 - v.is_first_person)",
+						"20 * (1 - v.is_first_person)",
+						0
+					]
+				},
+				"aethel_spin": {
+					"rotation": [
+						0,
+						"q.anim_time * 1440",
+						0
+					]
+				},
+				"aethel_core": {
+					"scale": "1.18 + math.sin(q.life_time * 720) * 0.06"
+				}
+			},
+			"particle_effects": {
+				"0.0": [
+					{
+						"effect": "aethel_synapse_guard",
+						"locator": "aethel_synapse_core"
+					},
+					{
+						"effect": "aethel_synapse_trail",
+						"locator": "aethel_synapse_tip_front"
+					},
+					{
+						"effect": "aethel_synapse_trail",
+						"locator": "aethel_synapse_tip_back"
+					}
+				],
+				"0.25": [
+					{
+						"effect": "aethel_synapse_trail",
+						"locator": "aethel_synapse_tip_front"
+					},
+					{
+						"effect": "aethel_synapse_trail",
+						"locator": "aethel_synapse_tip_back"
+					}
+				]
+			}
+		}
+	}
+}

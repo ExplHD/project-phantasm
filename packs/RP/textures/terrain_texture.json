@@ -28,6 +28,9 @@
 		"ph_seiketsu_3d": {
 			"textures": "textures/3ds/seiketsu"
 		},
+		"ph_aethel_synapse_3d": {
+			"textures": "textures/3ds/aethel_synapse"
+		},
 		"ph_rupture_blade_3d": {
 			"textures": "textures/3ds/rupture_blade"
 		},

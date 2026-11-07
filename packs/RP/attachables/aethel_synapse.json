@@ -1,0 +1,35 @@
+{
+	"format_version": "1.21.0",
+	"minecraft:attachable": {
+		"description": {
+			"identifier": "ph:aethel_synapse",
+			"materials": {
+				"default": "entity_alphatest",
+				"enchanted": "entity_alphatest_glint"
+			},
+			"textures": {
+				"default": "textures/3ds/aethel_synapse",
+				"enchanted": "textures/misc/enchanted_item_glint"
+			},
+			"geometry": {
+				"default": "geometry.aethel_synapse"
+			},
+			"animations": {
+				"orb": "animation.aethel_synapse.orb"
+			},
+			"scripts": {
+				"pre_animation": [
+					"variable.is_off_hand = c.item_slot != 'main_hand';"
+				],
+				"animate": [
+					{
+						"orb": "(variable.is_off_hand ?? 0)"
+					}
+				]
+			},
+			"render_controllers": [
+				"controller.render.ph.aethel_synapse"
+			]
+		}
+	}
+}

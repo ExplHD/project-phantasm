@@ -24,6 +24,7 @@ import { onAutoGunStartUse, onAutoGunStopUse, clearAutoGunState, tickAutoGuns } 
 import { onChargeBeamStartUse, onChargeBeamStopUse, clearChargeBeamState, tickChargeBeamGuns } from '../features/weapons/chargeBeamGun'
 import { onGunScopeSneak, onGunScopeSlotChange, clearGunScopeState, tickGunScopes } from '../features/weapons/gunScope'
 import { onShooterUse } from '../features/weapons/shooters'
+import { onAethelItemUse, onAethelStartUse, onAethelStopUse, onAethelHurt, onAethelStrike, clearAethelState } from '../features/weapons/aethelSynapse'
 import { tickTitanRadiation } from '../features/titan_core/radiation'
 import { tickShields, onShieldHurt, onShieldEffectAdd, onShieldSneak, onShieldSwing, onShieldItemUse, clearShieldState } from '../features/shield/manager'
 import { tickTitanRidgeSites } from '../features/titan_core/sites'
@@ -127,10 +128,12 @@ world.beforeEvents.entityHurt.subscribe(onPlungeFallHurt)
 world.beforeEvents.entityHurt.subscribe(onBlessingHurt)
 world.beforeEvents.entityHurt.subscribe(onTrooperHurt)
 world.beforeEvents.entityHurt.subscribe(onShieldHurt)
+world.beforeEvents.entityHurt.subscribe(onAethelHurt)
 
 world.beforeEvents.effectAdd.subscribe(onShieldEffectAdd)
 
 world.beforeEvents.itemUse.subscribe(onPolarisItemUse)
+world.beforeEvents.itemUse.subscribe(onAethelItemUse)
 
 world.beforeEvents.playerBreakBlock.subscribe((e) => {
     if (!e.block.typeId.includes("ore")) return;
@@ -224,6 +227,7 @@ world.afterEvents.entityHurt.subscribe(onDamageIndicator)
 world.afterEvents.entityHurt.subscribe(onDummyHurt)
 world.afterEvents.entityHurt.subscribe(onTitanCoreHurt)
 world.afterEvents.entityHurt.subscribe(onSentinelHurt)
+world.afterEvents.entityHurt.subscribe(onAethelStrike)
 world.afterEvents.entityHurt.subscribe(({ hurtEntity, damage }) => {
     if (hurtEntity.typeId !== "minecraft:player" || !hurtEntity.isValid) return;
     onAbsorptionHurt(hurtEntity as Player, damage);
@@ -289,18 +293,21 @@ world.afterEvents.itemStartUse.subscribe(({ itemStack, source }) => {
     onShieldItemUse(source, true);
     onAutoGunStartUse(itemStack, source);
     onChargeBeamStartUse(itemStack, source);
+    onAethelStartUse(itemStack, source);
 })
 world.afterEvents.itemStopUse.subscribe(({ itemStack, source }) => {
     cancelPolarisCharge(itemStack, source);
     onShieldItemUse(source, false);
     onAutoGunStopUse(source);
     onChargeBeamStopUse(source);
+    onAethelStopUse(source);
 })
 world.afterEvents.itemReleaseUse.subscribe(({ itemStack, source }) => {
     cancelPolarisCharge(itemStack, source);
     onShieldItemUse(source, false);
     onAutoGunStopUse(source);
     onChargeBeamStopUse(source);
+    onAethelStopUse(source);
 })
 world.afterEvents.itemCompleteUse.subscribe(({ source }) => {
     onAutoGunStopUse(source);
@@ -398,6 +405,7 @@ world.beforeEvents.playerLeave.subscribe(({ player }) => {
     clearAutoGunState(player.id);
     clearChargeBeamState(player.id);
     clearGunScopeState(player.id);
+    clearAethelState(player.id);
 });
 
 system.runInterval(() => {

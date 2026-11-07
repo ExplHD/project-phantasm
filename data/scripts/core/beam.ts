@@ -25,12 +25,16 @@ function spawn(dimension: Dimension, id: string, location: Vector3): void {
 	dimension.spawnParticle(id, location);
 }
 
+export function spawnBeamLine(dimension: Dimension, id: string, start: Vector3, dir: Vector3, length: number, step: number): void {
+	for (let d = 0; d <= length; d += step) spawn(dimension, id, offset(start, dir, d));
+}
+
 export function spawnPolarisBeam(dimension: Dimension, start: Vector3, dir: Vector3, length: number): void {
 	const up = Math.abs(dir.y) > 0.95 ? { x: 1, y: 0, z: 0 } : { x: 0, y: 1, z: 0 };
 	const u = unit(cross(dir, up));
 	const v = cross(dir, u);
 
-	for (let d = 0; d <= length; d += CORE_STEP) spawn(dimension, "ph:polaris_beam_core", offset(start, dir, d));
+	spawnBeamLine(dimension, "ph:polaris_beam_core", start, dir, length, CORE_STEP);
 
 	for (let d = SPIRAL_START; d <= length; d += SPIRAL_STEP) {
 		const angle = (d / SPIRAL_TURN_LENGTH) * Math.PI * 2;

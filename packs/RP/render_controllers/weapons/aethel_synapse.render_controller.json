@@ -1,0 +1,31 @@
+{
+	"format_version": "1.10.0",
+	"render_controllers": {
+		"controller.render.ph.aethel_synapse": {
+			"geometry": "Geometry.default",
+			"materials": [
+				{
+					"*": "variable.is_enchanted ? Material.enchanted : Material.default"
+				}
+			],
+			"textures": [
+				"Texture.default",
+				"Texture.enchanted"
+			],
+			"part_visibility": [
+				{
+					"*": true
+				},
+				{
+					"weapon_root": "!(variable.is_off_hand ?? 0)"
+				},
+				{
+					"aethel_*": "!(variable.is_off_hand ?? 0)"
+				},
+				{
+					"left_*": "(variable.is_off_hand ?? 0)"
+				}
+			]
+		}
+	}
+}

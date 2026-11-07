@@ -4,6 +4,7 @@ export type ItemRarity = "common" | "uncommon" | "rare" | "epic" | "legendary"
 
 const RARITY = new Map<string, ItemRarity>([
     ["ph:a_part_of_polaris_power", "epic"],
+    ["ph:aethel_synapse", "epic"],
     ["ph:astral_upgrade_smithing_template", "rare"],
     ["ph:astralith_alloy", "rare"],
     ["ph:astralith_axe", "epic"],

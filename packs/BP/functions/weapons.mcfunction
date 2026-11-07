@@ -43,6 +43,8 @@ titleraw @a[hasitem={item=ph:auric_communicator,location=slot.weapon.mainhand},s
 titleraw @a[hasitem={item=ph:auric_communicator,location=slot.weapon.mainhand},scores={auric_communicator_mode=1}] actionbar {"rawtext":[{"text":"§cNuke Shot"},{"text":", §gAuric Charge : "},{"score":{"name":"*","objective":"auric_charge"}},{"text":"/700"}]}
 
 # Auric Charges General Items
+titleraw @a[hasitem={item=ph:aethel_synapse,location=slot.weapon.mainhand}] actionbar {"rawtext":[{"text":"§gAuric Charge : "},{"score":{"name":"*","objective":"auric_charge"}},{"text":"/700"}]}
+titleraw @a[hasitem={item=ph:aethel_synapse,location=slot.weapon.offhand}] actionbar {"rawtext":[{"text":"§gAuric Charge : "},{"score":{"name":"*","objective":"auric_charge"}},{"text":"/700"}]}
 titleraw @a[hasitem={item=ph:auric_stock_battery,location=slot.weapon.mainhand}] actionbar {"rawtext":[{"text":"§gAuric Charge : "},{"score":{"name":"*","objective":"auric_charge"}},{"text":"/700"}]}
 # Thunder Gale Runtime
 effect @a[hasitem={item=ph:thunder_gale,location=slot.weapon.mainhand}] speed 1 2 true

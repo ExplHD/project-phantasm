@@ -134,6 +134,17 @@
                 ]
             }
         },
+        "controller.render.aethel_synapse": {
+            "textures": [
+                "texture.aethel_synapse"
+            ],
+            "geometry": "geometry.aethel_synapse",
+            "materials": [
+                {
+                    "*": "material.default"
+                }
+            ]
+        },
         "controller.render.rupture_blade": {
             "textures": [
                 "texture.rupture_blade"

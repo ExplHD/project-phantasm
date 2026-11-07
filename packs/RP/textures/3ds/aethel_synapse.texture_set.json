@@ -1,0 +1,7 @@
+{
+	"format_version": "1.16.100",
+	"minecraft:texture_set": {
+		"color": "aethel_synapse",
+		"metalness_emissive_roughness": "aethel_synapse_mer"
+	}
+}

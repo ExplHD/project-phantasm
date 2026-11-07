@@ -9,6 +9,7 @@ export default function guideWeapons(player: Player): void {
 		.body("Weapons come in many variants, from Common up to Legendary.")
 		.button("§3Prismatic Tools", "textures/items/prismatic_sword")
 		.button("§5Xeon Plasm Tools", "textures/items/xeon_plasm_sword")
+		.button("§5Aethel Synapse")
 		.button("§5Charged Copper Axe", "textures/items/weapons/charged_copper_axe")
 		.button("§5Cruxshaper", "textures/items/weapons/cruxshaper")
 		.button("§5Nature Staff", "textures/items/weapons/nature_staff")
@@ -24,22 +25,23 @@ export default function guideWeapons(player: Player): void {
 		.button("§pThe Bleeding Spire", "textures/items/weapons/the_bleeding_spire")
 		.button("Back")
 		.show(player).then(r => {
-			if (r.canceled || r.selection == 15) mainGuideScreen(player);
+			if (r.canceled || r.selection == 16) mainGuideScreen(player);
 			if (r.selection == 0) prismaticTools(player);
 			if (r.selection == 1) xeonPlasmTools(player);
-			if (r.selection == 2) chargedCopperAxe(player);
-			if (r.selection == 3) cruxshaper(player);
-			if (r.selection == 4) natureStaff(player);
-			if (r.selection == 5) peacemakerOath(player);
-			if (r.selection == 6) ruptureBlade(player);
-			if (r.selection == 7) seiketsu(player);
-			if (r.selection == 8) spectricBow(player);
-			if (r.selection == 9) thunderGale(player);
-			if (r.selection == 10) animitta(player);
-			if (r.selection == 11) auricPhotonizer(player);
-			if (r.selection == 12) prismWeaver(player);
-			if (r.selection == 13) superchargedCopperAxe(player);
-			if (r.selection == 14) theBleedingSpire(player);
+			if (r.selection == 2) aethelSynapse(player);
+			if (r.selection == 3) chargedCopperAxe(player);
+			if (r.selection == 4) cruxshaper(player);
+			if (r.selection == 5) natureStaff(player);
+			if (r.selection == 6) peacemakerOath(player);
+			if (r.selection == 7) ruptureBlade(player);
+			if (r.selection == 8) seiketsu(player);
+			if (r.selection == 9) spectricBow(player);
+			if (r.selection == 10) thunderGale(player);
+			if (r.selection == 11) animitta(player);
+			if (r.selection == 12) auricPhotonizer(player);
+			if (r.selection == 13) prismWeaver(player);
+			if (r.selection == 14) superchargedCopperAxe(player);
+			if (r.selection == 15) theBleedingSpire(player);
 		})
 }
 
@@ -62,6 +64,18 @@ function xeonPlasmTools(player: Player): void {
 		.label("Xeon Plasm is a tier beyond Prismatic: twice the damage, durability, and mining speed.")
 		.label("The sword and spear work like their Prismatic versions.")
 		.label("Repair them with Xeonnite Cubes or Plasmoid Scrap.")
+		.button("Back")
+		.show(player).then(r => {
+			if (r.canceled || r.selection == 0) guideWeapons(player);
+		})
+}
+
+function aethelSynapse(player: Player): void {
+	new ActionFormData()
+		.title(guideTitle("Aethel Synapse"))
+		.label("Two floating blades held in place by an Auric core.")
+		.label("Hold Interact to spin the blades in front of you like a propeller. It blocks hits from the front and never costs durability. Every 2 damage blocked costs 1 Auric Charge, and with too little charge the hit goes through.")
+		.label("In the offhand the blades disappear and the core floats beside your left side. When you hit something, the core fires a laser at it half a second later for 6 damage and gives you 3 Auric Charge. The laser has a 3 second cooldown.")
 		.button("Back")
 		.show(player).then(r => {
 			if (r.canceled || r.selection == 0) guideWeapons(player);

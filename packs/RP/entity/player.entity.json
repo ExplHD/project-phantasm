@@ -26,6 +26,7 @@
                 "seiketsu": "textures/none",
                 "scimitar": "textures/none",
                 "rupture_blade": "textures/none",
+                "aethel_synapse": "textures/none",
                 "xeonnite_blaster_mk3": "textures/none",
                 "auric_apex": "textures/none"
             },
@@ -45,6 +46,7 @@
                 "seiketsu": "geometry.seiketsu",
                 "scimitar": "geometry.scimitar",
                 "rupture_blade": "geometry.rupture_blade",
+                "aethel_synapse": "geometry.aethel_synapse_rig",
                 "xeonnite_blaster_mk3": "geometry.xeonnite_blaster_mk3",
                 "auric_apex": "geometry.auric_apex"
             },
@@ -91,7 +93,9 @@
                 "rupture_blade_attack_2": "ph:rupture_blade_attack_2",
                 "rupture_blade_attack_3": "ph:rupture_blade_attack_3",
                 "rupture_blade_trail": "ph:rupture_blade_trail",
-                "rupture_blade_sparks": "ph:rupture_blade_sparks"
+                "rupture_blade_sparks": "ph:rupture_blade_sparks",
+                "aethel_synapse_trail": "ph:aethel_synapse_trail",
+                "aethel_synapse_guard": "ph:aethel_synapse_guard"
             },
             "scripts": {
                 "scale": "0.9375",
@@ -115,6 +119,7 @@
                     "variable.thunder_gale": "public",
                     "variable.seiketsu": "public",
                     "variable.rupture_blade": "public",
+                    "variable.aethel_synapse": "public",
                     "variable.xeonnite_blaster_mk3": "public",
                     "variable.auric_apex": "public"
                 },
@@ -209,6 +214,7 @@
                     "variable.thunder_gale = query.get_equipped_item_name(0) == 'thunder_gale';",
                     "variable.seiketsu = query.get_equipped_item_name(0) == 'seiketsu';",
                     "variable.rupture_blade = query.get_equipped_item_name(0) == 'rupture_blade';",
+                    "variable.aethel_synapse = query.get_equipped_item_name(0) == 'aethel_synapse';",
                     "variable.scimitar = query.get_equipped_item_name(0) == 'scimitar' || query.get_equipped_item_name(0) == 'scimitar_2';",
                     "variable.scimitar_off_hand = query.get_equipped_item_name(1) == 'scimitar' || query.get_equipped_item_name(1) == 'scimitar_2';",
                     "variable.xeonnite_blaster_mk3 = query.get_equipped_item_name(0) == 'xeonnite_blaster_mk3';",
@@ -263,6 +269,15 @@
                     },
                     {
                         "rupture_blade_fpp": "variable.rupture_blade&&variable.is_first_person"
+                    },
+                    {
+                        "aethel_synapse_fpp": "variable.aethel_synapse&&variable.is_first_person"
+                    },
+                    {
+                        "aethel_synapse_idle": "variable.aethel_synapse"
+                    },
+                    {
+                        "aethel_synapse_guard": "variable.aethel_synapse&&query.is_using_item"
                     },
                     {
                         "scimitar_fpp": "variable.scimitar&&variable.is_first_person"
@@ -373,6 +388,9 @@
                 "seiketsu_scale": "animation.seiketsu_scale",
                 "seiketsu_fpp": "animation.weapon.fpp_1",
                 "rupture_blade_fpp": "animation.weapon.fpp_1",
+                "aethel_synapse_fpp": "animation.weapon.fpp_1",
+                "aethel_synapse_idle": "animation.aethel_synapse.idle",
+                "aethel_synapse_guard": "animation.aethel_synapse.guard",
                 "scimitar_fpp": "animation.weapon.fpp_1",
                 "scimitar_off_hand_fpp": "animation.weapon.fpp_1_off_hand",
                 "xeonnite_blaster_mk3": "controller.animation.xeonnite_blaster_mk3",
@@ -443,6 +461,9 @@
                 },
                 {
                     "controller.render.rupture_blade": "variable.rupture_blade"
+                },
+                {
+                    "controller.render.aethel_synapse": "variable.aethel_synapse"
                 },
                 {
                     "controller.render.xeonnite_blaster_mk3": "variable.xeonnite_blaster_mk3"

@@ -1,0 +1,23 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"animation.aethel_synapse.orb": {
+			"loop": true,
+			"bones": {
+				"left_aethel_orb": {
+					"rotation": [
+						"q.life_time * 40",
+						"q.life_time * 90",
+						0
+					],
+					"position": [
+						0,
+						"math.sin(q.life_time * 180) * 0.5",
+						0
+					],
+					"scale": "1.1 + math.sin(q.life_time * 240) * 0.1"
+				}
+			}
+		}
+	}
+}
