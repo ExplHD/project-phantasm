@@ -22,6 +22,7 @@ execute if score sfx_meteor sfx_cd matches 1.. run scoreboard players remove sfx
 execute if entity @a[scores={sectick=19..}] as @e[type=ph:soul_of_nature] at @s unless entity @a[r=64] run function boss_despawn/soul_of_nature
 execute if entity @a[scores={sectick=19..}] as @e[type=ph:copper_mechanical_array] at @s unless entity @a[r=128] run function boss_despawn/copper_mechanical_array
 execute if entity @a[scores={sectick=19..}] as @e[type=ph:punicea_crimson_eye] at @s unless entity @a[r=64] run function boss_despawn/punicea_crimson_eye
+execute if entity @a[scores={sectick=19..}] as @e[type=ph:polaris] at @s unless entity @a[r=128] run function boss_despawn/polaris
 
 # Guidebook Runtime
 tag @a[tag=!guidebook_phantasm_uc] remove guidebook_phantasm_uc

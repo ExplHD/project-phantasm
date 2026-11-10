@@ -147,6 +147,9 @@
 		"ph_punicea_crimson_eye_treasure_bag": {
 			"textures": "textures/items/loot_treasure/punicea_crimson_eye_treasure_bag"
 		},
+		"ph_polaris_edge_treasure_bag": {
+			"textures": "textures/items/loot_treasure/polaris_edge_treasure_bag"
+		},
 		"ph_auric_communicator": {
 			"textures": "textures/items/auric_communicator"
 		},

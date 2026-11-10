@@ -12,6 +12,7 @@ import { registerShieldComponent } from '../features/shield/manager'
 import { trackLootItem } from '../systems/lootBeam'
 import { resetAutoGunHeat } from '../features/weapons/autoGun'
 import { GUN_OBJECTIVES } from '../features/weapons/gunSpecs'
+import { scanPolaris, onPolarisPlayerSpawn } from '../features/bosses/polaris/manager'
 
 const objectives: string[] = [
 
@@ -80,6 +81,8 @@ world.afterEvents.worldLoad.subscribe(() => {
             trackLootItem(entity)
         }
     }
+
+    scanPolaris()
 })
 
 world.afterEvents.playerSpawn.subscribe(({ player, initialSpawn }) => {
@@ -88,6 +91,7 @@ world.afterEvents.playerSpawn.subscribe(({ player, initialSpawn }) => {
 
     onBlessingSpawn(player, initialSpawn)
     onPolarisSpawn(player, initialSpawn)
+    onPolarisPlayerSpawn(player)
 })
 
 function loadScoreboards(): void {

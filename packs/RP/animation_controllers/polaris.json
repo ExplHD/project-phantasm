@@ -1,0 +1,111 @@
+{
+	"format_version": "1.19.0",
+	"animation_controllers": {
+		"controller.animation.polaris.move": {
+			"initial_state": "default",
+			"states": {
+				"default": {
+					"animations": [
+						"idle"
+					],
+					"blend_transition": 0.2,
+					"transitions": [
+						{
+							"guard": "q.property('ph:pose') == 'guard'"
+						},
+						{
+							"channel": "q.property('ph:pose') == 'channel'"
+						},
+						{
+							"charge": "q.property('ph:pose') == 'charge'"
+						},
+						{
+							"stagger": "q.property('ph:pose') == 'stagger'"
+						},
+						{
+							"walk": "q.is_moving && q.is_on_ground"
+						}
+					]
+				},
+				"walk": {
+					"animations": [
+						"walk"
+					],
+					"blend_transition": 0.2,
+					"transitions": [
+						{
+							"default": "!q.is_moving || !q.is_on_ground || q.property('ph:pose') != 'none'"
+						}
+					]
+				},
+				"guard": {
+					"animations": [
+						"guard"
+					],
+					"blend_transition": 0.15,
+					"transitions": [
+						{
+							"default": "q.property('ph:pose') != 'guard'"
+						}
+					]
+				},
+				"channel": {
+					"animations": [
+						"channel"
+					],
+					"blend_transition": 0.2,
+					"transitions": [
+						{
+							"default": "q.property('ph:pose') != 'channel'"
+						}
+					]
+				},
+				"charge": {
+					"animations": [
+						"charge"
+					],
+					"blend_transition": 0.25,
+					"transitions": [
+						{
+							"default": "q.property('ph:pose') != 'charge'"
+						}
+					]
+				},
+				"stagger": {
+					"animations": [
+						"stagger"
+					],
+					"blend_transition": 0.2,
+					"transitions": [
+						{
+							"default": "q.property('ph:pose') != 'stagger'"
+						}
+					]
+				}
+			}
+		},
+		"controller.animation.polaris.melee": {
+			"initial_state": "default",
+			"states": {
+				"default": {
+					"transitions": [
+						{
+							"swing": "q.is_delayed_attacking"
+						}
+					]
+				},
+				"swing": {
+					"animations": [
+						"slash"
+					],
+					"blend_transition": 0.1,
+					"transitions": [
+						{
+							"default": "!q.is_delayed_attacking"
+						}
+					]
+				}
+			}
+		}
+	}
+}

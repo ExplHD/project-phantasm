@@ -1,0 +1,261 @@
+{
+	"format_version": "1.26.0",
+	"minecraft:entity": {
+		"description": {
+			"identifier": "ph:polaris",
+			"is_spawnable": false,
+			"is_summonable": true,
+			"is_experimental": false,
+			"properties": {
+				// 1 or 2. Set by features/bosses/polaris/manager.ts, read by the render and animation controllers.
+				"ph:phase": {
+					"type": "int",
+					"client_sync": true,
+					"default": 1,
+					"range": [1, 2]
+				},
+				// Held pose while an attack channels. One-shot moves are played with playAnimation instead.
+				"ph:pose": {
+					"type": "enum",
+					"client_sync": true,
+					"default": "none",
+					"values": ["none", "guard", "channel", "charge", "stagger"]
+				}
+			}
+		},
+		"component_groups": {
+			"despawn": {
+				"minecraft:instant_despawn": {}
+			},
+			"ph:phase_one": {
+				"minecraft:movement": {
+					"value": 0.1
+				},
+				"minecraft:attack": {
+					"damage": 20
+				}
+			},
+			"ph:phase_two": {
+				"minecraft:movement": {
+					"value": 0.3
+				},
+				"minecraft:attack": {
+					"damage": 15
+				}
+			},
+			// Between attack sets: walk the target down and swing. The swing lasts 0.9s and lands at 40%,
+			// matching animation.polaris.slash (the client plays it from query.is_delayed_attacking).
+			"ph:chase": {
+				"minecraft:behavior.delayed_attack": {
+					"priority": 3,
+					"attack_duration": 0.9,
+					"hit_delay_pct": 0.4,
+					"reach_multiplier": 2.2,
+					"speed_multiplier": 1,
+					"track_target": true
+				}
+			},
+			// During an attack set: no movement goal, the script places and turns the boss.
+			"ph:cast": {
+				"minecraft:behavior.look_at_target": {
+					"priority": 3,
+					"look_distance": 64
+				}
+			}
+		},
+		"components": {
+			// One bar per phase: 1570 x 2 = 3140. Phase one never drops below 1 (onPolarisHurt), then the bar refills.
+			"minecraft:health": {
+				"value": 1570,
+				"max": 1570
+			},
+			"minecraft:boss": {
+				"hud_range": 96,
+				"name": "Polaris - The Interdimensional Communicator"
+			},
+			// The model is 38px tall like the Forge Trooper; 1.7 brings it to two players. The box scales with it (1.2 x 3.7).
+			"minecraft:scale": {
+				"value": 1.7
+			},
+			"minecraft:collision_box": {
+				"width": 0.7,
+				"height": 2.2
+			},
+			"minecraft:physics": {
+				"has_gravity": true,
+				"has_collision": true
+			},
+			"minecraft:pushable": {
+				"is_pushable": false,
+				"is_pushable_by_piston": false
+			},
+			"minecraft:knockback_resistance": {
+				"value": 1
+			},
+			"minecraft:navigation.walk": {
+				"can_path_over_water": true,
+				"avoid_damage_blocks": false,
+				"can_pass_doors": true
+			},
+			"minecraft:movement.basic": {
+				"max_turn": 30
+			},
+			"minecraft:jump.static": {
+				"jump_power": 0.6
+			},
+			"minecraft:type_family": {
+				"family": [
+					"boss",
+					"monster",
+					"polaris",
+					"titan_ridge",
+					"mob"
+				]
+			},
+			"minecraft:fire_immune": {},
+			// Mace smashes and every fire source do nothing. Falls and walls are off too, the script throws the boss around.
+			"minecraft:damage_sensor": {
+				"triggers": [
+					{
+						"cause": "all",
+						"deals_damage": "no",
+						"on_damage": {
+							"filters": {
+								"test": "is_family",
+								"subject": "other",
+								"value": "titan_ridge"
+							}
+						}
+					},
+					{ "cause": "mace_smash", "deals_damage": "no" },
+					{ "cause": "fire", "deals_damage": "no" },
+					{ "cause": "fire_tick", "deals_damage": "no" },
+					{ "cause": "lava", "deals_damage": "no" },
+					{ "cause": "magma", "deals_damage": "no" },
+					{ "cause": "campfire", "deals_damage": "no" },
+					{ "cause": "soul_campfire", "deals_damage": "no" },
+					{ "cause": "fall", "deals_damage": "no" },
+					{ "cause": "suffocation", "deals_damage": "no" },
+					{ "cause": "fly_into_wall", "deals_damage": "no" }
+				]
+			},
+			"minecraft:follow_range": {
+				"value": 64,
+				"max": 64
+			},
+			"minecraft:behavior.float": {
+				"priority": 0
+			},
+			"minecraft:behavior.nearest_attackable_target": {
+				"priority": 1,
+				"within_radius": 64,
+				"must_see": false,
+				"reselect_targets": true,
+				"entity_types": [
+					{
+						"filters": {
+							"test": "is_family",
+							"subject": "other",
+							"value": "player"
+						},
+						"max_dist": 64
+					},
+					{
+						"filters": {
+							"all_of": [
+								{ "test": "is_family", "subject": "other", "value": "mob" },
+								{ "test": "is_family", "subject": "other", "operator": "!=", "value": "titan_ridge" }
+							]
+						},
+						"max_dist": 24
+					}
+				]
+			},
+			"minecraft:behavior.hurt_by_target": {
+				"priority": 2,
+				"entity_types": {
+					"filters": { "test": "is_family", "subject": "other", "operator": "!=", "value": "titan_ridge" }
+				}
+			},
+			"minecraft:behavior.look_at_target": {
+				"priority": 4,
+				"look_distance": 64
+			},
+			"minecraft:behavior.random_look_around": {
+				"priority": 6
+			},
+			"minecraft:on_death": {
+				"event": "death"
+			},
+			"minecraft:loot": {
+				"table": "loot_tables/entities/boss/polaris.json"
+			},
+			"minecraft:experience_reward": {
+				"on_death": "query.last_hit_by_player ? 25000 : 0"
+			}
+		},
+		"events": {
+			"minecraft:entity_spawned": {
+				"add": {
+					"component_groups": [
+						"ph:phase_one",
+						"ph:chase"
+					]
+				},
+				"queue_command": {
+					"command": [
+						"title @a[r=64] title Polaris",
+						"title @a[r=64] subtitle The Interdimensional Communicator",
+						"music play music.boss.polaris_phase_one 1 1 loop"
+					]
+				}
+			},
+			"ph:enter_phase_two": {
+				"remove": {
+					"component_groups": [
+						"ph:phase_one"
+					]
+				},
+				"add": {
+					"component_groups": [
+						"ph:phase_two"
+					]
+				},
+				"queue_command": {
+					"command": [
+						"title @a[r=96] title §dPolaris",
+						"title @a[r=96] subtitle §5The One Behind the Golden Gate",
+						"music play music.boss.polaris_phase_two 1 0.5 loop"
+					]
+				}
+			},
+			"ph:state_chase": {
+				"remove": { "component_groups": ["ph:cast"] },
+				"add": { "component_groups": ["ph:chase"] }
+			},
+			"ph:state_cast": {
+				"remove": { "component_groups": ["ph:chase"] },
+				"add": { "component_groups": ["ph:cast"] }
+			},
+			"despawn": {
+				"queue_command": {
+					"command": [
+						"music stop 3"
+					]
+				},
+				"add": {
+					"component_groups": [
+						"despawn"
+					]
+				}
+			},
+			"death": {
+				"queue_command": {
+					"command": [
+						"music stop 3"
+					]
+				}
+			}
+		}
+	}
+}

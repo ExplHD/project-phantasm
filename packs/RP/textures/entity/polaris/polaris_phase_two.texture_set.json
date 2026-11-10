@@ -1,0 +1,7 @@
+{
+	"format_version": "1.16.100",
+	"minecraft:texture_set": {
+		"color": "polaris_phase_two",
+		"metalness_emissive_roughness": "polaris_mer"
+	}
+}

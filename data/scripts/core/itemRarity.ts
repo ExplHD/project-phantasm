@@ -54,6 +54,7 @@ const RARITY = new Map<string, ItemRarity>([
     ["ph:ocean_tide_helmet", "rare"],
     ["ph:ocean_tide_leggings", "rare"],
     ["ph:peacemaker_oath", "epic"],
+    ["ph:polaris_edge_treasure_bag", "epic"],
     ["ph:prism_weaver", "legendary"],
     ["ph:prismatic_axe", "rare"],
     ["ph:prismatic_hoe", "rare"],

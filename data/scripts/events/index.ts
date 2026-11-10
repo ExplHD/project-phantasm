@@ -30,6 +30,7 @@ import { tickShields, onShieldHurt, onShieldEffectAdd, onShieldSneak, onShieldSw
 import { tickTitanRidgeSites } from '../features/titan_core/sites'
 import { trackLootItem, tickLootBeams } from '../systems/lootBeam'
 import { bossSummon, bossSummonProjectile, bossSummonProjectileFacing, ramDash, laserOnce, crimsonDriftMark, crimsonDriftStrike } from '../features/bosses/attacks'
+import { trackPolaris, onPolarisHurt, onPolarisDie, onPolarisRemove, tickPolaris } from '../features/bosses/polaris/manager'
 
 world.beforeEvents.entityHurt.subscribe((acc) => {
     const hurtEntity = acc.hurtEntity;
@@ -129,6 +130,7 @@ world.beforeEvents.entityHurt.subscribe(onBlessingHurt)
 world.beforeEvents.entityHurt.subscribe(onTrooperHurt)
 world.beforeEvents.entityHurt.subscribe(onShieldHurt)
 world.beforeEvents.entityHurt.subscribe(onAethelHurt)
+world.beforeEvents.entityHurt.subscribe(onPolarisHurt)
 
 world.beforeEvents.effectAdd.subscribe(onShieldEffectAdd)
 
@@ -327,6 +329,9 @@ world.afterEvents.entityDie.subscribe(({ damageSource, deadEntity }) => {
 	if (deadEntity?.typeId === "ph:ancient_sentinel") {
 		onSentinelDie(deadEntity);
 	}
+	if (deadEntity?.typeId === "ph:polaris") {
+		onPolarisDie(deadEntity);
+	}
 	if (!killer?.isValid) return;
     const mainhand = killer?.getComponent("equippable")?.getEquipment(EquipmentSlot.Mainhand);
 
@@ -342,6 +347,7 @@ world.afterEvents.entityDie.subscribe(({ deadEntity, damageSource }) => onTroope
 world.afterEvents.entityRemove.subscribe(({ removedEntityId, typeId }) => {
     forgetWard(removedEntityId);
     onTrooperRemove(removedEntityId, typeId);
+    onPolarisRemove(removedEntityId, typeId);
 })
 
 world.afterEvents.entityHealthChanged.subscribe(({ entity }) => {
@@ -396,6 +402,9 @@ world.afterEvents.entitySpawn.subscribe(({ entity }) => onSentinelSpawn(entity))
 world.afterEvents.entitySpawn.subscribe(({ entity }) => trackLootItem(entity))
 world.afterEvents.entityLoad.subscribe(({ entity }) => trackLootItem(entity))
 
+world.afterEvents.entitySpawn.subscribe(({ entity }) => trackPolaris(entity))
+world.afterEvents.entityLoad.subscribe(({ entity }) => trackPolaris(entity))
+
 world.beforeEvents.playerLeave.subscribe(({ player }) => {
     clearPlayerLighting(player);
     clearControlState(player);
@@ -423,6 +432,7 @@ system.runInterval(tickShields, 1);
 system.runInterval(tickAutoGuns, 1);
 system.runInterval(tickChargeBeamGuns, 1);
 system.runInterval(tickGunScopes, 1);
+system.runInterval(tickPolaris, 1);
 system.runInterval(checkBlessingMilestones, 20);
 system.runInterval(tickTitanRadiation, 40);
 

@@ -1,0 +1,50 @@
+{
+	"format_version": "1.20.80",
+	"minecraft:client_entity": {
+		"description": {
+			"identifier": "ph:polaris",
+			"materials": {
+				"default": "entity_alphatest"
+			},
+			"textures": {
+				"default": "textures/entity/polaris/polaris",
+				"phase_two": "textures/entity/polaris/polaris_phase_two"
+			},
+			"geometry": {
+				"default": "geometry.polaris"
+			},
+			"animations": {
+				"look_at_target": "animation.polaris.look_at_target",
+				"halo": "animation.polaris.halo",
+				"idle": "animation.polaris.idle",
+				"walk": "animation.polaris.walk",
+				"slash": "animation.polaris.slash",
+				"cast": "animation.polaris.cast",
+				"guard": "animation.polaris.guard",
+				"channel": "animation.polaris.channel",
+				"charge": "animation.polaris.charge",
+				"strike": "animation.polaris.strike",
+				"blink": "animation.polaris.blink",
+				"dash": "animation.polaris.dash",
+				"spin": "animation.polaris.spin",
+				"stagger": "animation.polaris.stagger",
+				"transition": "animation.polaris.transition",
+				"polaris_move": "controller.animation.polaris.move",
+				"polaris_melee": "controller.animation.polaris.melee"
+			},
+			"scripts": {
+				"pre_animation": [
+					"variable.phase_two = query.property('ph:phase') == 2;"
+				],
+				"animate": [
+					"look_at_target",
+					"halo",
+					"polaris_move",
+					"polaris_melee"
+				],
+				"should_update_effects_offscreen": "1.0"
+			},
+			"render_controllers": ["controller.render.polaris"]
+		}
+	}
+}

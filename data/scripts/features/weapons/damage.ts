@@ -38,7 +38,7 @@ export function strikeEntity(source: Player, entity: Entity, stats: StrikeStats,
 	});
 
 	const kbStrength = (1 + stats.knockback) * knockbackScale;
-	if (!entity.isValid) return;
+	if (!entity.isValid || !entity.getComponent("minecraft:movement")) return;
 	entity.applyKnockback({ x: push.x * kbStrength, z: push.z * kbStrength }, 0.4 * Math.min(1, knockbackScale + 0.25));
 	if (stats.fireAspect > 0) entity.setOnFire(stats.fireAspect * 4 - 1);
 }

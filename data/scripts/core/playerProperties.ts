@@ -29,7 +29,8 @@ export const PLAYER_PROPERTIES: PlayerPropertyDef[] = [
 
     { id: "ph:forge_parry_nerf_until", label: "Forge parry nerf ends (ms)", type: "number", group: "Runtime" },
     { id: "ph:xeonnite_cutscene_active", label: "Blessing cutscene running", type: "boolean", group: "Runtime" },
-    { id: "ph:polaris_charging", label: "Polaris Power charging", type: "boolean", group: "Runtime" }
+    { id: "ph:polaris_charging", label: "Polaris Power charging", type: "boolean", group: "Runtime" },
+    { id: "ph:polaris_jump_lock", label: "Polaris corruption jump lock", type: "boolean", group: "Runtime" }
 ];
 
 export function applyPropertyDefaults(player: Player): void {

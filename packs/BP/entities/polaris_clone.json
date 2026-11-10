@@ -1,0 +1,102 @@
+{
+	"format_version": "1.26.0",
+	"minecraft:entity": {
+		"description": {
+			"identifier": "ph:polaris_clone",
+			"is_spawnable": false,
+			"is_summonable": true,
+			"is_experimental": false,
+			"properties": {
+				// Shared with ph:polaris so both can run the same animations.
+				"ph:phase": {
+					"type": "int",
+					"client_sync": true,
+					"default": 1,
+					"range": [1, 2]
+				},
+				"ph:pose": {
+					"type": "enum",
+					"client_sync": true,
+					"default": "none",
+					"values": ["none", "guard", "channel", "charge", "stagger"]
+				}
+			}
+		},
+		"component_groups": {
+			"despawn": {
+				"minecraft:instant_despawn": {}
+			}
+		},
+		"components": {
+			// No AI of its own: features/bosses/polaris drives it (False Clone in phase one, Void Mirror Clones in phase two).
+			"minecraft:health": {
+				"value": 120,
+				"max": 120
+			},
+			"minecraft:scale": {
+				"value": 1.7
+			},
+			"minecraft:collision_box": {
+				"width": 0.7,
+				"height": 2.2
+			},
+			"minecraft:physics": {
+				"has_gravity": true,
+				"has_collision": true
+			},
+			"minecraft:pushable": {
+				"is_pushable": false,
+				"is_pushable_by_piston": false
+			},
+			"minecraft:knockback_resistance": {
+				"value": 1
+			},
+			"minecraft:type_family": {
+				"family": [
+					"monster",
+					"polaris",
+					"polaris_clone",
+					"titan_ridge",
+					"mob"
+				]
+			},
+			"minecraft:fire_immune": {},
+			"minecraft:damage_sensor": {
+				"triggers": [
+					{
+						"cause": "all",
+						"deals_damage": "no",
+						"on_damage": {
+							"filters": {
+								"test": "is_family",
+								"subject": "other",
+								"value": "titan_ridge"
+							}
+						}
+					},
+					{ "cause": "fall", "deals_damage": "no" },
+					{ "cause": "suffocation", "deals_damage": "no" },
+					{ "cause": "fly_into_wall", "deals_damage": "no" }
+				]
+			},
+			// Failsafe: a clone left behind by a reload or an unloaded boss removes itself.
+			"minecraft:timer": {
+				"looping": false,
+				"time": 30,
+				"time_down_event": {
+					"event": "despawn",
+					"target": "self"
+				}
+			}
+		},
+		"events": {
+			"despawn": {
+				"add": {
+					"component_groups": [
+						"despawn"
+					]
+				}
+			}
+		}
+	}
+}

@@ -203,6 +203,18 @@
 			"sounds": [
 				"sounds/music/game/boss/it_sees_everything"
 			]
+		},
+		"music.boss.polaris_phase_one": {
+			"category": "music",
+			"sounds": [
+				"sounds/music/game/boss/fly_of_beelzebub"
+			]
+		},
+		"music.boss.polaris_phase_two": {
+			"category": "music",
+			"sounds": [
+				"sounds/music/game/boss/interstellar_stomper"
+			]
 		}
 	}
 }

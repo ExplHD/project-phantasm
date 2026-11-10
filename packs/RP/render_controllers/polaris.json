@@ -1,0 +1,32 @@
+{
+	"format_version": "1.10.0",
+	"render_controllers": {
+		"controller.render.polaris": {
+			"geometry": "Geometry.default",
+			"materials": [
+				{
+					"*": "Material.default"
+				}
+			],
+			"textures": [ "query.property('ph:phase') == 2 ? Texture.phase_two : Texture.default" ]
+		},
+		"controller.render.polaris_clone": {
+			"geometry": "Geometry.default",
+			"materials": [
+				{
+					"*": "Material.default"
+				}
+			],
+			"textures": [ "Texture.default" ]
+		},
+		"controller.render.polaris_node": {
+			"geometry": "Geometry.default",
+			"materials": [
+				{
+					"*": "Material.default"
+				}
+			],
+			"textures": [ "Texture.default" ]
+		}
+	}
+}

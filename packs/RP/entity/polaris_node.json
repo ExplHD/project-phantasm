@@ -1,0 +1,27 @@
+{
+	"format_version": "1.20.80",
+	"minecraft:client_entity": {
+		"description": {
+			"identifier": "ph:polaris_node",
+			"materials": {
+				"default": "entity_alphatest"
+			},
+			"textures": {
+				"default": "textures/entity/polaris/polaris_node"
+			},
+			"geometry": {
+				"default": "geometry.polaris_node"
+			},
+			"animations": {
+				"spin": "animation.polaris_node.spin"
+			},
+			"scripts": {
+				"animate": [
+					"spin"
+				],
+				"should_update_effects_offscreen": "1.0"
+			},
+			"render_controllers": ["controller.render.polaris_node"]
+		}
+	}
+}
