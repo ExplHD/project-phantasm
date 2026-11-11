@@ -453,6 +453,20 @@ export function drawRing(fight: PolarisFight, center: Vector3, fromRadius: numbe
 	fight.dimension.spawnParticle("ph:polaris_ring", center, vars);
 }
 
+export function drawPortal(fight: PolarisFight, center: Vector3, facing: Vector3, radius: number, lifeTicks: number, color: RGBA): void {
+	if (!isLoadedLocation(fight.dimension, center)) return;
+	const dx = facing.x - center.x;
+	const dy = facing.y - center.y;
+	const dz = facing.z - center.z;
+	const length = Math.hypot(dx, dy, dz);
+	if (length < 0.01) return;
+	const vars = tinted(color);
+	vars.setVector3("variable.dir", { x: dx / length, y: dy / length, z: dz / length });
+	vars.setFloat("variable.size", radius);
+	vars.setFloat("variable.life", lifeTicks / 20);
+	fight.dimension.spawnParticle("ph:polaris_portal", center, vars);
+}
+
 export function drawBurst(fight: PolarisFight, center: Vector3, size: number, color: RGBA): void {
 	if (!isLoadedLocation(fight.dimension, center)) return;
 	const vars = tinted(color);

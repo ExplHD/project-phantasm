@@ -17,6 +17,7 @@ import {
 	drawLine,
 	drawSkyRift,
 	drawOrb,
+	drawPortal,
 	drawRing,
 	endAttack,
 	faded,
@@ -69,7 +70,9 @@ const SHARD_LIFE = 70;
 const SHARD_DAMAGE = 8;
 const SHARD_HIT = 1;
 const PORTAL_RADIUS = 22;
-const BARRAGE_START = 20;
+const PORTAL_SIZE = 1.5;
+const PORTAL_LINGER = 14;
+const BARRAGE_START = 30;
 const BARRAGE_GAP = 6;
 
 const RUSH_FROM = 64;
@@ -222,6 +225,7 @@ function fireShard(fight: PolarisFight, from: Vector3, prey: Player): void {
 	let heading = { x: (aim.x - from.x) / length, y: (aim.y - from.y) / length, z: (aim.z - from.z) / length };
 
 	playSound(fight, "mob.shulker.shoot", from, 1.5);
+	drawBurst(fight, from, 1.4, WHITE);
 
 	addHazard(fight, (age): boolean => {
 		const chest = prey.isValid ? offset(prey.location, 0, 0.9, 0) : undefined;
@@ -280,8 +284,11 @@ function interdimensionalBarrage(fight: PolarisFight): void {
 		const fireAt = BARRAGE_START + i * BARRAGE_GAP;
 
 		after(fight, i * 3, (): void => {
-			drawOrb(fight, portal, orbVars(1.6, fireAt - i * 3 + 6, VIOLET));
-			drawRing(fight, portal, 0.4, 1.4, 10, VIOLET);
+			const prey = players[i % players.length];
+			const lead = fireAt - i * 3;
+			drawPortal(fight, portal, prey.isValid ? offset(prey.location, 0, 0.9, 0) : arena, PORTAL_SIZE, lead + PORTAL_LINGER, VIOLET);
+			drawOrb(fight, portal, orbVars(0.7, lead + 6, VIOLET));
+			playSound(fight, "mob.endermen.portal", portal, 1.8, 0.5);
 		});
 		after(fight, fireAt, (): void => fireShard(fight, portal, players[i % players.length]));
 	}
@@ -489,6 +496,7 @@ function thePhaseCollapse(fight: PolarisFight): void {
 	setPose(boss, "charge");
 	showTitle(fight, "§5The Phase Collapse", "§7Break the charger nodes");
 	playSound(fight, "mob.wither.spawn", arena, 0.5, 2);
+	drawSkyRift(fight, "open");
 
 	addHazard(fight, (age): boolean => {
 		if (age >= COLLAPSE_CHARGE) {
@@ -518,7 +526,7 @@ function thePhaseCollapse(fight: PolarisFight): void {
 		}
 		if (age % SKY_RIFT_INTERVAL !== 0) return true;
 
-		drawSkyRift(fight, age === 0 ? "open" : "hold");
+		drawSkyRift(fight, "hold");
 		const growth = age / COLLAPSE_CHARGE;
 		const seconds = Math.ceil((COLLAPSE_CHARGE - age) / 20);
 		drawOrb(fight, core, orbVars(2 + growth * 4, 24, VIOLET));
