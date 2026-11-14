@@ -44,6 +44,8 @@ const RARITY = new Map<string, ItemRarity>([
     ["ph:guidebook", "uncommon"],
     ["ph:hell_charge", "uncommon"],
     ["ph:impulse_booster", "epic"],
+    ["ph:interpolaris", "legendary"],
+    ["ph:interstellaris", "legendary"],
     ["ph:naturalist_boots", "rare"],
     ["ph:naturalist_chestplate", "rare"],
     ["ph:naturalist_helmet", "rare"],

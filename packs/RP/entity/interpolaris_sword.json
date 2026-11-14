@@ -1,0 +1,30 @@
+{
+	"format_version": "1.20.80",
+	"minecraft:client_entity": {
+		"description": {
+			"identifier": "ph:interpolaris_sword",
+			"materials": {
+				"default": "entity_alphatest"
+			},
+			"textures": {
+				"default": "textures/entity/interpolaris/interpolaris_sword"
+			},
+			"geometry": {
+				"default": "geometry.interpolaris_sword"
+			},
+			"animations": {
+				"fall": "animation.interpolaris_sword.fall"
+			},
+			"scripts": {
+				"scale": "2.0",
+				"animate": [
+					"fall"
+				],
+				"should_update_effects_offscreen": "1.0"
+			},
+			"render_controllers": [
+				"controller.render.ph.interpolaris_sword"
+			]
+		}
+	}
+}

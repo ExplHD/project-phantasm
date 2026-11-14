@@ -10,9 +10,13 @@ scoreboard players set @a[scores={delayatk=30..}] seiketsu_atk 0
 scoreboard players set @a[scores={delayatk=30..}] scimitar_atk 0
 scoreboard players set @a[scores={delayatk=30..}] scimitar_dual_atk 0
 scoreboard players set @a[scores={delayatk=30..}] rupture_blade_atk 0
+scoreboard players set @a[scores={delayatk=30..}] interstellaris_atk 0
+scoreboard players set @a[scores={delayatk=30..}] interpolaris_atk 0
 scoreboard players add @a sectick 1
+scoreboard players add @a mana 0
+scoreboard players add @a[scores={mana=..199}] mana 1
 scoreboard players set @a[scores={sectick=20..}] sectick 0
-execute at @a[scores={sectick=19..}] run function weapons/weapons_skill
+function weapons/weapons_skill
 scoreboard players remove @a[scores={sectick=19..,solaris_verdant_s1=1..}] solaris_verdant_s1 1
 scoreboard players remove @a[scores={sectick=19..,solaris_verdant_s2=1..}] solaris_verdant_s2 1
 scoreboard players remove @a[scores={sectick=19..,solaris_verdant_s3=1..}] solaris_verdant_s3 1
@@ -30,6 +34,12 @@ scoreboard players remove @a[scores={sectick=19..,auric_photonizer_s4=1..}] auri
 scoreboard players remove @a[scores={sectick=19..,the_bleeding_spire_s1=1..}] the_bleeding_spire_s1 1
 scoreboard players remove @a[scores={sectick=19..,the_bleeding_spire_s2=1..}] the_bleeding_spire_s2 1
 scoreboard players remove @a[scores={sectick=19..,the_bleeding_spire_s3=1..}] the_bleeding_spire_s3 1
+scoreboard players remove @a[scores={sectick=19..,interstellaris_s1=1..}] interstellaris_s1 1
+scoreboard players remove @a[scores={sectick=19..,interstellaris_s2=1..}] interstellaris_s2 1
+scoreboard players remove @a[scores={sectick=19..,interstellaris_s3=1..}] interstellaris_s3 1
+scoreboard players remove @a[scores={sectick=19..,interpolaris_s1=1..}] interpolaris_s1 1
+scoreboard players remove @a[scores={sectick=19..,interpolaris_s2=1..}] interpolaris_s2 1
+scoreboard players remove @a[scores={sectick=19..,interpolaris_s3=1..}] interpolaris_s3 1
 
 # Charged Copper Axe Runtime
 scoreboard players add @a[hasitem={item=ph:charged_copper_axe,location=slot.weapon.mainhand}] charged_copper_axe 1

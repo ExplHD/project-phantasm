@@ -2,6 +2,7 @@ import { type ItemStack, type Player } from "@minecraft/server";
 import { type ProjectileConfig, fireProjectile } from "./projectile";
 import { applyDurabilityDamage } from "../../core/items";
 import { getScore, removeScore } from "../../core/scoreboard";
+import { spendMana } from "../../core/mana";
 import { summonOwned } from "../../core/summons";
 import { isLoadedLocation } from "../../core/location";
 import { SINGLE_GUNS } from "./gunSpecs";
@@ -10,6 +11,8 @@ export interface Shooter {
 	readonly projectile: ProjectileConfig;
 	readonly sound: string;
 	readonly chargeCost?: number;
+	readonly mana?: number;
+	readonly sneakMana?: number;
 	readonly animation?: string;
 	readonly sneakAttack?: (player: Player, sound: string) => void;
 }
@@ -39,6 +42,8 @@ const SHOOTERS: Readonly<Record<string, Shooter>> = {
 			origin: MUZZLE
 		},
 		sound: "weapon_slash.magic_staff",
+		mana: 24,
+		sneakMana: 60,
 		sneakAttack: oceanicAttack
 	}
 };
@@ -63,12 +68,14 @@ export function onShooterUse(player: Player, itemStack: ItemStack): void {
 	if (!shooter || !player.isValid) return;
 
 	if (player.isSneaking && shooter.sneakAttack) {
+		if (!spendMana(player, shooter.sneakMana)) return;
 		applyDurabilityDamage(player, { damage: 1 });
 		shooter.sneakAttack(player, shooter.sound);
 		return;
 	}
 
 	if (!payCharge(player, shooter.chargeCost)) return;
+	if (!spendMana(player, shooter.mana)) return;
 	applyDurabilityDamage(player, { damage: 1 });
 
 	const cooldown = itemStack.getComponent("cooldown");

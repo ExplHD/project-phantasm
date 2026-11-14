@@ -24,7 +24,11 @@ import { onAutoGunStartUse, onAutoGunStopUse, clearAutoGunState, tickAutoGuns } 
 import { onChargeBeamStartUse, onChargeBeamStopUse, clearChargeBeamState, tickChargeBeamGuns } from '../features/weapons/chargeBeamGun'
 import { onGunScopeSneak, onGunScopeSlotChange, clearGunScopeState, tickGunScopes } from '../features/weapons/gunScope'
 import { onShooterUse } from '../features/weapons/shooters'
+import { forgetMana } from '../core/mana'
 import { onAethelItemUse, onAethelStartUse, onAethelStopUse, onAethelHurt, onAethelStrike, clearAethelState } from '../features/weapons/aethelSynapse'
+import { onInterstellarisHurt, tickInterstellaris, clearInterstellarisState } from '../features/weapons/interstellaris'
+import { tickInterpolaris, clearInterpolarisState } from '../features/weapons/interpolaris'
+import { tickAuricPhotonizer } from '../features/weapons/auricPhotonizer'
 import { tickTitanRadiation } from '../features/titan_core/radiation'
 import { tickShields, onShieldHurt, onShieldEffectAdd, onShieldSneak, onShieldSwing, onShieldItemUse, clearShieldState } from '../features/shield/manager'
 import { tickTitanRidgeSites } from '../features/titan_core/sites'
@@ -130,6 +134,7 @@ world.beforeEvents.entityHurt.subscribe(onBlessingHurt)
 world.beforeEvents.entityHurt.subscribe(onTrooperHurt)
 world.beforeEvents.entityHurt.subscribe(onShieldHurt)
 world.beforeEvents.entityHurt.subscribe(onAethelHurt)
+world.beforeEvents.entityHurt.subscribe(onInterstellarisHurt)
 world.beforeEvents.entityHurt.subscribe(onPolarisHurt)
 
 world.beforeEvents.effectAdd.subscribe(onShieldEffectAdd)
@@ -406,6 +411,7 @@ world.afterEvents.entitySpawn.subscribe(({ entity }) => trackPolaris(entity))
 world.afterEvents.entityLoad.subscribe(({ entity }) => trackPolaris(entity))
 
 world.beforeEvents.playerLeave.subscribe(({ player }) => {
+    forgetMana(player.id);
     clearPlayerLighting(player);
     clearControlState(player);
     clearPlungeState(player.id);
@@ -415,6 +421,8 @@ world.beforeEvents.playerLeave.subscribe(({ player }) => {
     clearChargeBeamState(player.id);
     clearGunScopeState(player.id);
     clearAethelState(player.id);
+    clearInterstellarisState(player.id);
+    clearInterpolarisState(player.id);
 });
 
 system.runInterval(() => {
@@ -433,6 +441,9 @@ system.runInterval(tickAutoGuns, 1);
 system.runInterval(tickChargeBeamGuns, 1);
 system.runInterval(tickGunScopes, 1);
 system.runInterval(tickPolaris, 1);
+system.runInterval(tickInterstellaris, 1);
+system.runInterval(tickInterpolaris, 1);
+system.runInterval(tickAuricPhotonizer, 1);
 system.runInterval(checkBlessingMilestones, 20);
 system.runInterval(tickTitanRadiation, 40);
 

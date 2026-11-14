@@ -145,6 +145,28 @@
                 }
             ]
         },
+        "controller.render.interstellaris": {
+            "textures": [
+                "texture.interstellaris"
+            ],
+            "geometry": "geometry.interstellaris",
+            "materials": [
+                {
+                    "*": "material.default"
+                }
+            ]
+        },
+        "controller.render.interpolaris": {
+            "textures": [
+                "texture.interpolaris"
+            ],
+            "geometry": "geometry.interpolaris",
+            "materials": [
+                {
+                    "*": "material.default"
+                }
+            ]
+        },
         "controller.render.rupture_blade": {
             "textures": [
                 "texture.rupture_blade"

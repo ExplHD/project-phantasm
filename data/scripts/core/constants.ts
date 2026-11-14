@@ -3,7 +3,9 @@ export const LEGENDARY_TIER = [
 	"ph:prism_weaver",
 	"ph:the_bleeding_spire",
 	"ph:supercharged_copper_axe",
-	"ph:auric_photonizer"
+	"ph:auric_photonizer",
+	"ph:interstellaris",
+	"ph:interpolaris"
 ] as const
 
 export const ORE_DROPS = new Map<string, string>([

@@ -1,0 +1,101 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"animation.interpolaris.float": {
+			"loop": true,
+			"bones": {
+				"fp_interp": {
+					"position": [
+						0,
+						"math.sin((v.interp_time ?? q.life_time)*150)*0.45",
+						0
+					],
+					"scale": "1+0.22*math.sin((v.interp_cast ?? 0)*180)"
+				},
+				"fp_interp_core": {
+					"rotation": [
+						"(v.interp_time ?? q.life_time)*40",
+						"(v.interp_time ?? q.life_time)*90",
+						0
+					],
+					"scale": "1+math.sin((v.interp_time ?? q.life_time)*240)*0.07"
+				},
+				"fp_interp_ring": {
+					"rotation": [
+						22,
+						"(v.interp_time ?? q.life_time)*-170",
+						"12+math.sin((v.interp_time ?? q.life_time)*60)*10"
+					]
+				},
+				"fp_interp_frame": {
+					"rotation": [
+						0,
+						"(v.interp_time ?? q.life_time)*30",
+						0
+					],
+					"position": [
+						0,
+						"math.sin((v.interp_time ?? q.life_time)*150+90)*0.2",
+						0
+					]
+				},
+				"fp_interp_shards": {
+					"rotation": [
+						"math.sin((v.interp_time ?? q.life_time)*45)*14",
+						"(v.interp_time ?? q.life_time)*230",
+						0
+					]
+				},
+				"tp_interp": {
+					"position": [
+						0,
+						"math.sin((v.interp_time ?? q.life_time)*150)*1.4",
+						0
+					],
+					"scale": "1+0.22*math.sin((v.interp_cast ?? 0)*180)"
+				},
+				"tp_interp_core": {
+					"rotation": [
+						"(v.interp_time ?? q.life_time)*40",
+						"(v.interp_time ?? q.life_time)*90",
+						0
+					],
+					"scale": "1+math.sin((v.interp_time ?? q.life_time)*240)*0.07"
+				},
+				"tp_interp_ring": {
+					"rotation": [
+						22,
+						"(v.interp_time ?? q.life_time)*-170",
+						"12+math.sin((v.interp_time ?? q.life_time)*60)*10"
+					]
+				},
+				"tp_interp_frame": {
+					"rotation": [
+						0,
+						"(v.interp_time ?? q.life_time)*30",
+						0
+					],
+					"position": [
+						0,
+						"math.sin((v.interp_time ?? q.life_time)*150+90)*0.2",
+						0
+					]
+				},
+				"tp_interp_shards": {
+					"rotation": [
+						"math.sin((v.interp_time ?? q.life_time)*45)*14",
+						"(v.interp_time ?? q.life_time)*230",
+						0
+					]
+				},
+				"tp_interp_orbit": {
+					"rotation": [
+						0,
+						"(v.interp_time ?? q.life_time)*100",
+						0
+					]
+				}
+			}
+		}
+	}
+}

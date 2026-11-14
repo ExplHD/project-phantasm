@@ -3,6 +3,9 @@ import { summonOwned } from '../../core/summons'
 import { CommandHandler, SkillHandler, applyCustomDamage } from './weaponHandler'
 import { fireProjectile } from './projectile'
 import { prismBubble } from './prismWeaver'
+import { castBladeBarrage, castEtherealBlade } from './auricPhotonizer'
+import { canCastForcefield, castForcefield, canCastVow, castVow, canCastVoyager, castVoyager } from './interstellaris'
+import { canCastInfluence, castInfluence, canCastShroud, castShroud, canCastInterpolarity, castInterpolarity } from './interpolaris'
 import { MolangVariableMap, system, Player, Entity, EntityDamageCause } from '@minecraft/server';
 
 function setAxisDelta(map: MolangVariableMap, a: { x: number; y: number; z: number }, b: { x: number; y: number; z: number }): void {
@@ -262,6 +265,7 @@ prismWeaverSkill.addSkill(1, {
     name: "§3Bubble Barrage",
     type: "Skill",
     cooldown_objective: "prism_weaver_s1",
+    mana: 60,
     cooldown: 25,
     charge: false,
     action: (source: Player) => {
@@ -293,6 +297,7 @@ prismWeaverSkill.addSkill(2, {
     name: "§bPrism Wave Wall",
     type: "Skill",
     cooldown_objective: "prism_weaver_s2",
+    mana: 60,
     cooldown: 25,
     charge: false,
     action: (source: Player) => {
@@ -319,6 +324,7 @@ prismWeaverSkill.addSkill(3, {
     name: "§3Vortex §bPrism",
     type: "Ultimate",
     cooldown_objective: "prism_weaver_s3",
+    mana: 150,
     cooldown: 70,
     charge: false,
     action: (source: Player) => {
@@ -450,20 +456,11 @@ auricPhotonizerSkill.addSkill(3, {
     name: "§6Blade Barrage",
     type: "Skill",
     cooldown_objective: "auric_photonizer_s3",
-    cooldown: 40,
+    cooldown: 20,
     charge: false,
     action: (source: Player) => {
-        source.addTag("BBARRAGE");
         source.playAnimation("animation.auric_photonizer.skill_3");
-        source.runCommand(`scriptevent ph:boss_summon 5, 0.6, 26, ph:copper_mech_double_blade, custom_sfx.prism_fire`);
-        const command = new CommandHandler([
-            {
-                delay: 120, action: (src: Player) => {
-                    src.removeTag("BBARRAGE")
-                }
-            }
-        ])
-        command.run(source);
+        castBladeBarrage(source);
     }
 })
 
@@ -474,30 +471,8 @@ auricPhotonizerSkill.addSkill(4, {
     cooldown: 40,
     charge: false,
     action: (source: Player) => {
-        source.addTag("SWORDIMMUNE");
         source.playAnimation("animation.auric_photonizer.skill_4");
-        source.runCommand(`scriptevent ph:boss_summon 32, 1, 24, ph:copper_mech_sword, custom_sfx.animirra_summon`);
-        const command = new CommandHandler([
-            {
-                delay: 30, action: (src: Player) => {
-                    src.runCommand(`scriptevent ph:boss_summon 32, 1, 24, ph:copper_mech_sword, custom_sfx.animirra_summon`);
-                    src.runCommand(`inputpermission set @a[r=28] movement disabled`);
-                }
-            },
-            {
-                delay: 30, action: (src: Player) => {
-                    src.runCommand(`scriptevent ph:boss_summon 32, 1, 24, ph:copper_mech_sword, custom_sfx.animirra_summon`);
-                    src.runCommand(`inputpermission set @a[r=28] movement disabled`);
-                }
-            },
-            {
-                delay: 15, action: (src: Player) => {
-                    src.removeTag("SWORDIMMUNE");
-                    src.runCommand(`inputpermission set @a[r=28] movement enabled`);
-                }
-            }
-        ])
-        command.run(source);
+        castEtherealBlade(source);
     }
 })
 
@@ -638,5 +613,70 @@ theBleedingSpireSkill.addSkill(3, {
     }
 })
 
-const weaponSkills: SkillHandler[] = [solarisverdantSkill, superchargedCopperAxeSkill, prismWeaverSkill, auricPhotonizerSkill, theBleedingSpireSkill];
+const interstellarisSkill = new SkillHandler("ph:interstellaris", "interstellaris")
+interstellarisSkill.addSkill(1, {
+    name: "§bStellaris Forcefield",
+    type: "Skill",
+    cooldown_objective: "interstellaris_s1",
+    cooldown: 15,
+    charge: false,
+    canUse: canCastForcefield,
+    action: castForcefield
+})
+
+interstellarisSkill.addSkill(2, {
+    name: "§bInterstellar Vow",
+    type: "Skill",
+    cooldown_objective: "interstellaris_s2",
+    cooldown: 12,
+    charge: false,
+    canUse: canCastVow,
+    action: castVow
+})
+
+interstellarisSkill.addSkill(3, {
+    name: "§6§lStellar Voyager",
+    type: "Ultimate",
+    cooldown_objective: "interstellaris_s3",
+    cooldown: 30,
+    charge: false,
+    canUse: canCastVoyager,
+    action: castVoyager
+})
+
+const interpolarisSkill = new SkillHandler("ph:interpolaris", "interpolaris")
+interpolarisSkill.addSkill(1, {
+    name: "§dPolaris Influence",
+    type: "Skill",
+    cooldown_objective: "interpolaris_s1",
+    mana: 50,
+    cooldown: 10,
+    charge: false,
+    canUse: canCastInfluence,
+    action: castInfluence
+})
+
+interpolarisSkill.addSkill(2, {
+    name: "§dShroud Step",
+    type: "Skill",
+    cooldown_objective: "interpolaris_s2",
+    mana: 40,
+    cooldown: 3,
+    charge: false,
+    canUse: canCastShroud,
+    action: castShroud
+})
+
+interpolarisSkill.addSkill(3, {
+    name: "§5§lInterpolarity",
+    type: "Ultimate",
+    cooldown_objective: "interpolaris_s3",
+    mana: 120,
+    cooldown: 60,
+    charge: false,
+    canUse: canCastInterpolarity,
+    action: castInterpolarity
+})
+
+const weaponSkills: SkillHandler[] = [solarisverdantSkill, superchargedCopperAxeSkill, prismWeaverSkill, auricPhotonizerSkill, theBleedingSpireSkill, interstellarisSkill, interpolarisSkill];
 export { weaponSkills }

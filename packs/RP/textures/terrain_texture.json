@@ -31,6 +31,12 @@
 		"ph_aethel_synapse_3d": {
 			"textures": "textures/3ds/aethel_synapse"
 		},
+		"ph_interstellaris_3d": {
+			"textures": "textures/3ds/interstellaris"
+		},
+		"ph_interpolaris_3d": {
+			"textures": "textures/3ds/interpolaris"
+		},
 		"ph_rupture_blade_3d": {
 			"textures": "textures/3ds/rupture_blade"
 		},

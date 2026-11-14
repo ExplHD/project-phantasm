@@ -4,6 +4,8 @@ import { WeaponHandler, SkillSwitcher, CommandHandler, applyCustomDamage } from 
 import { addScore, getScore, removeScore } from '../../core/scoreboard'
 import { summonOwned } from '../../core/summons'
 import { prismBolt, PRISM_FAN } from './prismWeaver'
+import { addStellarisCore } from './interstellaris'
+import { castPolarSplash, castPolarSword } from './interpolaris'
 
 const solarisVerdant = new WeaponHandler("ph:solaris_verdant", "solaris_verdant_atk", [10, 9, 10], [
     { delay: 5, damage: 21, radius: 3.9, animation: "animation.solaris_verdant.attack_1", sound: "weapon_slash.slash_medium" },
@@ -73,9 +75,9 @@ const superchargedCopperAxeSS = new SkillSwitcher("ph:supercharged_copper_axe", 
 ])
 
 const prismWeaver = new WeaponHandler("ph:prism_weaver", "prism_weaver_atk", [20, 15, 15], [
-    { delay: 6, damage: 17, radius: 0, animation: "animation.prism_weaver.attack_1", sound: "weapon_slash.magic_staff", projectile: prismBolt(-0.35) },
-    { delay: 10, damage: 17, radius: 0, animation: "animation.prism_weaver.attack_2", sound: "weapon_slash.magic_staff", projectile: prismBolt(0.35) },
-    { delay: 10, damage: 12, radius: 0, animation: "animation.prism_weaver.attack_3", sound: "weapon_slash.magic_staff", projectile: PRISM_FAN }
+    { delay: 6, damage: 17, radius: 0, animation: "animation.prism_weaver.attack_1", sound: "weapon_slash.magic_staff", projectile: prismBolt(-0.35), mana: 18 },
+    { delay: 10, damage: 17, radius: 0, animation: "animation.prism_weaver.attack_2", sound: "weapon_slash.magic_staff", projectile: prismBolt(0.35), mana: 18 },
+    { delay: 10, damage: 12, radius: 0, animation: "animation.prism_weaver.attack_3", sound: "weapon_slash.magic_staff", projectile: PRISM_FAN, mana: 25 }
 ])
 
 const prismWeaverSS = new SkillSwitcher("ph:prism_weaver", "prism_weaver", [
@@ -223,8 +225,34 @@ const ruptureBlade = new WeaponHandler("ph:rupture_blade", "rupture_blade_atk", 
     }
 ])
 
-export const weapons = [solarisVerdant, superchargedCopperAxe, prismWeaver, auricPhotonizer, theBleedingSpire, seiketsu, ...scimitarSingle, ...scimitarDual, ruptureBlade];
-export const switcherSkills = [solarisVerdantSS, superchargedCopperAxeSS, prismWeaverSS, auricPhotonizerSS, theBleedingSpireSS];
+const interstellaris = new WeaponHandler("ph:interstellaris", "interstellaris_atk", [10, 11, 11, 12], [
+    { delay: 4, damage: 27, radius: 5, animation: "animation.interstellaris.attack_1", sound: "weapon_slash.slash_medium", onStrike: addStellarisCore },
+    { delay: 4, damage: 27, radius: 5, animation: "animation.interstellaris.attack_2", sound: "weapon_slash.slash_medium", onStrike: addStellarisCore },
+    { delay: 5, damage: 28, radius: 5, animation: "animation.interstellaris.attack_3", sound: "weapon_slash.slash_medium", onStrike: addStellarisCore },
+    { delay: 7, damage: 30, radius: 10, animation: "animation.interstellaris.attack_4", sound: "weapon_slash.slash_medium", onStrike: addStellarisCore }
+])
+
+const interstellarisSS = new SkillSwitcher("ph:interstellaris", "interstellaris", [
+    { skillSMessage: "Stellaris Forcefield" },
+    { skillSMessage: "Interstellar Vow" },
+    { skillSMessage: "Stellar Voyager" }
+])
+
+const interpolaris = new WeaponHandler("ph:interpolaris", "interpolaris_atk", [14, 14, 15, 16], [
+    { delay: 5, damage: 23, radius: 12, animation: "animation.interpolaris.attack_1", sound: "custom_sfx.interpolaris_cast", cast: castPolarSplash, mana: 20 },
+    { delay: 5, damage: 23, radius: 12, animation: "animation.interpolaris.attack_2", sound: "custom_sfx.interpolaris_cast", cast: castPolarSplash, mana: 20 },
+    { delay: 5, damage: 24, radius: 12, animation: "animation.interpolaris.attack_3", sound: "custom_sfx.interpolaris_cast", cast: castPolarSplash, mana: 22 },
+    { delay: 6, damage: 30, radius: 20, animation: "animation.interpolaris.attack_4", sound: "custom_sfx.interpolaris_cast", cast: castPolarSword, mana: 40 }
+])
+
+const interpolarisSS = new SkillSwitcher("ph:interpolaris", "interpolaris", [
+    { skillSMessage: "Polaris Influence" },
+    { skillSMessage: "Shroud Step" },
+    { skillSMessage: "Interpolarity" }
+])
+
+export const weapons = [solarisVerdant, superchargedCopperAxe, prismWeaver, auricPhotonizer, theBleedingSpire, seiketsu, ...scimitarSingle, ...scimitarDual, ruptureBlade, interstellaris, interpolaris];
+export const switcherSkills = [solarisVerdantSS, superchargedCopperAxeSS, prismWeaverSS, auricPhotonizerSS, theBleedingSpireSS, interstellarisSS, interpolarisSS];
 
 const switcherByItemId = new Map<string, (typeof switcherSkills)[number]>(
     switcherSkills.map(switcher => [switcher.itemId, switcher])

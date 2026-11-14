@@ -5,7 +5,7 @@
 			"identifier": "ph:xeon_plasm_helmet",
 			"materials": {
 				"default": "entity_alphablend",
-				"enchanted": "entity_glint"
+				"enchanted": "entity_alphablend"
 			},
 			"textures": {
 				"default": "textures/models/armor/xeon_plasm_helmet",

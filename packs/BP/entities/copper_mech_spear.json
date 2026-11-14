@@ -126,7 +126,7 @@
                 },
                 "queue_command": {
                     "command": [
-                        "damage @e[r=3.5,rm=0.1,family=!copper_mechanical] 30 entity_attack entity @e[type=ph:copper_mechanical_array,c=1]",
+                        "damage @e[r=3.5,rm=0.1,family=!copper_mechanical] 55 entity_attack entity @e[type=ph:copper_mechanical_array,c=1]",
                         "playsound weapon_slash.slash_heavy @a[r=16] ~~~ 1 1 0.3",
                         "particle ph:copper_mech_explosion ~~~"
                     ]

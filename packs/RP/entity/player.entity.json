@@ -28,7 +28,9 @@
                 "rupture_blade": "textures/none",
                 "aethel_synapse": "textures/none",
                 "xeonnite_blaster_mk3": "textures/none",
-                "auric_apex": "textures/none"
+                "auric_apex": "textures/none",
+                "interstellaris": "textures/none",
+                "interpolaris": "textures/none"
             },
             "geometry": {
                 "default": "geometry.humanoid.custom",
@@ -48,7 +50,9 @@
                 "rupture_blade": "geometry.rupture_blade",
                 "aethel_synapse": "geometry.aethel_synapse_rig",
                 "xeonnite_blaster_mk3": "geometry.xeonnite_blaster_mk3",
-                "auric_apex": "geometry.auric_apex"
+                "auric_apex": "geometry.auric_apex",
+                "interstellaris": "geometry.interstellaris",
+                "interpolaris": "geometry.interpolaris_rig"
             },
             "particle_effects": {
                 "solaris_verdant_attack_1": "ph:solaris_verdant_attack_1",
@@ -95,7 +99,16 @@
                 "rupture_blade_trail": "ph:rupture_blade_trail",
                 "rupture_blade_sparks": "ph:rupture_blade_sparks",
                 "aethel_synapse_trail": "ph:aethel_synapse_trail",
-                "aethel_synapse_guard": "ph:aethel_synapse_guard"
+                "aethel_synapse_guard": "ph:aethel_synapse_guard",
+                "interstellaris_attack_1": "ph:interstellaris_attack_1",
+                "interstellaris_attack_2": "ph:interstellaris_attack_2",
+                "interstellaris_attack_3": "ph:interstellaris_attack_3",
+                "interstellaris_sweep": "ph:interstellaris_sweep",
+                "interstellaris_trail": "ph:interstellaris_trail",
+                "interstellaris_sparks": "ph:interstellaris_sparks",
+                "interpolaris_sigil": "ph:interpolaris_sigil",
+                "interpolaris_cast_motes": "ph:interpolaris_cast_motes",
+                "interpolaris_flare": "ph:interpolaris_flare"
             },
             "scripts": {
                 "scale": "0.9375",
@@ -121,7 +134,9 @@
                     "variable.rupture_blade": "public",
                     "variable.aethel_synapse": "public",
                     "variable.xeonnite_blaster_mk3": "public",
-                    "variable.auric_apex": "public"
+                    "variable.auric_apex": "public",
+                    "variable.interstellaris": "public",
+                    "variable.interpolaris": "public"
                 },
                 "initialize": [
                     "variable.scimitar_spin_t0 = -100;",
@@ -220,7 +235,9 @@
                     "variable.xeonnite_blaster_mk3 = query.get_equipped_item_name(0) == 'xeonnite_blaster_mk3';",
                     "variable.xeonnite_blaster_kick = variable.xeonnite_blaster_mk3 ? math.pow(math.clamp(query.cooldown_time_remaining('ph:xeonnite_shot') / 0.1, 0, 1), 2) * 2 : 0;",
                     "variable.auric_apex = query.get_equipped_item_name(0) == 'auric_apex';",
-                    "variable.auric_apex_kick = variable.auric_apex ? math.pow(math.clamp(query.cooldown_time_remaining('ph:auric_apex_shot') / 0.3, 0, 1), 2) * 2 : 0;"
+                    "variable.auric_apex_kick = variable.auric_apex ? math.pow(math.clamp(query.cooldown_time_remaining('ph:auric_apex_shot') / 0.3, 0, 1), 2) * 2 : 0;",
+                    "variable.interstellaris = query.get_equipped_item_name(0) == 'interstellaris';",
+                    "variable.interpolaris = query.get_equipped_item_name(0) == 'interpolaris';"
                 ],
                 "animate": [
                     "root",
@@ -290,6 +307,21 @@
                     },
                     {
                         "auric_apex": "variable.auric_apex"
+                    },
+                    {
+                        "interstellaris_fpp": "variable.interstellaris&&variable.is_first_person"
+                    },
+                    {
+                        "interstellaris_idle": "variable.interstellaris"
+                    },
+                    {
+                        "interpolaris_fpp": "variable.interpolaris&&variable.is_first_person"
+                    },
+                    {
+                        "interpolaris_float": "variable.interpolaris"
+                    },
+                    {
+                        "interpolaris_cast": "variable.interpolaris"
                     },
                     "scimitar_dual_special_ctrl"
                 ],
@@ -402,7 +434,16 @@
                 "auric_apex_hold_fpp": "animation.auric_apex.hold_fpp",
                 "auric_apex_hold": "animation.auric_apex.hold",
                 "auric_apex_aim_fpp": "animation.auric_apex.aim_fpp",
-                "auric_apex_aim": "animation.auric_apex.aim"
+                "auric_apex_aim": "animation.auric_apex.aim",
+                "interstellaris_fpp": "animation.weapon.fpp_1",
+                "interstellaris_idle": "animation.interstellaris.idle",
+                "interpolaris_fpp": "animation.weapon.fpp_1",
+                "interpolaris_float": "animation.interpolaris.float",
+                "interpolaris_cast": "controller.animation.interpolaris.cast",
+                "interpolaris_cast_fp": "animation.interpolaris.cast_fp",
+                "interpolaris_cast_tp": "animation.interpolaris.cast_tp",
+                "interpolaris_cast_big_fp": "animation.interpolaris.cast_big_fp",
+                "interpolaris_cast_big_tp": "animation.interpolaris.cast_big_tp"
             },
             "render_controllers": [
                 {
@@ -470,6 +511,12 @@
                 },
                 {
                     "controller.render.auric_apex": "variable.auric_apex"
+                },
+                {
+                    "controller.render.interstellaris": "variable.interstellaris"
+                },
+                {
+                    "controller.render.interpolaris": "variable.interpolaris"
                 }
             ],
             "enable_attachables": true

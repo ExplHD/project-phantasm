@@ -32,7 +32,7 @@
 					"value": 0.1
 				},
 				"minecraft:attack": {
-					"damage": 20
+					"damage": 40
 				}
 			},
 			"ph:phase_two": {
@@ -40,7 +40,7 @@
 					"value": 0.3
 				},
 				"minecraft:attack": {
-					"damage": 15
+					"damage": 35
 				}
 			},
 			// Between attack sets: walk the target down and swing. The swing lasts 0.9s and lands at 40%,

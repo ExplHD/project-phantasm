@@ -20,12 +20,14 @@ export default function guideWeapons(player: Player): void {
 		.button("§5Thunder Gale", "textures/items/weapons/thunder_gale")
 		.button("§pAnimitta", "textures/items/weapons/solaris_verdant")
 		.button("§pAuric Photonizer", "textures/items/weapons/auric_photonizer")
+		.button("§pInterpolaris")
+		.button("§pInterstellaris")
 		.button("§pPrism Weaver", "textures/items/weapons/prism_weaver")
 		.button("§pSupercharged Copper Axe", "textures/items/weapons/supercharged_copper_axe")
 		.button("§pThe Bleeding Spire", "textures/items/weapons/the_bleeding_spire")
 		.button("Back")
 		.show(player).then(r => {
-			if (r.canceled || r.selection == 16) mainGuideScreen(player);
+			if (r.canceled || r.selection == 18) mainGuideScreen(player);
 			if (r.selection == 0) prismaticTools(player);
 			if (r.selection == 1) xeonPlasmTools(player);
 			if (r.selection == 2) aethelSynapse(player);
@@ -39,9 +41,11 @@ export default function guideWeapons(player: Player): void {
 			if (r.selection == 10) thunderGale(player);
 			if (r.selection == 11) animitta(player);
 			if (r.selection == 12) auricPhotonizer(player);
-			if (r.selection == 13) prismWeaver(player);
-			if (r.selection == 14) superchargedCopperAxe(player);
-			if (r.selection == 15) theBleedingSpire(player);
+			if (r.selection == 13) interpolaris(player);
+			if (r.selection == 14) interstellaris(player);
+			if (r.selection == 15) prismWeaver(player);
+			if (r.selection == 16) superchargedCopperAxe(player);
+			if (r.selection == 17) theBleedingSpire(player);
 		})
 }
 
@@ -111,6 +115,7 @@ function natureStaff(player: Player): void {
 		.title(guideTitle("Nature Staff"))
 		.label("This staff casts the same magic attacks as the Soul of Nature boss.")
 		.label("Interact to cast the first attack. Sneak-interact for the second attack, which has a slightly longer cooldown.")
+		.label("Mana :\n24 per shot, 60 for the sneak attack.")
 		.label("Craft it with Prismatic Ingots, a Stick, and a Nautilus Shell.")
 		.button("Back")
 		.show(player).then(r => {
@@ -198,6 +203,7 @@ function prismWeaver(player: Player): void {
 		.label("Bubble Barrage :\nFires a burst of bubble projectiles in one attack.")
 		.label("Prism Wave Wall :\nCasts a Prism Wall that deals massive damage on touch.")
 		.label("Vortex Prism :\nPulls targets in a large radius toward you, then repels them with massive damage.")
+		.label("Mana :\nAbout 20 per attack. 60 for Bubble Barrage or Prism Wave Wall, 150 for Vortex Prism.")
 		.label("Drops from the Soul of Nature at 50% chance, alternating with the Animitta (50/50).")
 		.button("Back")
 		.show(player).then(r => {
@@ -240,9 +246,38 @@ function auricPhotonizer(player: Player): void {
 		.label("This Legendary sword, forged from high-grade Copper and Auric material, swings very fast. It has 4 skills:")
 		.label("Stab :\nDash-stab forward. Mobs you collide with take heavy damage.")
 		.label("Powered Leap :\nLeap backward to dodge, leaving an explosion after a short delay that deals heavy damage.")
-		.label("Blade Barrage :\nSummons 5 Auric Double Blades that fly toward you, heavily damaging anything else in the way.")
-		.label("Ethereal Blade :\nSummons 3 waves of Ethereal Swords stabbing in random directions for heavy damage. You can keep moving while it fires.")
+		.label("Blade Barrage :\nThrows 3 Auric Double Blades in a fan 12 blocks ahead, then calls them back. An enemy takes 40 damage on the way out and 40 more on the return, and the returning blades knock it toward you. 20 second cooldown.")
+		.label("Ethereal Blade :\nLocks onto the enemy you are looking at, or the nearest one within 12 blocks. 3 rings of 8 Ethereal Swords appear around it, slow everything inside and stab inward 1 second later. The first two rings deal 35 damage in 6.5 blocks and the third deals 70. The rings follow the target and you can keep moving and attacking. 40 second cooldown.")
 		.label("Drops from the Auric Automaton at 50% chance, alternating with the Supercharged Copper Axe (50/50).")
+		.button("Back")
+		.show(player).then(r => {
+			if (r.canceled || r.selection == 0) guideWeapons(player);
+		})
+}
+
+function interpolaris(player: Player): void {
+	new ActionFormData()
+		.title(guideTitle("Interpolaris"))
+		.label("This Legendary catalyst casts every 0.7 to 0.8 seconds. You do not aim. Each cast hits the enemy closest to your crosshair, or the nearest one if nobody is in front of you. Attacks 1 to 3 reach 12 blocks and deal 23 to 24 damage in a 2 block splash. Attack 4 reaches 20 blocks and drops a purple blade on the target for 30 damage in 4 blocks.")
+		.label("Polar Noise :\nEvery enemy hit by attacks 1 to 4 is marked for 10 seconds. The mark deals no damage. The two skills below need it.")
+		.label("Polaris Influence :\nEvery marked enemy takes 20 damage over 3 seconds and Slowness II. Marked players also get a flickering screen for those 3 seconds. Needs at least 1 marked enemy. 10 second cooldown.")
+		.label("Shroud Step :\nYou teleport behind one marked enemy and its mark is removed. You and the enemy are frozen for 1 second. Half a second in, a laser hits it for 50 damage. Needs a marked enemy within 48 blocks. 3 second cooldown.")
+		.label("Interpolarity :\nYou rise 5 blocks and hover in place. You cannot move, but you can still aim. For 5 seconds a laser fires where you look every 4 ticks, 25 in total, from six points around you. Each laser deals 35 damage. A laser locks onto an enemy within 15 degrees of your crosshair if one is in sight. Wherever a laser lands, on an enemy or a block, it explodes for 35 damage in 4 blocks. 60 second cooldown.")
+		.label("Mana :\nAbout 20 per attack, 40 on attack 4. 50 for Polaris Influence, 40 for Shroud Step, 120 for Interpolarity.")
+		.button("Back")
+		.show(player).then(r => {
+			if (r.canceled || r.selection == 0) guideWeapons(player);
+		})
+}
+
+function interstellaris(player: Player): void {
+	new ActionFormData()
+		.title(guideTitle("Interstellaris"))
+		.label("This Legendary longsword swings every 0.5 to 0.6 seconds for about 28 damage. Attacks 1 to 3 reach 5 blocks. On attack 4 the blade leaves the hilt, slides out to the edge of the slash and sweeps a full circle with a 10 block reach.")
+		.label("Stellaris Core :\nEvery enemy hit by attacks 1 to 4 spawns a Stellaris Core at a random spot within 10 blocks of you. You can hold 7. A core older than 7 seconds explodes for 7 damage in 3 blocks, and so does the oldest core when an 8th appears. Cores that explode together stack their damage.")
+		.label("Stellaris Forcefield :\nSpends 1 to 4 cores for a shield that absorbs 30 damage per core, up to 120, for 15 seconds. No cooldown, but you cannot recast it while the shield is up.")
+		.label("Interstellar Vow :\nTurns every core into a homing Interstellar Missile. Each one explodes for 32 damage in 5 blocks. An enemy takes that damage once per cast, however many missiles reach it. 12 second cooldown.")
+		.label("Stellar Voyager :\nNeeds at least 5 cores. You teleport to each core and slash for 20 damage, then plant the sword. The final blast covers 7 blocks and deals 30 damage for every core you spent. 30 second cooldown.")
 		.button("Back")
 		.show(player).then(r => {
 			if (r.canceled || r.selection == 0) guideWeapons(player);

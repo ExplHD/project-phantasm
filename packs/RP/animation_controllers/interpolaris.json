@@ -1,0 +1,66 @@
+{
+	"format_version": "1.10.0",
+	"animation_controllers": {
+		"controller.animation.interpolaris.cast": {
+			"initial_state": "default",
+			"states": {
+				"default": {
+					"transitions": [
+						{
+							"cast_big_fp": "v.is_first_person && q.life_time - (v.interpolaris_cast_big ?? -10) < 0.1"
+						},
+						{
+							"cast_big_tp": "!v.is_first_person && q.life_time - (v.interpolaris_cast_big ?? -10) < 0.1"
+						},
+						{
+							"cast_fp": "v.is_first_person && q.life_time - (v.interpolaris_cast ?? -10) < 0.1"
+						},
+						{
+							"cast_tp": "!v.is_first_person && q.life_time - (v.interpolaris_cast ?? -10) < 0.1"
+						}
+					]
+				},
+				"cast_fp": {
+					"animations": [
+						"interpolaris_cast_fp"
+					],
+					"transitions": [
+						{
+							"default": "q.all_animations_finished"
+						}
+					]
+				},
+				"cast_tp": {
+					"animations": [
+						"interpolaris_cast_tp"
+					],
+					"transitions": [
+						{
+							"default": "q.all_animations_finished"
+						}
+					]
+				},
+				"cast_big_fp": {
+					"animations": [
+						"interpolaris_cast_big_fp"
+					],
+					"transitions": [
+						{
+							"default": "q.all_animations_finished"
+						}
+					]
+				},
+				"cast_big_tp": {
+					"animations": [
+						"interpolaris_cast_big_tp"
+					],
+					"transitions": [
+						{
+							"default": "q.all_animations_finished"
+						}
+					]
+				}
+			}
+		}
+	}
+}

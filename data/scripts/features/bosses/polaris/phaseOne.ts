@@ -51,7 +51,7 @@ const RIFT_CELL_SIZE = 12;
 const RIFT_CORRUPTED = 12;
 const RIFT_WARN = 30;
 const RIFT_DURATION = 240;
-const RIFT_DAMAGE = 10;
+const RIFT_DAMAGE = 30;
 const RIFT_DAMAGE_INTERVAL = 20;
 
 const CLONE_LIFETIME = 300;
@@ -67,7 +67,7 @@ const GRID_PERIOD = 4;
 const GRID_WAVES = 5;
 const GRID_WINDUP = 50;
 const GRID_GAP = 10;
-const GRID_DAMAGE = 30;
+const GRID_DAMAGE = 50;
 
 const PUNISH_SPLIT = 20;
 const PUNISH_CHARGE = 200;

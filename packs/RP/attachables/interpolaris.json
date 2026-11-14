@@ -1,0 +1,35 @@
+{
+	"format_version": "1.21.0",
+	"minecraft:attachable": {
+		"description": {
+			"identifier": "ph:interpolaris",
+			"materials": {
+				"default": "entity_alphatest",
+				"enchanted": "entity_alphatest_glint"
+			},
+			"textures": {
+				"default": "textures/3ds/interpolaris",
+				"enchanted": "textures/misc/enchanted_item_glint"
+			},
+			"geometry": {
+				"default": "geometry.interpolaris"
+			},
+			"animations": {
+				"float": "animation.interpolaris.float"
+			},
+			"scripts": {
+				"pre_animation": [
+					"v.interp_first_person = c.is_first_person;",
+					"v.interp_cast = c.owning_entity->v.attack_time;",
+					"v.interp_time = c.owning_entity->q.life_time;"
+				],
+				"animate": [
+					"float"
+				]
+			},
+			"render_controllers": [
+				"controller.render.ph.interpolaris"
+			]
+		}
+	}
+}

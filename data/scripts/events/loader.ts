@@ -18,6 +18,7 @@ const objectives: string[] = [
 
     "delayatk",
 	"sectick",
+	"mana",
     "dash_cd",
     "sfx_cd",
 
@@ -63,6 +64,21 @@ const objectives: string[] = [
     "scimitar_dual_atk",
     "scimitar_dual_charge",
     "rupture_blade_atk",
+
+    "interstellaris",
+    "interstellaris_atk",
+    "interstellaris_s1",
+    "interstellaris_s2",
+    "interstellaris_s3",
+    "interstellaris_core",
+    "interstellaris_shield",
+
+    "interpolaris",
+    "interpolaris_atk",
+    "interpolaris_s1",
+    "interpolaris_s2",
+    "interpolaris_s3",
+    "interpolaris_mark",
     ...GUN_OBJECTIVES
 ]
 

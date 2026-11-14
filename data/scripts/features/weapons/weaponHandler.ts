@@ -1,6 +1,7 @@
-import { system, Player, EquipmentSlot } from "@minecraft/server";
+import { system, Player, EquipmentSlot, type Entity } from "@minecraft/server";
 import { addScore, removeScore, setScore, getScore } from "../../core/scoreboard";
 import { applyCustomDamage } from "./damage";
+import { spendMana } from "../../core/mana";
 import { type ProjectileConfig, fireProjectile } from "./projectile";
 
 interface AttackPattern {
@@ -12,6 +13,9 @@ interface AttackPattern {
 	readonly action?: CommandHandler;
 	readonly projectile?: ProjectileConfig;
 	readonly controller?: string;
+	readonly onStrike?: (source: Player, target: Entity) => void;
+	readonly cast?: (source: Player, damage: number, range: number) => void;
+	readonly mana?: number;
 }
 
 interface SpecialAttack {
@@ -29,6 +33,8 @@ interface SkillConfig {
 	readonly charge: boolean;
 	readonly charge_min?: number;
 	readonly action: (source: Player) => void;
+	readonly canUse?: (source: Player) => boolean;
+	readonly mana?: number;
 }
 
 interface SkillData {
@@ -111,10 +117,11 @@ class WeaponHandler {
 			const delay = this.delayPerAttackPattern[currentStep];
 
 			if (getScore(source, "delayatk") > 0 && getScore(source, "delayatk") < delay) return;
+			if (!spendMana(source, pattern.mana)) return;
 
 			triggerAttack(source, pattern.delay, pattern.damage, pattern.radius, pattern.animation, pattern.sound, pattern.projectile, pattern.controller, special ? (hits) => {
 				if (hits > 0) addScore(source, special.objective, 1);
-			} : undefined);
+			} : undefined, pattern.onStrike, pattern.cast);
 
 			if (currentStep < this.attackPatterns.length - 1) {
 				addScore(source, this.objective, 1);
@@ -181,6 +188,8 @@ class SkillHandler {
 		const currentCd = getScore(source, skill.cooldown_objective);
 		if (currentCd > 0 && currentCd != undefined && skill.charge == false) return;
 		if (skill.charge == true && currentCd < skill.charge_min!) return;
+		if (skill.canUse && !skill.canUse(source)) return;
+		if (!spendMana(source, skill.mana)) return;
 
 		source.runCommand(`tellraw @a[r=64] {"rawtext":[{"text":"${source.name} Used their ${skill.type} ${skill.name}"}]}`);
 		skill.action(source);
@@ -225,7 +234,7 @@ export { WeaponHandler, SkillSwitcher, SkillHandler, CommandHandler };
 
 export { applyCustomDamage };
 
-export function triggerAttack(source: Player, delay: number, damage: number, radius: number, animation: string, sound: string, projectile?: ProjectileConfig, controller?: string, onHit?: (hits: number) => void): void {
+export function triggerAttack(source: Player, delay: number, damage: number, radius: number, animation: string, sound: string, projectile?: ProjectileConfig, controller?: string, onHit?: (hits: number) => void, onStrike?: (source: Player, target: Entity) => void, cast?: (source: Player, damage: number, range: number) => void): void {
 	if (!source) return console.error("No Players found!");
 	if (!delay && !damage) return console.error("Specify Damage and Delay before Damage Value");
 	if (!radius && !projectile) return console.error("Specify Radius Value");
@@ -236,8 +245,9 @@ export function triggerAttack(source: Player, delay: number, damage: number, rad
 	system.runTimeout(() => {
 		if (!source.isValid) return;
 		if (projectile) fireProjectile(source, projectile);
+		else if (cast) cast(source, damage, radius);
 		else {
-			const hits = applyCustomDamage(source, damage, radius);
+			const hits = applyCustomDamage(source, damage, radius, 1, onStrike ? (target) => onStrike(source, target) : undefined);
 			onHit?.(hits);
 		}
 		if (!sound) return;

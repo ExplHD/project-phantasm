@@ -162,6 +162,61 @@
 			"max_distance": 100,
 			"subtitle": "subtitles.custom.laser_beam"
 		},
+		"custom_sfx.interpolaris_cast": {
+			"sounds": [
+				{
+					"name": "sounds/custom_sfx/interpolaris_cast",
+					"volume": 0.9
+				}
+			],
+			"category": "player",
+			"max_distance": 24,
+			"subtitle": "subtitles.custom.interpolaris_cast"
+		},
+		"custom_sfx.interpolaris_sword": {
+			"sounds": [
+				{
+					"name": "sounds/custom_sfx/interpolaris_sword",
+					"volume": 1
+				}
+			],
+			"category": "player",
+			"max_distance": 40,
+			"subtitle": "subtitles.custom.interpolaris_sword"
+		},
+		"custom_sfx.interpolaris_laser": {
+			"sounds": [
+				{
+					"name": "sounds/custom_sfx/interpolaris_laser",
+					"volume": 0.8
+				}
+			],
+			"category": "player",
+			"max_distance": 40,
+			"subtitle": "subtitles.custom.interpolaris_laser"
+		},
+		"custom_sfx.interpolaris_noise": {
+			"sounds": [
+				{
+					"name": "sounds/custom_sfx/interpolaris_noise",
+					"volume": 0.9
+				}
+			],
+			"category": "player",
+			"max_distance": 32,
+			"subtitle": "subtitles.custom.interpolaris_noise"
+		},
+		"custom_sfx.interpolaris_shroud": {
+			"sounds": [
+				{
+					"name": "sounds/custom_sfx/interpolaris_shroud",
+					"volume": 0.9
+				}
+			],
+			"category": "player",
+			"max_distance": 24,
+			"subtitle": "subtitles.custom.interpolaris_shroud"
+		},
 		"player.dash": {
 			"sounds": [
 				"sounds/custom_sfx/dash"

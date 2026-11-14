@@ -1,0 +1,20 @@
+{
+	"format_version": "1.20.80",
+	"minecraft:client_entity": {
+		"description": {
+			"identifier": "ph:interpolaris_seat",
+			"materials": {
+				"default": "entity_alphatest"
+			},
+			"textures": {
+				"default": "textures/none"
+			},
+			"geometry": {
+				"default": "geometry.interpolaris_rig"
+			},
+			"render_controllers": [
+				"controller.render.default"
+			]
+		}
+	}
+}

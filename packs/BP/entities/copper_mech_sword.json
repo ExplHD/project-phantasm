@@ -11,6 +11,15 @@
             "despawn": {
                 "minecraft:instant_despawn": {}
             },
+            "ph:scripted_despawn": {
+                "minecraft:timer": {
+                    "looping": false,
+                    "time": 3,
+                    "time_down_event": {
+                        "event": "despawn"
+                    }
+                }
+            },
             "ph:dash_timer": {
                 "minecraft:timer": {
                     "looping": false,
@@ -81,6 +90,18 @@
                     ]
                 }
             },
+            "ph:scripted": {
+                "remove": {
+                    "component_groups": [
+                        "ph:dash_timer"
+                    ]
+                },
+                "add": {
+                    "component_groups": [
+                        "ph:scripted_despawn"
+                    ]
+                }
+            },
             "ph:dash": {
                 "add": {
                     "component_groups": [
@@ -94,7 +115,7 @@
                 },
                 "queue_command": {
                     "command": [
-                        "scriptevent ph:ram_dash 8, 35, 1.1, ",
+                        "scriptevent ph:ram_dash 8, 60, 1.1, ",
                         "execute unless score sfx_sword sfx_cd matches 1.. run playsound custom_sfx.judgement_cut @a[r=32] ~~~ 1 1 0.3",
                         "scoreboard players set sfx_sword sfx_cd 3"
                     ]

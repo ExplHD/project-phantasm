@@ -62,7 +62,7 @@
             },
             "ph:dash_timer": {
                 "minecraft:timer": {
-                    "time": 3.275,
+                    "time": 2.25,
                     "time_down_event": {
                         "event": "ph:dash"
                     }
@@ -83,7 +83,7 @@
             },
             "ph:slash_timer": {
                 "minecraft:timer": {
-                    "time": 3,
+                    "time": 2.25,
                     "time_down_event": {
                         "event": "ph:slash_attack"
                     }
@@ -547,7 +547,7 @@
                 },
                 "queue_command": {
                     "command": [
-                        "scriptevent ph:ram_dash 17, 35, 2, custom_sfx.judgement_cut"
+                        "scriptevent ph:ram_dash 17, 60, 2, custom_sfx.judgement_cut"
                     ]
                 }
             },
@@ -564,7 +564,7 @@
                 },
                 "queue_command": {
                     "command": [
-                        "damage @e[type=!item,family=!inanimate,rm=0.1,r=8] 29 entity_attack entity @s",
+                        "damage @e[type=!item,family=!inanimate,rm=0.1,r=8] 54 entity_attack entity @s",
                         "playsound weapon_slash.slash_heavy @a[r=16] ~~~ 1 1 0.3",
                         "tag @s remove locked"
                     ]
